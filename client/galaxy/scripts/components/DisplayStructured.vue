@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div v-for="error in errorMessages">
+        <div :key="error" v-for="error in errorMessages">
             <div class="alert alert-danger" role="alert">
                 {{ error }}
             </div>

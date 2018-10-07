@@ -1,3 +1,4 @@
+/* global Backbone */
 import Tools from "mvc/tool/tools";
 import Upload from "mvc/upload/upload-view";
 import _l from "utils/localization";

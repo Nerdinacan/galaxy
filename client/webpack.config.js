@@ -4,11 +4,12 @@ var path = require("path");
 var scriptsBase = path.join(__dirname, "galaxy/scripts");
 var libsBase = path.join(scriptsBase, "libs");
 
-const VueLoaderPlugin = require('vue-loader/lib/plugin');
+const VueLoaderPlugin = require("vue-loader/lib/plugin");
 
 // libraries used on almost every page
 var commonLibs = [
     "polyfills",
+    "regenerator-runtime/runtime.js", // for async function syntax
     // jquery et al
     "jquery",
     "libs/jquery/jquery.migrate",
@@ -52,12 +53,14 @@ let buildconfig = {
         filename: "[name].bundled.js"
     },
     resolve: {
+        extensions: [".js", ".vue", ".json"],
         modules: [scriptsBase, "node_modules"],
         alias: {
             //TODO: correct our imports and remove these rules
             // Backbone looks for these in the same root directory
             jquery: path.join(libsBase, "jquery/jquery"),
-            underscore: path.join(libsBase, "underscore.js")
+            underscore: path.join(libsBase, "underscore.js"),
+            vue$: "vue/dist/vue.esm.js"
         }
     },
     module: {
@@ -90,10 +93,18 @@ let buildconfig = {
                 ]
             },
             {
+                test: /\.scss$/,
+                use: [
+                    "style-loader",
+                    "css-loader",
+                    "sass-loader"
+                ]
+            },
+            {
                 test: /\.css$/,
                 use: [
-                    'style-loader',
-                    'css-loader'
+                    "style-loader",
+                    "css-loader"
                 ]
             }
         ]
