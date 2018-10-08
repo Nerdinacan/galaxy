@@ -10,11 +10,6 @@ Vue.use(VueRx);
 
 export default {
     props: ["workflow_id", "invocation_id"],
-    data() {
-        return {
-            invocation: null
-        };
-    },
     computed: {
         statusMessage() {
             return this.invocation ? this.invocation.state : "No status";

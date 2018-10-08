@@ -1,5 +1,5 @@
-// import Monitor from "../MonitorRx";
-import Monitor from "../MonitorVuex";
+import Monitor from "../MonitorRx";
+// import Monitor from "../MonitorVuex";
 import { getInvocationsForWorkflow } from "../services";
 
 export default {
@@ -11,11 +11,6 @@ export default {
         return {
             invocations: []
         };
-    },
-    computed: {
-        queryJson() {
-            return JSON.stringify(this.invocations);
-        }
     },
     created() {
         getInvocationsForWorkflow(this.workflow_id)

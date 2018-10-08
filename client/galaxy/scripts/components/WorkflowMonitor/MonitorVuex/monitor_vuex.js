@@ -4,6 +4,8 @@
  * the store.
  */
 
+import { store } from "store/";
+
 export default {
     props: ["workflow_id", "invocation_id"],
     computed: {
