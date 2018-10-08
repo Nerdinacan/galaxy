@@ -21,32 +21,22 @@ const state = {
 
 const actions = {
 
-    // Using only vuex, will rely on a setTimeout to repeat
-    // same polling action again and again
+    // Using only vuex, will rely on a setTimeout for polls
     checkInvocationStatus({ dispatch, commit }, params) {
+
+        let retryDelay = 2000;
 
         return loader(params)
             .then(hydrate)
             .then(inv => {
-                // console.log("invocation retrieved", inv);
                 commit('setInvocation', inv);
-                return inv;
-            })
-
-            // this never registers changes in components, I suspect
-            // the recursive call to dispatch is a problem
-            // This is kind of a perfect reason not to use Vuex
-            .then(inv => {
                 if (!inv.isComplete()) {
-                    let retryDelay = 2000;
                     setTimeout(() => {
-                        console.log("not done", params);
                         dispatch('checkInvocationStatus', params);
                     }, retryDelay);
                 }
                 return inv;
             })
-
             .catch(err => {
                 console.log("Ooops", err);
             })
@@ -55,12 +45,17 @@ const actions = {
 
 
 // this is where the state actually gets changed, only
-// through a commit call inside an action
+// through a commit call inside an action.
+
+// NOTE! remember to actually change the object instance or
+// the observable will not recognize the change. If you just
+// change a prop on state.invocations, it's not a new state
 
 const mutations = {
     setInvocation(state, inv) {
-        console.log('setting invocation', state, inv);
-        state.invocations[inv.id] = inv;
+        state.invocations = Object.assign({}, state.invocations, {
+            [inv.id]: inv
+        });
     }
 }
 
