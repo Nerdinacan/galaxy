@@ -1,11 +1,11 @@
-import MonitorRx from "../MonitorRx";
-// import MonitorVuex from "../MonitorVuex";
+// import Monitor from "../MonitorRx";
+import Monitor from "../MonitorVuex";
 import { getInvocationsForWorkflow } from "../services";
 
 export default {
     props: ["workflow_id"],
     components: {
-        monitor: MonitorRx
+        monitor: Monitor
     },
     data() {
         return {

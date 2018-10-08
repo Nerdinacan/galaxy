@@ -4,20 +4,20 @@
  * the store.
  */
 
-// import { mapGetters } from "vuex";
-import store from "store";
-
 export default {
     props: ["workflow_id", "invocation_id"],
     computed: {
-        statusMessage() {
+        invocation() {
             let id = this.invocation_id;
-            let source = store.invocation.invocationStatus;
-            return (id in source) ? source[id] : "Nuthin";
+            return this.$store.getters.getInvocation(id);
+        },
+        statusMessage() {
+            let inv = this.invocation;
+            return inv ? inv.state : "No status";
         }
     },
     created() {
-        store.invocations.dispatch('checkInvocationStatus', {
+        this.$store.dispatch('checkInvocationStatus', {
             invocation_id: this.invocation_id,
             workflow_id: this.workflow_id
         });

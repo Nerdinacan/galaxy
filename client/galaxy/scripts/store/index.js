@@ -4,12 +4,10 @@
 
 import Vue from "vue";
 import Vuex from "vuex";
-import invocations from "../components/WorkflowMonitor/MonitorVuex/store";
-
 Vue.use(Vuex);
 
-export default new Vuex.Store({
-    modules: {
-        invocations
-    }
+import invocation from "../components/WorkflowMonitor/MonitorVuex/store";
+
+export const store = new Vuex.Store({
+    modules: { invocation }
 });

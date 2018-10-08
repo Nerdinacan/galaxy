@@ -1,9 +1,3 @@
-<template>
-    <section class="monitor">
-        <h1>Workflow Monitor: {{ statusMessage }}</h1>
-        <p>{{ invocation }}</p>
-    </section>
-</template>
-
-<script src="./monitor_vuex.js"></script>
+<template src="../monitorTemplate.html"></template>
 <style lang="scss" src="../styles.scss"></style>
+<script src="./monitor_vuex.js"></script>

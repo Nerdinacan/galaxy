@@ -2,7 +2,12 @@
  * Vuex store module for invocations
  */
 
-import { loadInvocations, hydrate } from "../service";
+import { loadInvocations, hydrate, invocationCache, getInvocationsForWorkflow }
+    from "../services";
+
+
+// Build data loader function
+const loader = loadInvocations(invocationCache, getInvocationsForWorkflow);
 
 
 // initial application state, keyed object of invocations
@@ -20,17 +25,28 @@ const actions = {
     // same polling action again and again
     checkInvocationStatus({ dispatch, commit }, params) {
 
-        loadInvocations(params)
+        return loader(params)
             .then(hydrate)
-            .then(invocation => {
-                commit('setInvocation', invocation);
-                if (!invocation.isComplete()) {
-                    let retryDelay = 1000;
+            .then(inv => {
+                // console.log("invocation retrieved", inv);
+                commit('setInvocation', inv);
+                return inv;
+            })
+
+            // this never registers changes in components, I suspect
+            // the recursive call to dispatch is a problem
+            // This is kind of a perfect reason not to use Vuex
+            .then(inv => {
+                if (!inv.isComplete()) {
+                    let retryDelay = 2000;
                     setTimeout(() => {
+                        console.log("not done", params);
                         dispatch('checkInvocationStatus', params);
                     }, retryDelay);
                 }
+                return inv;
             })
+
             .catch(err => {
                 console.log("Ooops", err);
             })
@@ -42,8 +58,9 @@ const actions = {
 // through a commit call inside an action
 
 const mutations = {
-    setInvocation(state, invocation) {
-        state.invocations[invocation.id] = invocation;
+    setInvocation(state, inv) {
+        console.log('setting invocation', state, inv);
+        state.invocations[inv.id] = inv;
     }
 }
 
@@ -52,20 +69,15 @@ const mutations = {
 // must be defined as a getter (I think)
 
 const getters = {
-    invocationStatus(state) {
-        return objectPluck(state.invocations, "state");
+    getInvocation: (state) => (id) => {
+        return state.invocations[id];
+    },
+    invocationStatus: (state, getters) => (id) => {
+        let inv = getters.getInvocation(id);
+        return (inv) ? inv.state : "No status";
     }
 }
 
-
-// utility func
-
-function objectPluck(o, pluckProp) {
-    return Object.keys(o).reduce((result, key) => {
-        result[key] = o[key][pluckProp];
-        return result;
-    }, {});
-}
 
 
 export default {

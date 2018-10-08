@@ -30,7 +30,9 @@ import DatasetEditAttributes from "mvc/dataset/dataset-edit-attributes";
 import Citations from "components/Citations.vue";
 import DisplayStructure from "components/DisplayStructured.vue";
 import Vue from "vue";
+
 import MonitorList from "components/WorkflowMonitor/List";
+import { store } from "../store";
 
 /* global Galaxy */
 
@@ -404,6 +406,7 @@ window.app = function app(options, bootstrapped) {
             appendToMe.appendChild(container);
             let InvocationMonitor = Vue.extend(MonitorList);
             new InvocationMonitor({
+                store,
                 propsData: {
                     workflow_id: Utils.getQueryString("id")
                 }

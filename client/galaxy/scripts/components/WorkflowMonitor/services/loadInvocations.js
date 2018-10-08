@@ -12,7 +12,7 @@ export const loadInvocations = (cache, loader) => async (params) => {
     // check cache
     let cachedResult = cache.getItem(params);
     if (cachedResult) {
-        return cachedResult;
+        return Promise.resolve(cachedResult);
     }
 
     // ajax call, actually returning whole list of invocations for this workflow
