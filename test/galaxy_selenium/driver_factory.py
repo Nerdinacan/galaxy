@@ -25,6 +25,13 @@ def get_local_driver(browser=DEFAULT_BROWSER):
             raise Exception("Selenium browser is 'auto' but neither geckodriver or chromedriver are found on PATH.")
 
     assert browser in ["CHROME", "FIREFOX", "OPERA", "PHANTOMJS"]
+
+    # run headless if we can
+    options = {}
+    if browser == "CHROME":
+        options = webdriver.ChromeOptions()
+        options.add_argument("headless")
+
     driver_to_class = {
         "CHROME": webdriver.Chrome,
         "FIREFOX": webdriver.Firefox,
@@ -32,7 +39,11 @@ def get_local_driver(browser=DEFAULT_BROWSER):
         "PHANTOMJS": webdriver.PhantomJS,
     }
     driver_class = driver_to_class[browser]
-    return driver_class(desired_capabilities={"loggingPrefs": LOGGING_PREFS})
+
+    return driver_class(
+        desired_capabilities={"loggingPrefs": LOGGING_PREFS},
+        chrome_options=options
+    )
 
 
 def get_remote_driver(
