@@ -135,6 +135,8 @@ node_modules
 bower_components
 client/galaxy/scripts/libs/*
 client/galaxy/style/less/*
+# TODO: Remove if we keep any of this experimental code
+static/history.html
 
 # Documentation build files.
 doc/build

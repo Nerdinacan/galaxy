@@ -1,7 +1,13 @@
 {
-  "presets": ["env"],
+  "presets": [
+    "@babel/preset-env"
+  ],
   "moduleIds": true,
-  "plugins": ["transform-vue-template"],
+  "plugins": [
+    "transform-vue-template",
+    "@babel/plugin-proposal-object-rest-spread",
+    "@babel/plugin-syntax-dynamic-import"
+  ],
   "ignore": [
     "i18n.js",
     "utils/localization.js",
