@@ -4,10 +4,11 @@ var path = require("path");
 var scriptsBase = path.join(__dirname, "galaxy/scripts");
 var libsBase = path.join(scriptsBase, "libs");
 
-const VueLoaderPlugin = require('vue-loader/lib/plugin');
+const VueLoaderPlugin = require("vue-loader/lib/plugin");
 
 // libraries used on almost every page
 var commonLibs = [
+    "@babel/polyfill",
     "polyfills",
     // jquery et al
     "jquery",
@@ -91,10 +92,7 @@ let buildconfig = {
             },
             {
                 test: /\.css$/,
-                use: [
-                    'style-loader',
-                    'css-loader'
-                ]
+                use: ["style-loader", "css-loader"]
             }
         ]
     },
