@@ -4,6 +4,7 @@ var path = require("path");
 var scriptsBase = path.join(__dirname, "galaxy/scripts");
 var libsBase = path.join(scriptsBase, "libs");
 
+const HtmlWebpackPlugin = require("html-webpack-plugin");
 const VueLoaderPlugin = require("vue-loader/lib/plugin");
 
 // libraries used on almost every page
@@ -46,7 +47,8 @@ let buildconfig = {
         analysis: "./galaxy/scripts/apps/analysis.js",
         admin: "./galaxy/scripts/apps/admin.js",
         chart: "./galaxy/scripts/apps/chart.js",
-        extended: "./galaxy/scripts/apps/extended.js"
+        extended: "./galaxy/scripts/apps/extended.js",
+        teststub: "./galaxy/scripts/apps/test.js"
     },
     output: {
         path: path.join(__dirname, "../", "static/scripts/bundled"),
@@ -58,7 +60,9 @@ let buildconfig = {
             //TODO: correct our imports and remove these rules
             // Backbone looks for these in the same root directory
             jquery: path.join(libsBase, "jquery/jquery"),
-            underscore: path.join(libsBase, "underscore.js")
+            underscore: path.join(libsBase, "underscore.js"),
+            vue$: "vue/dist/vue.esm.js",
+            "vue-router$": "vue-router/dist/vue-router.esm.js"
         }
     },
     module: {
@@ -68,14 +72,16 @@ let buildconfig = {
                 loader: "vue-loader",
                 options: {
                     loaders: {
-                        js: "babel-loader"
+                        js: "babel-loader",
+                        options: { babelrc: true }
                     }
                 }
             },
             {
                 test: /\.js$/,
                 exclude: [/(node_modules\/(?!(handsontable)\/)|bower_components)/, libsBase],
-                loader: "babel-loader"
+                loader: "babel-loader",
+                options: { babelrc: true }
             },
             {
                 test: require.resolve("jquery"),
@@ -121,7 +127,11 @@ let buildconfig = {
             Backbone: "libs/backbone"
         }),
         // new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 })
-        new VueLoaderPlugin()
+        new VueLoaderPlugin(),
+        new HtmlWebpackPlugin({
+            filename: path.resolve(__dirname, "../", "static/teststub.html"),
+            excludeChunks: ["login", "admin", "analysis", "chart", "extended"]
+        })
     ]
 };
 
