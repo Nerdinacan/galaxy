@@ -3,14 +3,7 @@
  * This is a dummy stub vue application we'll add components to
  */
 
-/**
- * Temporary entry point for history model testing
- * This should really be a Vue plugin later on
- * http://localhost:8080/static/test.html
- */
-
 import "@babel/polyfill";
-// import "regenerator-runtime/runtime.js";
 import Vue from "vue";
 import Router from "vue-router";
 import Vuex from "vuex";
