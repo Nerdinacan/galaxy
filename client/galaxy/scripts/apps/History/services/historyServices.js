@@ -28,12 +28,15 @@ history_contents.py
 
 import { map } from "rxjs/operators";
 import { ajax } from "../util";
-import { HistoryCollection, History } from "./model/HistoryCollection";
+import { History, HistorySummary } from "./model/History";
 
 export function getHistories() {
-    return ajax({ url: "histories" }).pipe(map(HistoryCollection.hydrate));
+    let params = { url: "histories" };
+    let hydrateList = list => list.map(HistorySummary.hydrate);
+    return ajax(params).pipe(map(hydrateList));
 }
 
 export function getHistoryById(id) {
-    return ajax({ url: `histories/${id}/contents` }).pipe(map(History.hydrate));
+    let params = { url: `histories/${id}/contents` };
+    return ajax(params).pipe(map(History.hydrate));
 }

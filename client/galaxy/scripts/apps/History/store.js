@@ -2,22 +2,29 @@
  * History store
  */
 
-import { ajax } from "./util";
+// import { ajax } from "./util";
+import { getHistories, getHistoryById } from "./services";
 
 const state = {
     histories: [],
-    currentHistoryId: null
+    currentHistory: null
 };
 
 const actions = {
+    loadHistory({ commit }, id) {
+        getHistoryById(id).subscribe(
+            result => commit("setCurrentHistory", result),
+            err => console.warn("loadHistory error", err)
+        );
+    },
     loadHistories({ commit }) {
-        ajax({ url: "histories" }).subscribe(
+        getHistories().subscribe(
             result => commit("setHistories", result),
             err => console.warn("loadHistories error", err)
         );
     },
-    selectHistory({ commit }, id) {
-        commit("selectHistory", id);
+    selectHistory({ commit, dispatch }, id) {
+        dispatch("loadHistory", id);
     }
 };
 
@@ -25,22 +32,25 @@ const mutations = {
     setHistories(state, newHistories) {
         state.histories = [...newHistories];
     },
-    selectHistory(state, id) {
-        state.currentHistoryId = id;
+    setCurrentHistory(state, history) {
+        state.currentHistory = history;
     }
+    // selectHistory(state, id) {
+    //     state.currentHistoryId = id;
+    // }
 };
 
-const getters = {
-    currentHistory() {
-        let matcher = h => h.id == state.currentHistoryId;
-        return state.histories.find(matcher);
-    }
-};
+// const getters = {
+//     currentHistory() {
+//         let matcher = h => h.id == state.currentHistoryId;
+//         return state.histories.find(matcher);
+//     }
+// };
 
 export default {
     namespaced: true,
     state,
     actions,
-    mutations,
-    getters
+    mutations
+    // getters
 };

@@ -2,10 +2,11 @@
  * HistoryCollection
  */
 
+import { History } from "./History";
+
 export class HistoryCollection {
     constructor(rawListData) {
-        this.activeHistory = null;
-        this.histories = rawListData.map(o => new History(o));
+        this.histories = rawListData.map(History.hydrate);
     }
     addHistory(raw) {
         let newHistory = new History(raw);
@@ -13,6 +14,7 @@ export class HistoryCollection {
         return newHistory;
     }
     static hydrate(data) {
+        debugger;
         return new HistoryCollection(data);
     }
 }

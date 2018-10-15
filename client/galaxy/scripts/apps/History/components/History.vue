@@ -6,7 +6,7 @@
             <pre>{{histories}}</pre>
         </div>
         <div>
-            <h2>Selected History</h2>
+            <h2>Load Details</h2>
             <input v-model="selectedHistoryId" />
             <button @click.prevent="selectHistory(selectedHistoryId)">Select History</button>
             <pre>{{currentHistory}}</pre>
