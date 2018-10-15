@@ -2,6 +2,6 @@
 export { getHistories, getHistoryById } from "./historyServices";
 
 // model objects
-// export { HistoryCollection } from "./model/HistoryCollection";
 export { History } from "./model/History";
+export { HistorySummary } from "./model/HistorySummary";
 export { HistoryStep } from "./model/HistoryStep";

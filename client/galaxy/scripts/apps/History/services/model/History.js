@@ -3,23 +3,19 @@
  * some people have like 10,000 steps in one history
  */
 
+import { HistoryStep } from "./HistoryStep";
+
 export class History {
-    constructor(steps = []) {
+    constructor(props = {}) {
         this.startIndex = 0;
         this.endIndex = null;
         this.pageSize = 10;
-        this.steps = steps;
+        Object.assign(this, props);
+    }
+    loadContents(steps = []) {
+        this.steps = steps.map(HistoryStep.hydrate);
     }
     static hydrate(steps) {
         return new History(steps);
-    }
-}
-
-export class HistorySummary {
-    constructor(props = {}) {
-        Object.assign(this, props);
-    }
-    static hydrate(stuff) {
-        return new HistorySummary(stuff);
     }
 }

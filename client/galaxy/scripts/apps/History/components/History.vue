@@ -2,7 +2,6 @@
     <section>
         <div>
             <h2>Histories</h2>
-            <button @click.prevent="loadHistories">Load Histories</button>
             <pre>{{histories}}</pre>
         </div>
         <div>
@@ -15,3 +14,4 @@
 </template>
 
 <script src="./History.js"></script>
+<!-- <script src="./HistoryRx.js"></script> -->

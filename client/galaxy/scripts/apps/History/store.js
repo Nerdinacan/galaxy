@@ -3,7 +3,8 @@
  */
 
 // import { ajax } from "./util";
-import { getHistories, getHistoryById } from "./services";
+import { map } from "rxjs/operators";
+import { History, HistorySummary, getHistories, getHistoryById } from "./services";
 
 const state = {
     histories: [],
@@ -12,16 +13,21 @@ const state = {
 
 const actions = {
     loadHistory({ commit }, id) {
-        getHistoryById(id).subscribe(
-            result => commit("setCurrentHistory", result),
-            err => console.warn("loadHistory error", err)
-        );
+        getHistoryById(id)
+            .pipe(map(History.hydrate))
+            .subscribe(
+                result => commit("setCurrentHistory", result),
+                err => console.warn("loadHistory error", err)
+            );
     },
     loadHistories({ commit }) {
-        getHistories().subscribe(
-            result => commit("setHistories", result),
-            err => console.warn("loadHistories error", err)
-        );
+        let hydrateList = list => list.map(HistorySummary.hydrate);
+        getHistories()
+            .pipe(map(hydrateList))
+            .subscribe(
+                result => commit("setHistories", result),
+                err => console.warn("loadHistories error", err)
+            );
     },
     selectHistory({ commit, dispatch }, id) {
         dispatch("loadHistory", id);

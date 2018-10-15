@@ -3,10 +3,10 @@
  */
 
 export class HistoryStep {
-    constructor(args) {
-        Object.assign(this, ...args);
+    constructor(stepProps = {}) {
+        Object.assign(this, stepProps);
     }
-    static hydrate(data) {
-        return new HistoryStep(data);
+    static hydrate(stepProps) {
+        return new HistoryStep(stepProps);
     }
 }

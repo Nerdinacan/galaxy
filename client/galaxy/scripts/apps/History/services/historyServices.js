@@ -26,17 +26,18 @@ history_contents.py
 
 */
 
-import { map } from "rxjs/operators";
+import { of } from "rxjs";
 import { ajax } from "../util";
-import { History, HistorySummary } from "./model/History";
 
 export function getHistories() {
-    let params = { url: "histories" };
-    let hydrateList = list => list.map(HistorySummary.hydrate);
-    return ajax(params).pipe(map(hydrateList));
+    return ajax({ url: "histories" });
 }
 
+// todo: implement pagination paraeters here
 export function getHistoryById(id) {
-    let params = { url: `histories/${id}/contents` };
-    return ajax(params).pipe(map(History.hydrate));
+    return id ? ajax({ url: `histories/${id}` }) : of(null);
+}
+
+export function getHistoryContents(history, startIndex = 0, endIndex = null) {
+    return ajax({ url: `histories/${history.id}/contents` });
 }
