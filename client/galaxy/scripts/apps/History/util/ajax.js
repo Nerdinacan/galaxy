@@ -47,6 +47,6 @@ const ajaxErrorHandler = (err, caught) => {
  */
 const prependUrl = ([request, config]) => {
     let { url, ...requestParams } = request;
-    let newUrl = `${config.apiPrefix}/${url}`.replace(/\/\//g, "/");
+    let newUrl = `${config.apiPrefix}/${url}`;
     return { ...requestParams, url: newUrl };
 };

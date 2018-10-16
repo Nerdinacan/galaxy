@@ -23,21 +23,30 @@ histories.py
 
 history_contents.py
     GET /api/histories/{history_id}/contents
-
 */
 
 import { of } from "rxjs";
+import { map } from "rxjs/operators";
 import { ajax } from "../util";
+import { History, HistorySummary, HistoryStep } from "./index";
 
 export function getHistories() {
-    return ajax({ url: "histories" });
+    let hydrateList = list => list.map(HistorySummary.hydrate);
+    let req = { url: "histories" };
+    return ajax(req).pipe(map(hydrateList));
 }
 
-// todo: implement pagination paraeters here
 export function getHistoryById(id) {
-    return id ? ajax({ url: `histories/${id}` }) : of(null);
+    if (!id) return of(null);
+    let req = { url: `histories/${id}` };
+    return ajax(req).pipe(map(History.hydrate));
 }
 
-export function getHistoryContents(history, startIndex = 0, endIndex = null) {
-    return ajax({ url: `histories/${history.id}/contents` });
+export function getHistoryContents(id, startIndex = 0, endIndex = null) {
+    let req = { url: `histories/${id}/contents` };
+    return ajax(req).pipe(
+        map(list => {
+            return list.map(HistoryStep.hydrate);
+        })
+    );
 }

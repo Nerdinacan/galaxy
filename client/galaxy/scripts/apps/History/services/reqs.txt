@@ -1,0 +1,4 @@
+SearchableModelMixin
+List of objects need to be filterable with a prototype?
+Rxjs is REALLY good at that
+
