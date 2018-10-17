@@ -4,9 +4,9 @@
  * yet, I'm putting it all here
  */
 
-export { doMeSomeAjax as ajax } from "./ajax";
-export { initAjaxErrorMonitor } from "./ajaxErrorMonitor";
 export { config } from "./config";
+export { doMeSomeAjax as ajax } from "./ajax";
 export { errors, setError } from "./errors";
+export { initAjaxErrorMonitor } from "./ajaxErrorMonitor";
 export { getApiKey } from "./authService";
 export { setAuthToken, authToken$ } from "./authToken";

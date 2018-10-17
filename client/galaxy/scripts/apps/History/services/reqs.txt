@@ -1,4 +1,6 @@
 SearchableModelMixin
 List of objects need to be filterable with a prototype?
-Rxjs is REALLY good at that
+
+need to be able to page/search through the HistoryStep collection because
+Dannon says it might get big
 

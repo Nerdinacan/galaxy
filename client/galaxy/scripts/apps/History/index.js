@@ -6,7 +6,6 @@
 
 // polyfills, ..., async, move to webpack
 import "@babel/polyfill";
-import "regenerator-runtime/runtime.js";
 
 import Vue from "vue";
 import VueRx from "vue-rx";
@@ -19,7 +18,10 @@ Vue.use(VueRx);
 export default {
     install(Vue, { router, store }) {
         router.addRoutes(historyRoutes);
-        store.registerModule("history", historyStore);
+        store.registerModule("history", {
+            namespaced: true,
+            ...historyStore
+        });
         initAjaxErrorMonitor(router);
     }
 };

@@ -25,28 +25,44 @@ history_contents.py
     GET /api/histories/{history_id}/contents
 */
 
-import { of } from "rxjs";
 import { map } from "rxjs/operators";
 import { ajax } from "../util";
-import { History, HistorySummary, HistoryStep } from "./index";
+import { History, HistorySummary, HistoryContent } from "../model";
 
-export function getHistories() {
-    let hydrateList = list => list.map(HistorySummary.hydrate);
-    let req = { url: "histories" };
-    return ajax(req).pipe(map(hydrateList));
+// Turns a list of raw json into model objects
+export function hydrateList(Constructor) {
+    return list => list.map(Constructor);
 }
 
+/**
+ * Load all histories
+ *
+ * @returns Observable stream of HistorySummary objects
+ */
+export function getHistories() {
+    let req = { url: "histories" };
+    return ajax(req).pipe(map(hydrateList(HistorySummary.hydrate)));
+}
+
+/**
+ * Load one history detail by id
+ *
+ * @param {string} id
+ * @requires Observable of a single History
+ */
 export function getHistoryById(id) {
-    if (!id) return of(null);
     let req = { url: `histories/${id}` };
     return ajax(req).pipe(map(History.hydrate));
 }
 
+/**
+ * Loads a paginated slice of the contents of a particular history
+ *
+ * @param {string} id History id
+ * @param {integer} startIndex default 0, start of pagination slice
+ * @param {integer} endIndex default null, end of pagination slice
+ */
 export function getHistoryContents(id, startIndex = 0, endIndex = null) {
     let req = { url: `histories/${id}/contents` };
-    return ajax(req).pipe(
-        map(list => {
-            return list.map(HistoryStep.hydrate);
-        })
-    );
+    return ajax(req).pipe(map(hydrateList(HistoryContent.hydrate)));
 }

@@ -1,7 +1,5 @@
 // ajax function exposed as observables
-export { getHistories, getHistoryById } from "./historyServices";
+export { getHistories, getHistoryById, getHistoryContents } from "./historyServices";
 
-// model objects
-export { History } from "./model/History";
-export { HistorySummary } from "./model/HistorySummary";
-export { HistoryStep } from "./model/HistoryStep";
+// current history as an observable stream
+export { setCurrentHistoryId, currentHistory } from "./currentHistory";

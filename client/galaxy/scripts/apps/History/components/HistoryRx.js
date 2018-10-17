@@ -1,8 +1,8 @@
 import {
-    histories,
+    getHistories as histories,
     currentHistory,
-    setCurrentHistory as selectHistory
-} from "../services/streams";
+    setCurrentHistoryId as selectHistory
+} from "../services";
 
 export default {
     data() {

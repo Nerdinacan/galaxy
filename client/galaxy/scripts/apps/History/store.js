@@ -1,7 +1,7 @@
 /**
- * History store
+ * History store. Here the current history is something
+ * that is stored in the state instead of an observable
  */
-
 import { getHistories, getHistoryById } from "./services";
 
 const state = {
@@ -12,15 +12,14 @@ const state = {
 const actions = {
     selectHistory({ commit }, id) {
         getHistoryById(id).subscribe(
-            result => commit("setCurrentHistory", result),
-            err => console.warn("loadHistory error", err)
+            result => commit("selectHistory", result),
+            err => console.warn("error", err)
         );
     },
-
     loadHistories({ commit }) {
         getHistories().subscribe(
-            result => commit("setHistories", result),
-            err => console.warn("loadHistories error", err)
+            result => commit("loadHistories", result),
+            err => console.warn("error", err)
         );
     }
 };
@@ -42,7 +41,6 @@ const mutations = {
 // };
 
 export default {
-    namespaced: true,
     state,
     actions,
     mutations
