@@ -32,7 +32,16 @@ def get_local_driver(browser=DEFAULT_BROWSER):
         "PHANTOMJS": webdriver.PhantomJS,
     }
     driver_class = driver_to_class[browser]
-    return driver_class(desired_capabilities={"loggingPrefs": LOGGING_PREFS})
+
+    desired_capabilities = {
+        "loggingPrefs": LOGGING_PREFS
+    }
+    if browser == "CHROME":
+        desired_capabilities["chromeOptions"] = {
+                "args": ["--headless"],
+                "extensions": []
+        }
+    return driver_class(desired_capabilities=desired_capabilities)
 
 
 def get_remote_driver(
