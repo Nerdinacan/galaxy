@@ -390,7 +390,6 @@ window.app = function app(options, bootstrapped) {
                 success: response => {
                     let workflowView = new ToolFormComposite.View(_.extend(response, { active_tab: "workflow" }));
                     this.page.display(workflowView);
-                    this._drawMonitor(workflowView.el); // temp func
                 },
                 error: response => {
                     var error_msg = response.err_msg || "Error occurred while loading the resource.";
@@ -403,19 +402,6 @@ window.app = function app(options, bootstrapped) {
                     this.page.display(new Ui.Message(options));
                 }
             });
-        },
-
-        // tmp func
-        _drawMonitor: function (appendToMe) {
-            let container = document.createElement("div");
-            appendToMe.appendChild(container);
-            let InvocationMonitor = Vue.extend(MonitorList);
-            new InvocationMonitor({
-                store,
-                propsData: {
-                    workflow_id: Utils.getQueryString("id")
-                }
-            }).$mount(container);
         }
     });
 
