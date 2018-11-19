@@ -24,11 +24,13 @@ let buildconfig = {
         chunkFilename: "[name].chunk.js"
     },
     resolve: {
+        extensions: ["*", ".js", ".json", ".vue"],
         modules: [scriptsBase, "node_modules", styleBase, imageBase],
         alias: {
             jquery$: `${libsBase}/jquery.custom.js`,
             jqueryVendor$: `${libsBase}/jquery/jquery.js`,
-            store$: "store/dist/store.modern.js"
+            store$: "store/dist/store.modern.js",
+            vue$: "vue/dist/vue.esm.js"
         }
     },
     optimization: {

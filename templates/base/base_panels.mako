@@ -179,9 +179,8 @@
             ## Background displays first
             <div id="background"></div>
             ## Layer iframes over backgrounds
-            <div id="masthead" class="navbar navbar-fixed-top navbar-inverse">
-                ${self.masthead()}
-            </div>
+            <div id="masthead"></div>
+            ${self.masthead()}
             %if self.message_box_visible:
                 <div id="messagebox" class="panel-${app.config.message_box_class}-message" style="display:block">
                     ${app.config.message_box_content}

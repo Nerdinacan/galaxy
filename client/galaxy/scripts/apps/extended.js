@@ -1,7 +1,7 @@
 import $ from "jquery";
 import "bootstrap";
 // export { GalaxyApp } from "app";
-import { getGalaxyInstance } from "app";
+// import { getGalaxyInstance } from "app";
 export { getGalaxyInstance, setGalaxyInstance } from "app";
 import WorkflowView from "mvc/workflow/workflow-view";
 import { TracksterUIView } from "viz/trackster";
@@ -11,9 +11,9 @@ export { PhylovizView as phyloviz } from "viz/phyloviz";
 export { SweepsterVisualization, SweepsterVisualizationView } from "viz/sweepster";
 import GalaxyLibrary from "galaxy.library";
 import AdminToolshed from "admin.toolshed";
-import Masthead from "layout/masthead";
-import user from "mvc/user/user-model";
-import Modal from "mvc/ui/ui-modal";
+// import Masthead from "layout/masthead";
+// import user from "mvc/user/user-model";
+// import Modal from "mvc/ui/ui-modal";
 export { default as pages } from "galaxy.pages";
 export { createTabularDatasetChunkedView } from "mvc/dataset/data";
 import { HistoryCollection } from "mvc/history/history-model";
@@ -30,17 +30,7 @@ export { create_chart, create_histogram } from "reports/run_stats";
 export { default as ToolshedGroups } from "toolshed/toolshed.groups";
 export { chart, chartUtilities } from "./chart";
 
-export function masthead(options) {
-    let Galaxy = getGalaxyInstance();
-    if (!Galaxy.user) {
-        Galaxy.user = new user.User(options.user_json);
-    }
-    if (!Galaxy.masthead) {
-        Galaxy.masthead = new Masthead.View(options);
-        Galaxy.modal = new Modal.View();
-        $("#masthead").replaceWith(Galaxy.masthead.render().$el);
-    }
-}
+export { mountMasthead } from "components/Masthead/mountMasthead";
 
 export function adminToolshed(options) {
     new AdminToolshed.GalaxyApp(options);
