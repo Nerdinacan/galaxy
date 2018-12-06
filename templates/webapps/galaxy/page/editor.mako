@@ -9,10 +9,13 @@
 %>
 </%def>
 
-<%def name="javascripts()">
-    ${parent.javascripts()}
+<%def name="javascript_app()">
+    ${parent.javascript_app()}
     <script type="text/javascript">
+
         // Define variables needed by galaxy.pages script.
+        // TODO: setup as configs?
+
         var page_id = "${trans.security.encode_id(page.id)}",
             page_list_url = '${h.url_for( controller='pages', action='list' )}',
             list_objects_url = "${h.url_for(controller='page', action='LIST_ACTION' )}",
@@ -22,16 +25,16 @@
             iframe_base_path = "${h.url_for('/static/wymeditor/iframe/galaxy')}/",
             save_url = "${h.url_for(controller='page', action='save' )}";
 
-        $(function(){
-            bundleEntries.pages()
+        config.addInitialization(function(){
+            console.log("editor.mako, javascript_app", "define variables needed by galaxy.pages script");
+            bundleEntries.pages();
         });
-
     </script>
 </%def>
 
 <%def name="stylesheets()">
     ${parent.stylesheets()}
-    ${h.css( "base", "autocomplete_tagging", "embed_item" )}
+    ${h.css( "base", "embed_item" )}
     <style type='text/css'>
         .galaxy-page-editor-button
         {

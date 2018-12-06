@@ -12,9 +12,6 @@
 
 <%def name="stylesheets()">
     ${parent.stylesheets()}
-    <style type="text/css">
-
-    </style>
 </%def>
 
 <%def name="render_item_links( history )">
@@ -41,7 +38,9 @@
         .css( 'height', '100%' )
         .addClass( 'flex-vertical-container' );
 
-    $(function(){
+    config.addInitialization(function(galaxy, config) {
+        console.log("dispplay.mako render_item");
+
         var HistoryContentsWithAnnotations = window.bundleEntries.HistoryContents.extend({
             _buildFetchData : function( options ){
                 console.log( '_buildFetchData:' );
@@ -84,5 +83,6 @@
                 historyView.render();
             });
     });
+    
 </script>
 </%def>

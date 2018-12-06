@@ -14,11 +14,9 @@ import Ui from "mvc/ui/ui-misc";
 import async_save_text from "utils/async-save-text";
 import "ui/editable-text";
 
-// TODO: make show_message and the other utility functions importable/used
-// everywhere, instead of this global model
-/* global show_message */
-/* global hide_modal */
-/* global make_popupmenu */
+import { hide_modal, show_message } from "layout/modal";
+import { make_popupmenu } from "ui/popupmenu";
+
 
 // TODO; tie into Galaxy state?
 window.workflow_globals = window.workflow_globals || {};
@@ -335,7 +333,6 @@ export default Backbone.View.extend({
                     self.workflow.fit_canvas_to_nodes();
                     self.scroll_to_nodes();
                     self.canvas_manager.draw_overview();
-                    // make_popupmenu($("#workflow-versions-switch"), self.get_workflow_versions());
                     self.build_version_select();
 
                     // Determine if any parameters were 'upgraded' and provide message
@@ -381,7 +378,7 @@ export default Backbone.View.extend({
 
         // Load workflow definition
         this.load_workflow(self.options.id, self.options.version);
-        if (window.make_popupmenu) {
+        if (make_popupmenu) {
             make_popupmenu($("#workflow-options-button"), {
                 Save: save_current_workflow,
                 "Save As": workflow_save_as,

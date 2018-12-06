@@ -97,7 +97,7 @@
                                         editable=False, \
                                         use_toggle_link=False )}
     <script type="text/javascript">
-        init_tag_click_function($('#${elt_id}'), tool_tag_click);
+        window.bundleEntries.init_tag_click_function($('#${elt_id}'), tool_tag_click);
     </script>
 </%def>
 

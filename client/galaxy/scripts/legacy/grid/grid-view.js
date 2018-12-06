@@ -1,3 +1,7 @@
+import _ from "underscore";
+import jQuery from "jquery";
+import Backbone from "backbone";
+
 // This is necessary so that, when nested arrays are used in ajax/post/get methods, square brackets ('[]') are
 // not appended to the identifier of a nested array.
 jQuery.ajaxSettings.traditional = true;
@@ -7,6 +11,10 @@ import Utils from "utils/utils";
 import GridModel from "legacy/grid/grid-model";
 import Templates from "legacy/grid/grid-template";
 import PopupMenu from "mvc/ui/popup-menu";
+import { init_refresh_on_change } from "onload/globalInits/init_refresh_on_change";
+
+var $ = jQuery;
+
 // grid view
 export default Backbone.View.extend({
     // model
@@ -19,6 +27,8 @@ export default Backbone.View.extend({
         this.title = grid_config.title;
         this.title_id = grid_config.title_id;
         var self = this;
+
+        // why is this a global?
         window.add_tag_to_grid_filter = (tag_name, tag_value) => {
             // Put tag name and value together.
             var tag = tag_name + (tag_value !== undefined && tag_value !== "" ? `:${tag_value}` : "");
@@ -117,9 +127,7 @@ export default Backbone.View.extend({
 
         // attach global event handler
         // TODO: redundant (the onload/standard page handlers do this) - but needed because these are constructed after page ready
-        if (window.init_refresh_on_change) {
-            window.init_refresh_on_change();
-        }
+        init_refresh_on_change();
     },
 
     // Initialize grid controls
