@@ -20,7 +20,8 @@
     <script type="text/javascript">
         config.addInitialization(function(galaxy, config) {
             // Hmm relies on python-printed variable defined elsewhere?
-            // Not so smooth
+            // That's not great, but the rxjs debouncer should allow
+            // the required config to be written before the init runs.
             if ("bootstrapped" in config) {
                 window.bundleEntries.multiHistory(config.bootstrapped);
             } else {

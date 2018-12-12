@@ -32,14 +32,16 @@
 <%def name="render_item( history, datasets )">
 <div id="history-${ history_dict[ 'id' ] }" class="history-panel"></div>
 <script type="text/javascript">
-    var historyJSON  = ${h.dumps( history_dict )};
-
-    $( '.page-body' )
-        .css( 'height', '100%' )
-        .addClass( 'flex-vertical-container' );
-
     config.addInitialization(function(galaxy, config) {
-        console.log("dispplay.mako render_item");
+        console.log("display.mako render_item");
+
+        var historyJSON  = ${h.dumps(history_dict)};
+
+        // Why are we adding a css prop and a class, can't the
+        // prop be part of the class?
+        $('.page-body')
+            .css('height', '100%')
+            .addClass('flex-vertical-container');
 
         var HistoryContentsWithAnnotations = window.bundleEntries.HistoryContents.extend({
             _buildFetchData : function( options ){
@@ -52,6 +54,7 @@
                 return window.bundleEntries.HistoryContents.prototype._buildFetchData.call( this, options );
             }
         });
+        
         var HistoryWithAnnotations = window.bundleEntries.History.extend({
             contentsClass : HistoryContentsWithAnnotations
         });
@@ -60,7 +63,7 @@
             order           : 'hid-asc',
         });
 
-        $( '.history-copy-link' ).click( function( ev ){
+        $('.history-copy-link').click( function( ev ){
             window.bundleEntries.HistoryCopyDialog( historyModel, { useImport: true, allowAll: false })
                 .done( function(){
                     var mainWindow = ( window && ( window !== window.parent ) )? window.top : window;

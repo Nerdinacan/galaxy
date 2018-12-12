@@ -29,6 +29,9 @@ export default Backbone.View.extend({
         var self = this;
 
         // why is this a global?
+        // Answer: autocom_tagging passes this function from python and
+        // it must be on window scope or it won't work.
+        // TODO: refactor this out by turning the tagging functionality into a component
         window.add_tag_to_grid_filter = (tag_name, tag_value) => {
             // Put tag name and value together.
             var tag = tag_name + (tag_value !== undefined && tag_value !== "" ? `:${tag_value}` : "");

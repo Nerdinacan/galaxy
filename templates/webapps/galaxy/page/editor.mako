@@ -13,9 +13,10 @@
     ${parent.javascript_app()}
     <script type="text/javascript">
 
-        // Define variables needed by galaxy.pages script.
-        // TODO: setup as configs?
-
+        // Define global variables needed by galaxy.pages script.
+        // Apparently pages() relies on these variables being defined
+        // in window. 
+        // TODO: make pages a component
         var page_id = "${trans.security.encode_id(page.id)}",
             page_list_url = '${h.url_for( controller='pages', action='list' )}',
             list_objects_url = "${h.url_for(controller='page', action='LIST_ACTION' )}",
@@ -27,7 +28,7 @@
 
         config.addInitialization(function(){
             console.log("editor.mako, javascript_app", "define variables needed by galaxy.pages script");
-            bundleEntries.pages();
+            window.bundleEntries.pages();
         });
     </script>
 </%def>

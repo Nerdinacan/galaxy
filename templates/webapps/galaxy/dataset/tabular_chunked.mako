@@ -9,9 +9,9 @@
     ${parent.javascript_app()}
 
     <script type="text/javascript">
-        var dataset = ${ h.dumps( trans.security.encode_dict_ids( dataset.to_dict() ) )};
-        var firstChunk = ${chunk};
         config.addInitialization(function(galaxy) {
+            var dataset = ${ h.dumps( trans.security.encode_dict_ids( dataset.to_dict() ) )};
+            var firstChunk = ${chunk};
             window.bundleEntries.createTabularDatasetChunkedView({
                 dataset_config : Object.assign(dataset, {
                     first_data_chunk: firstChunk

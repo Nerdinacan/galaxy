@@ -115,7 +115,7 @@
 
     ## Set up tag click function.
     <script type="text/javascript">
-        init_tag_click_function($('#${elt_id}'), ${tag_click_fn});
+        window.bundleEntries.init_tag_click_function($('#${elt_id}'), ${tag_click_fn});
     </script>
 </%def>
 
