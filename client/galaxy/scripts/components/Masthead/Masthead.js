@@ -32,7 +32,6 @@ export default {
             }
 
             // why is this initialized with the masthead?
-            debugger;
             if (!galaxy.modal) {
                 galaxy.modal = new Modal.View();
             }

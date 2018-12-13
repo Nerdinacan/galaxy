@@ -58,7 +58,7 @@ ${ h.dumps( dictionary, indent=( 2 if trans.debug else 0 ) ) }
 </%def>
 
 <%def name="config_google_analytics(app)">
-    %if app.config.ga_code:
+    %if app and app.config and app.config.ga_code:
         <script>
             (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
             (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),

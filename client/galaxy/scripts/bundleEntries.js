@@ -96,5 +96,4 @@ export let chartUtilities = {
 
 export { initMasthead } from "components/Masthead/initMasthead";
 export { panelManagement } from "onload/globalInits/panelManagement";
-export { refreshFrames } from "onload/globalInits/refreshFrames";
 export { init_tag_click_function } from "ui/autocom_tagging";

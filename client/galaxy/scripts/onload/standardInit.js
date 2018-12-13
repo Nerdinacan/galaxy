@@ -18,7 +18,7 @@ import { defaultAppFactory } from "./defaultAppFactory";
 import { globalInits } from "./globalInits";
 
 // observable configs and init queue
-import { config$, set as setConfig } from "./loadConfig";
+import { config$ } from "./loadConfig";
 import { initializations$, clearInitQueue } from "./initQueue";
 
 

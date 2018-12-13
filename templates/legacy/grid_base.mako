@@ -51,20 +51,15 @@
 
 ## creates grid
 <%def name="load( embedded=False, insert=None )">
+
     <!-- grid_base.mako, load -->
     <div id="grid-container"></div>
-</%def>
-
-<%def name="javascript_app()">
-    
-    <!-- grid_base.mako, javascript_app-->
-    ${parent.javascript_app()}
 
     <script type="text/javascript">
-        var legacyGridViewConfig = ${ h.dumps( self.get_grid_config( embedded=embedded, insert=insert ) ) };
         config.addInitialization(function() {
+            var legacyGridViewConfig = ${ h.dumps( self.get_grid_config( embedded=embedded, insert=insert ) ) };
             console.log("grid_base.mako, javascript_app", legacyGridViewConfig);
-            window.bundleEntries.LegacyGridView(legacyGridViewConfig);
+            new window.bundleEntries.LegacyGridView(legacyGridViewConfig);
         });
     </script>
 </%def>

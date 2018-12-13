@@ -65,8 +65,8 @@
 <%def name="javascript_app()">
 
     ${ galaxy_client.load( app=self.js_app ) }
-    ## ${ galaxy_client.config_sentry( app=self.js_app ) }
-    ## ${ galaxy_client.config_google_analytics( app=self.js_app ) }
+    ${ galaxy_client.config_sentry( app=self.js_app ) }
+    ${ galaxy_client.config_google_analytics( app=self.js_app ) }
 
     %if not form_input_auto_focus is UNDEFINED and form_input_auto_focus:
         <script type="text/javascript">
