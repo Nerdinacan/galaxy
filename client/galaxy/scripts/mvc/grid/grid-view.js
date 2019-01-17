@@ -8,6 +8,7 @@ import Templates from "mvc/grid/grid-template";
 import PopupMenu from "mvc/ui/popup-menu";
 import LoadingIndicator from "ui/loading-indicator";
 import { init_refresh_on_change } from "onload/globalInits/init_refresh_on_change";
+import store from "../../store";
 
 // This is necessary so that, when nested arrays are used in ajax/post/get methods, square brackets ('[]') are
 // not appended to the identifier of a nested array.
@@ -25,17 +26,19 @@ export default Backbone.View.extend({
         this.active_tab = grid_config.active_tab;
         var self = this;
 
-        // Why is this a global?
-        window.add_tag_to_grid_filter = (tag_name, tag_value) => {
-            // Put tag name and value together.
-            var tag = tag_name + (tag_value !== undefined && tag_value !== "" ? `:${tag_value}` : "");
-            var advanced_search = $("#advanced-search").is(":visible");
-            if (!advanced_search) {
-                $("#standard-search").slideToggle("fast");
-                $("#advanced-search").slideToggle("fast");
+        // Subscribe to changes in the store, currently just storing
+        // tag changes from the tagging components, but that will change
+        // when we rework the grid. This subscription ties this older grid 
+        // code to the new vue components
+        store.watch(
+            (state) => state.gridSearch.searchTags,
+            (newTags) => {
+                let tagArray = Array.from(newTags);
+                self.openAdvancedSearch();
+                self.grid.add_filter("tags", tagArray, false);
+                self.render_filter_button("tags", tagArray);
             }
-            self.add_filter_condition("tags", tag);
-        };
+        );
 
         if (grid_config.url_base && !grid_config.items) {
             LoadingIndicator.markViewAsLoading(this);
@@ -310,6 +313,12 @@ export default Backbone.View.extend({
         // Add condition to grid.
         this.grid.add_filter(name, value, true);
 
+        // render filter
+        this.render_filter_button(name, value);
+    },
+
+    render_filter_button: function(name, value) {
+
         // Add button that displays filter and provides a button to delete it.
         var t = $(Templates.filter_element(name, value));
         var self = this;
@@ -332,6 +341,10 @@ export default Backbone.View.extend({
 
     // Remove a condition to the grid filter; this adds the condition and refreshes the grid.
     remove_filter_condition: function(name, value) {
+
+        // update vuex
+        store.dispatch("removeSearchTag", { text: value });
+
         // Remove filter condition.
         this.grid.remove_filter(name, value);
 
@@ -665,5 +678,14 @@ export default Backbone.View.extend({
                 });
             }
         });
+    },
+
+    openAdvancedSearch: function() {
+        var isOpen = $("#advanced-search").is(":visible");
+        if (!isOpen) {
+            $("#standard-search").slideToggle("fast");
+            $("#advanced-search").slideToggle("fast");
+        }
     }
+
 });

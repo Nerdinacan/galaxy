@@ -573,7 +573,7 @@ class CommunityTagsColumn(TextColumn):
 
     def get_value(self, trans, grid, item):
         return trans.fill_template("/tagging_common.mako", tag_type="community", trans=trans, user=trans.get_user(), tagged_item=item, elt_context=self.grid_name,
-                                   in_form=True, input_size="20", tag_click_fn="add_tag_to_grid_filter", use_toggle_link=True)
+                                   in_form=True, tag_click_fn="add_tag_to_grid_filter", use_toggle_link=True)
 
     def filter(self, trans, user, query, column_filter):
         """ Modify query to filter model_class by tag. Multiple filters are ANDed. """
@@ -610,7 +610,6 @@ class IndividualTagsColumn(CommunityTagsColumn):
                                    tagged_item=item,
                                    elt_context=self.grid_name,
                                    in_form=True,
-                                   input_size="20",
                                    tag_click_fn="add_tag_to_grid_filter",
                                    use_toggle_link=True)
 

@@ -11,7 +11,7 @@ module.exports = {
         captureConsole: true
     },
     failOnEmptyTestSuite: false,
-    singleRun: true,
+    // singleRun: true,
     webpack: webpackConfig,
     webpackMiddleware: {
         noInfo: true
