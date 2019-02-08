@@ -1,11 +1,15 @@
 import Backbone from "backbone";
 import _l from "utils/localization";
-import { getGalaxyInstance } from "app";
-import Ui from "mvc/ui/ui-misc";
-import historyOptionsMenu from "mvc/history/options-menu";
-import CurrentHistoryView from "mvc/history/history-view-edit-current";
+// import { getGalaxyInstance } from "app";
+// import Ui from "mvc/ui/ui-misc";
+// import historyOptionsMenu from "mvc/history/options-menu";
+// import CurrentHistoryView from "mvc/history/history-view-edit-current";
+
+import { mountHistory } from "components/History";
+import { genericProxy } from "utils/genericProxy";
 
 /** the right hand panel in the analysis page that shows the current history */
+/*
 var HistoryPanel = Backbone.View.extend({
     initialize: function(page, options) {
         let Galaxy = getGalaxyInstance();
@@ -16,11 +20,14 @@ var HistoryPanel = Backbone.View.extend({
         this.root = options.root;
 
         // view of the current history
-        this.historyView = new CurrentHistoryView.CurrentHistoryView({
+
+        let historyView = new CurrentHistoryView.CurrentHistoryView({
             className: `${CurrentHistoryView.CurrentHistoryView.prototype.className} middle`,
             purgeAllowed: this.allow_user_dataset_purge,
             linkTarget: "galaxy_main"
         });
+
+        this.historyView = historyView;
 
         // add history panel to Galaxy object
         Galaxy.currHistoryPanel = this.historyView;
@@ -82,7 +89,7 @@ var HistoryPanel = Backbone.View.extend({
         this.buttonViewMulti.$el[!this.userIsAnonymous ? "show" : "hide"]();
     },
 
-    /** add history view div */
+    // add history view div
     _template: function(data) {
         return ['<div id="current-history-panel" class="history-panel middle"/>'].join("");
     },
@@ -91,5 +98,37 @@ var HistoryPanel = Backbone.View.extend({
         return "historyPanel";
     }
 });
+*/
 
-export default HistoryPanel;
+// Backbone adapter view that mounts the new history component
+const HistoryPanel = Backbone.View.extend({
+    initialize(page, options) {
+        this.setElement('<div id="current-history-panel" class="history-panel middle" />');
+        this.initProps = { page, options };
+        this.model = new Backbone.Model({
+            cls: "history-right-panel",
+            title: _l("History"),
+            buttons: []
+        });
+    },
+    render() {
+        let propsData = Object.assign({}, this.initProps, {
+            model: this.model
+        });
+        console.log("propsData", propsData);
+        let vm = mountHistory(propsData, this.$el);
+    },
+    toString() {
+        return "historyPanel";
+    }
+});
+
+let proxy = new Proxy(HistoryPanel, {
+    construct(target, args) {
+        console.warn("HistoryPanelClass new");
+        let result = new target(...args);
+        return genericProxy(result, "HistoryPanelInstance");
+    }
+});
+
+export default proxy;
