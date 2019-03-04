@@ -1,14 +1,14 @@
 import sinon from "sinon";
 import { mount, createLocalVue } from "@vue/test-utils";
-import StandardTags from "./StandardTags";
+import Tags from "./Tags";
 import store from "../../store";
 import _l from "utils/localization";
 
 let mockRedirect = sinon.stub();
-StandardTags.__Rewire__("redirectToUrl", mockRedirect);
+Tags.__Rewire__("redirectToUrl", mockRedirect);
 
 
-describe("Tags/StandardTags.vue", () => {
+describe("Tags/Tags.vue", () => {
     
     let localVue = createLocalVue();
     localVue.filter("localize", value => _l(value));
@@ -36,7 +36,7 @@ describe("Tags/StandardTags.vue", () => {
         };
 
         beforeEach(function () {
-            wrapper = mount(StandardTags, { 
+            wrapper = mount(Tags, { 
                 store, 
                 propsData,
                 localVue
@@ -91,7 +91,7 @@ describe("Tags/StandardTags.vue", () => {
         };
 
         beforeEach(function() {
-            wrapper = mount(StandardTags, {
+            wrapper = mount(Tags, {
                 store,
                 propsData,
                 localVue

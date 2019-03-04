@@ -1,17 +1,17 @@
 import { mount, createLocalVue } from "@vue/test-utils";
-import GalaxyTags from "./GalaxyTags";
+import StatelessTags from "./StatelessTags";
 import _l from "utils/localization";
 
 let localVue = createLocalVue();
 localVue.filter("localize", value => _l(value));
 
-describe("Tags/GalaxyTags.vue", () => {
+describe("Tags/StatelessTags.vue", () => {
     const testTags = ["abc", "def", "ghi"];
 
     let wrapper, emitted;
 
     beforeEach(function () {
-        wrapper = mount(GalaxyTags, { localVue });
+        wrapper = mount(StatelessTags, { localVue });
         wrapper.setProps({
             value: testTags
         });

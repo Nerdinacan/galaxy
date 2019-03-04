@@ -5,7 +5,10 @@ export const tagStore = {
     },
     getters: {
         getTagsById: (state) => (key) => {
-            return state.modelTagCache.get(key).sort();
+            if (state.modelTagCache.has(key)) {
+                return state.modelTagCache.get(key).sort();
+            }
+            return [];
         }
     },
     actions: {
