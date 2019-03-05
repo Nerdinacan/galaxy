@@ -5,7 +5,6 @@ import HISTORY_VIEW from "mvc/history/history-view";
 import HDA_MODEL from "mvc/history/hda-model";
 import HDA_LI_EDIT from "mvc/history/hda-li-edit";
 import HDCA_LI_EDIT from "mvc/history/hdca-li-edit";
-// import TAGS from "mvc/tag";
 import { mountModelTags } from "components/Tags";
 import ANNOTATIONS from "mvc/annotation";
 import LIST_COLLECTION_CREATOR from "mvc/collection/list-collection-creator";

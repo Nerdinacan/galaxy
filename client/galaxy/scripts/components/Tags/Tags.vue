@@ -35,15 +35,12 @@ export default {
         // initialization value
         tags: { type: Array, required: false, default: () => [] },
 
-        // what happens when you click a tag
-        tagClickHandler: { type: Function, required: false, defalt: noop },
-
         // data requests go through this object, it should have the following
         // properties: .save(), .delete(), .autocompleteOptions (observable) and
         // .autocompleteTextSearch
         tagService: { type: Object, required: true },
 
-        // store key
+        // store key, usually a model ID or something like that
         storeKey: { type: String, required: true },
 
         // allows user to edit tag list
@@ -76,7 +73,7 @@ export default {
     methods: {
 
         onClick(tag) {
-            this.tagClickHandler.call(this, tag);
+            this.$emit("tag-click", tag);
         },
 
         beforeAddingTag({ tag, addTag }) {
@@ -105,10 +102,13 @@ export default {
     },
     
     mounted() {
-        this.updateTags({ 
-            key: this.storeKey, 
-            tags: this.tags 
-        });
+        if (this.tags.length) {
+            this.updateTags({ 
+                key: this.storeKey, 
+                tags: this.tags 
+            });
+        }
     }
-};
+}
+
 </script>

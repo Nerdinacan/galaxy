@@ -16,8 +16,9 @@ import { buildTagService } from "./tagService";
 export const mountMakoTags = (options = {}, el) => {
 
     let { 
+        id,
+        itemClass, 
         tags = [], 
-        id, itemClass, 
         disabled = false, 
         context = "unspecified" 
     } = options;
@@ -25,13 +26,15 @@ export const mountMakoTags = (options = {}, el) => {
     let propData = {
         storeKey: `${itemClass}-${id}`,
         tagService: buildTagService({ id, itemClass, context }),
-        tagClickHandler: makoClickHandler(options),
         tags,
         disabled
     };
 
     let fn = mountVueComponent(Tags);
-    return fn(propData, el);
+    let vm = fn(propData, el);
+    vm.$on("tag-click", makoClickHandler(options, vm));
+
+    return vm;
 }
 
 /**
@@ -41,27 +44,27 @@ export const mountMakoTags = (options = {}, el) => {
  * 
  * @param {object} options Passed options from mount fn
  */
-const makoClickHandler = (options) => function(tag) {
+const makoClickHandler = (options, vm) => function(tag) {
         
     if (!tag) {
         return;
     }
-    
-    // This wierd string-function passing scheme is the result of combining
-    // the "magic-bullet-style" brittle grid design with the need to
-    // initialize the application through python templates. The appropriate
-    // way to do this is to simply assign an appropriate event handler to
-    // the component at the point at which it is called from a parent
-    // component's context.
 
-    let { tagClickFn = "none", clickUrl = null } = options;
+    let { tagClickFn = "none", clickUrl } = options;
     
+    
+    // The horribly-conceived tagClickFn variable is still here to work with the
+    // existing server-driven rendering. It won't be necessary once we actually
+    // have separate component environtments explicitly containing community
+    // tags or grid contexts. This is functionality that should have been
+    // defined in-context and not through configuration.
+
     switch (tagClickFn) {
 
         // I made this match the existing behavior, but I am not clear on
         // the reason why this link redirects to a raw json page
         case "community_tag_click":
-            if (clickUrl) {
+            if (undefined !== clickUrl) {
                 let suffix = tag.value ? `:${tag.value}` : "";
                 let href = `${clickUrl}?f-tags=${tag.text}${suffix}`;
                 redirectToUrl(href);
@@ -71,7 +74,7 @@ const makoClickHandler = (options) => function(tag) {
         // this function will be called in context of the component
         // this == vm
         case "add_tag_to_grid_filter":
-            this.$store.dispatch("toggleSearchTag", tag);
+            vm.$store.dispatch("toggleSearchTag", tag);
             break;
     }
 }
@@ -82,9 +85,22 @@ const makoClickHandler = (options) => function(tag) {
  */
 export const mountModelTags = (options = {}, el) => {
 
-    let { model, disabled = false, context = "unspecified" } = options;
-    let { id, tags } = model.attributes;
-    let itemClass = model.attributes.model_class;
+    let { 
+        model, 
+        disabled = false, 
+        context = "unspecified" 
+    } = options;
+    
+    if (!model) {
+        console.warn("Missing model in mountModelTags");
+        return;
+    }
+
+    let { 
+        id, 
+        model_class: itemClass,
+        tags = []
+    } = model.attributes;
 
     let propData = {
         storeKey: `${itemClass}-${id}`,
