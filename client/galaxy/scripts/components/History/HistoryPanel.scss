@@ -1,0 +1,42 @@
+// @import "scss/mixins";
+
+// .unified-panel-body .history {
+
+//     @include fill();
+//     margin: 0 1em;
+
+//     display: flex;
+//     flex-direction: column;
+    
+//     .history-datasets {
+//         flex-grow: 1;
+
+//         display: flex;
+//         flex-direction: column;
+
+//         .dataset-content {
+//             overflow: scroll;
+//             flex-grow: 1;
+
+//             &::-webkit-scrollbar {
+//                 display: none;
+//             }
+
+//             ol {
+//                 list-style: none;
+//                 padding-left: 0;
+
+//                 li {
+//                     cursor: pointer;
+//                     padding-bottom: 1em;
+
+//                     &.selected {
+//                         background-color: green;
+//                     }
+//                 }
+//             }
+
+//         }
+//     }
+
+// }

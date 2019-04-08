@@ -1,0 +1,30 @@
+@import "theme/blue";
+@import "scss/mixins";
+
+input {
+    font-size: 2em;
+    padding: 0px;
+    border: 0;
+    &:focus {
+        outline: none;
+        padding: 2px;
+        border: 1px solid #ccc;
+    }
+}
+
+nav {
+    margin: 1em 0;
+}
+
+/* section visibility toggles */
+
+.galaxy-tags,
+textarea.annotation {
+    display: none;
+    margin: 1em 0;
+}
+
+.tags .galaxy-tags,
+.annotation textarea.annotation {
+    display: block;
+}

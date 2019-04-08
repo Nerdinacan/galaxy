@@ -26,6 +26,12 @@ var SidePanel = Backbone.View.extend({
     render: function() {
         var self = this;
         var panel = this.view;
+        
+        if (panel.omitLayout) {
+            this._renderComponentView();
+            return this;
+        }
+        
         var components = this.view.model.attributes || {};
         this.$el.html(this._templatePanel(this.id));
         _.each(components.buttons, button => {
@@ -35,6 +41,13 @@ var SidePanel = Backbone.View.extend({
         this.$(".panel-header-text").html(_.escape(components.title));
         this.$(".unified-panel-body").append(panel.$el);
         panel.render();
+        return this;
+    },
+
+    // Don't want SidePanel dictating the layout of the new components
+    _renderComponentView() {
+        this.$el.append(this.view.$el);
+        this.view.render();
     },
 
     /** panel dom template. id is 'right' or 'left' */

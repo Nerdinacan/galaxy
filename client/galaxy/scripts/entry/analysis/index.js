@@ -1,7 +1,8 @@
 import { standardInit, addInitialization } from "onload";
 import { getAnalysisRouter } from "./AnalysisRouter";
 import ToolPanel from "entry/panels/tool-panel";
-import HistoryPanel from "entry/panels/history-panel";
+// import HistoryPanel from "entry/panels/history-panel";
+import HistoryPanelProxy from "components/History/HistoryPanelProxy";
 import Page from "layout/page";
 
 addInitialization((Galaxy, { options = {} }) => {
@@ -13,7 +14,7 @@ addInitialization((Galaxy, { options = {} }) => {
             hide_masthead: Galaxy.params.hide_masthead
         }),
         Left: ToolPanel,
-        Right: HistoryPanel,
+        Right: HistoryPanelProxy,
         Router: getAnalysisRouter(Galaxy)
     });
 
