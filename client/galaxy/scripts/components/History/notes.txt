@@ -1,0 +1,24 @@
+<resizable-panel>
+    <history-panel :history_id="currentHistory">
+        <header>
+            <hgroup>
+                <gear-menu></gear-menu>
+                <view-multiple-link></view-multiple-link>
+                <h1>History Name</h1>
+            </hgroup>
+            <hgroup>
+                <!-- display details -->
+                <!-- tags -->
+                <!-- annotation -->
+                <!-- selection -->              
+                <selection-tool></selection-tool>
+                <selection-operations></selection-operations>
+                <!-- contents filter -->
+                <contents-filter></contents-filter>
+            </hgroup>
+        </header>
+        <body>
+            <!--list of selectable datasets/ collections, groups -->
+        </body>
+    </histor-panel>
+</resizable-panel>

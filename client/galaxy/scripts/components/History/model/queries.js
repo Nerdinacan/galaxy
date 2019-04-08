@@ -1,15 +1,8 @@
-/**
- * History data ajax requests
- */
 import axios from "axios";
 import { History } from "./History";
 import { Dataset } from "./Dataset";
 
 
-/**
- * Retrieve currently selected user history
- * @returns Promise yielding a History object
- */
 export async function getCurrentHistory() {
     let url = `/history/current_history_json`;
     let response = await axios.get(url);
@@ -19,11 +12,7 @@ export async function getCurrentHistory() {
 }
 
 
-/**
- * Loads a single history by id
- * @param {String} historyID 
- * @return Promise yielding a history object
- */
+
 export async function getHistoryById(historyID) {
     let url = `/api/histories/${historyID}`;
     let response = await axios.get(url);
@@ -33,11 +22,6 @@ export async function getHistoryById(historyID) {
 }
 
 
-/**
- * hydrate history fields and load child datasets
- * @param {object} historyData 
- * @return Promise yielding a history object
- */
 // async function processHistory(historyData) {
 //     let history = createHistory(historyData);
 //     history.datasets = await getDatasetsForHistory(history);
@@ -45,11 +29,6 @@ export async function getHistoryById(historyID) {
 // }
 
 
-/**
- * Retrieve datasets for indicated history model. 
- * @param {string} history
- * @returns Promise yielding an array of datasets
- */
 // looks like there's a bunch of pagination params on this
 // query, will look at that later
 // https://usegalaxy.org/api/histories/63978d771232105d/contents
@@ -66,9 +45,6 @@ export async function getDatasetsForHistory(history) {
 }
 
 
-/**
- * History List
- */
 export async function getHistories() {
     let response = await axios.get(`/api/histories`);
     if (response.status !== 200)
@@ -77,10 +53,6 @@ export async function getHistories() {
 }
 
 
-/**
- * Update history object
- * @param {History} history 
- */
 export async function updateHistory(history) {
     // PUT /api/histories/1cd8e2f6b131e891
     let response = await axios.put(`/api/histories/${history.id}`, history);
