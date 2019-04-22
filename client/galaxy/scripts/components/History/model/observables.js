@@ -1,36 +1,115 @@
-import { BehaviorSubject, defer, combineLatest, Observable, of } from "rxjs/index";
-import { switchMap, filter, share, flatMap, tap } from "rxjs/operators";
+import { defer, combineLatest, of, from } from "rxjs/index";
+import { pluck, share, tap, mergeMap, map, distinctUntilChanged, withLatestFrom, switchMap } from "rxjs/operators";
 import { ajax } from 'rxjs/ajax';
-import store from "store";
-import { ContentQueryParams } from "./ContentQueryParams";
-
-import { stashHistory } from "./database";
-
+import { historyCollection } from "./database";
+// import store from "store";
+import { History } from "./History";
 
 
-// Transforms store current history into an observable
-// I'm still trying to justify the existence of the store
-// This could just as easily be a single observable value
+/**
+ * 1. Get current history id from state,
+ * 2. Try to load history from indexDB
+ * 3. Send request to server for that history
+ * 4. Merge results 2,3 and use id + last-updated date to determine cache-coldness
+ * 5. Store history in indexDB
+ * 6. Expose as current History
+ */
 
-// export const CurrentHistoryFromStore = defer(() => {
-//     const watchOptions = { deep: true, immediate: true };
-
-//     return new Observable(sub => {
-//         return store.watch(
-//             state => state.history.current, 
-//             currentHistory => sub.next(currentHistory),
-//             watchOptions
-//         );
-//     })
-// });
+/**
+ * Call current_history_json
+ * Check indexdb
+ * Validate cache
+ * if distinct value expose as current history
+ */
 
 
-// from the server
+// Assemble current history object and check cache freshness by comparing
+// updated dates
 
-export const CurrentHistory = defer(() => {
-    let url = "/history/current_history_json";
-    return ajax.getJSON(url);
-}).pipe(share());
+const CurrentHistoryFromServer = 
+    defer(loadCurrentHistory).pipe(
+        map(History.create),
+        share()
+    );
+
+const CurrentHistoryFromStorage = 
+    combineLatest(
+        CurrentHistoryFromServer.pipe(pluck('id')), 
+        historyCollection
+    ).pipe(
+        mergeMap(([id, collection]) => collection.findOne(id).exec()),
+        map(props => props ? History.create(props) : null)
+    );
+
+export const CurrentHistory = 
+    combineLatest(
+        CurrentHistoryFromServer, 
+        CurrentHistoryFromStorage, 
+        historyCollection
+    ).pipe(
+        switchMap(checkCache)
+    );
+
+
+
+function loadCurrentHistory() {
+    return ajax.getJSON("/history/current_history_json");
+}
+
+function checkCache([serverHistory, storageHistory, collection]) {
+    let stale = !storageHistory 
+        || (serverHistory.id != storageHistory.id) 
+        || (serverHistory.updateTime > storageHistory.updateTime);
+    return stale ? cacheHistory(collection, serverHistory) : of(storageHistory);
+}
+
+function cacheHistory(collection, history) {
+    return from(collection.upsert(history.export()))
+        .pipe(map(hdoc => History.create(hdoc.toJSON())))
+}
+
+/*
+const CurrentHistoryId = defer(() => {
+    const watchOptions = { deep: true, immediate: true };
+
+    return new Observable(sub => {
+        return store.watch(
+            state => state.history.currentHistoryId, 
+            id => sub.next(id),
+            watchOptions
+        );
+    })
+})
+
+const FromStorage = CurrentHistoryId.pipe(
+    mergeMap(retrieveStoredHistoryById)
+)
+
+export const CurrentHistory = merge(FromStorage, FromServer).pipe(
+    tap(storeHistory),
+    share()
+)
+
+
+const DefaultHistory = of(new History());
+
+
+
+const FromServer = CurrentHistoryId.pipe(
+    mergeMap(id => ajax())
+)
+
+
+const historyFresh = (p,q) => {
+    // check to see if cached history is too old
+    return true;
+}
+
+export const CurrentHistory = merge(
+    CurrentHistoryFromIndexDb, 
+    CurrentHistoryFromServer
+).pipe(distinctUntilChanged(historyFresh));
+
 
 
 // load history object, which is mysteriously different
@@ -44,9 +123,17 @@ export const CurrentHistoryObject =
         share()
     );
 
-// try to stash cho
-CurrentHistoryObject.subscribe(stashHistory);
+const insertSub = combineLatest(CurrentHistoryObject, historyCollection)
+    .subscribe(([history, coll]) => {
+        let { id, name } = history;
+        coll.upsert({ id, name }).then(doc => {
+            console.log(doc);
+        })
+    })
 
+const dumpSub = historyCollection.$.subscribe(change => {
+    console.log("change", change);
+})
 
 // Content query parameters
 const QueryParams = new BehaviorSubject(new ContentQueryParams());
@@ -60,3 +147,4 @@ export const CurrentHistoryContents =
                 return ajax.getJSON(history.contents_url);
             })
         );
+*/

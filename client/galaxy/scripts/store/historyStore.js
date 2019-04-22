@@ -10,6 +10,7 @@ import { getCurrentHistory, History }
 
 
 export const state = {
+    currentHistoryId: null,
     current: new History() // current root history object
 };
 
@@ -24,6 +25,9 @@ export const actions = {
 };
 
 export const mutations = {
+    setCurrentHistoryId(id) {
+        state.currentHistoryId = id;
+    },
     setCurrentHistory(state, newHistoryProps) {
         state.current = new History(newHistoryProps);
     }

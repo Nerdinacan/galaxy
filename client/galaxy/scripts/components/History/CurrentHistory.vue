@@ -3,10 +3,10 @@
 
         <h1>Current "history"</h1>
         <pre>{{ history }}</pre>
-
+<!-- 
         <h1>Actual History Object</h1>
         <h2>Which is mysteriously not the same as the current history object</h2>
-        <pre>{{ historyObj }}</pre>
+        <pre>{{ historyObj }}</pre> -->
 
         <!-- 
         <h1>History Contents (need id, update_time, create_time, basic props)</h1>
@@ -27,9 +27,7 @@ import VueRx from "vue-rx";
 // import { mapActions } from "vuex";
 // import { ContentPagination } from "./model";
 import { 
-    CurrentHistory, 
-    CurrentHistoryObject,
-    CurrentHistoryContents
+    CurrentHistory
 } from "./model/observables";
 
 Vue.use(VueRx);
@@ -59,7 +57,7 @@ export default {
     subscriptions() {
         return {
             history: CurrentHistory,
-            historyObj: CurrentHistoryObject,
+            // historyObj: CurrentHistoryObject,
             // contents: CurrentHistoryContents
         }
     }
