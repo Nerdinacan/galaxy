@@ -1,72 +1,83 @@
 import { defer, combineLatest, of, from } from "rxjs/index";
-import { pluck, share, tap, mergeMap, map, distinctUntilChanged, withLatestFrom, switchMap } from "rxjs/operators";
+import { pluck, share, tap, mergeMap, map, distinctUntilChanged, 
+    withLatestFrom, switchMap } from "rxjs/operators";
 import { ajax } from 'rxjs/ajax';
 import { historyCollection } from "./database";
 // import store from "store";
 import { History } from "./History";
 
 
-/**
- * 1. Get current history id from state,
- * 2. Try to load history from indexDB
- * 3. Send request to server for that history
- * 4. Merge results 2,3 and use id + last-updated date to determine cache-coldness
- * 5. Store history in indexDB
- * 6. Expose as current History
- */
+// CurrentHistory load/cache observable
 
-/**
- * Call current_history_json
- * Check indexdb
- * Validate cache
- * if distinct value expose as current history
- */
+// initial load
+// TODO: build simpler initial load with only
+// id, last updated date (for cache validation)
+// and maybe operation state variables
+
+export const loadCurrentHistory = 
+    () => ajax.getJSON("/history/current_history_json");
+
+export const CurrentHistoryFromServer = 
+    defer(loadCurrentHistory).pipe(share());
 
 
-// Assemble current history object and check cache freshness by comparing
-// updated dates
+// pluck out id, this is intentionally separated
+// so we can merge in changes from the store later
+// where I'm probably only going to store the current_id itself
 
-const CurrentHistoryFromServer = 
-    defer(loadCurrentHistory).pipe(
-        map(History.create),
-        share()
-    );
+export const CurrentHistoryId =
+    CurrentHistoryFromServer.pipe(pluck('id'));
 
-const CurrentHistoryFromStorage = 
-    combineLatest(
-        CurrentHistoryFromServer.pipe(pluck('id')), 
-        historyCollection
-    ).pipe(
-        mergeMap(([id, collection]) => collection.findOne(id).exec()),
+
+// retrieves cached history obj from indexDB by id
+
+export const retriveHistoryById = 
+    ([id, collection]) => collection.findOne(id).exec();
+
+export const CurrentHistoryFromCache = 
+    combineLatest(CurrentHistoryId, historyCollection).pipe(
+        mergeMap(retriveHistoryById),
         map(props => props ? History.create(props) : null)
     );
+
+
+// validate cached version against server updated-date and selection.
+// If too old, retrieve the full version from the server and cache
+
+export const cacheIsValid = (server, cached) => {
+    let stale = !cached 
+        || (server.id != cached.id) 
+        || (server.updateTime > cached.updateTime);
+    return !stale;
+}
+
+export const validateCachedData = ([ serverHistory, storageHistory, collection ]) => {
+    let valid = cacheIsValid(serverHistory, storageHistory);
+    return valid ? of(storageHistory) : cacheHistory(collection, serverHistory);
+}
+
+export const cacheHistory = (collection, history) => {
+    return from(collection.upsert(history.export()))
+        .pipe(map(hdoc => History.create(hdoc.toJSON())))
+}
 
 export const CurrentHistory = 
     combineLatest(
         CurrentHistoryFromServer, 
-        CurrentHistoryFromStorage, 
+        CurrentHistoryFromCache, 
         historyCollection
     ).pipe(
-        switchMap(checkCache)
+        switchMap(validateCachedData)
     );
 
 
+// History Contents
 
-function loadCurrentHistory() {
-    return ajax.getJSON("/history/current_history_json");
-}
 
-function checkCache([serverHistory, storageHistory, collection]) {
-    let stale = !storageHistory 
-        || (serverHistory.id != storageHistory.id) 
-        || (serverHistory.updateTime > storageHistory.updateTime);
-    return stale ? cacheHistory(collection, serverHistory) : of(storageHistory);
-}
+/**
+ * http://localhost:8080/api/histories?keys=id,contents_url,update_time
+ */
 
-function cacheHistory(collection, history) {
-    return from(collection.upsert(history.export()))
-        .pipe(map(hdoc => History.create(hdoc.toJSON())))
-}
 
 /*
 const CurrentHistoryId = defer(() => {
