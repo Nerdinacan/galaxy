@@ -63,6 +63,8 @@ inflector = Inflector(English)
 log = get_logger(__name__)
 _lock = threading.RLock()
 
+namedtuple = collections.namedtuple
+
 CHUNK_SIZE = 65536  # 64k
 
 DATABASE_MAX_STRING_SIZE = 32768
@@ -1641,7 +1643,7 @@ def url_get(base_url, password_mgr=None, pathspec=None, params=None):
     response = urlopener.open(full_url)
     content = response.read()
     response.close()
-    return content
+    return unicodify(content)
 
 
 def download_to_file(url, dest_file_path, timeout=30, chunk_size=2 ** 20):

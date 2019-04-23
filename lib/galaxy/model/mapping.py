@@ -50,10 +50,12 @@ metadata = MetaData()
 model.WorkerProcess.table = Table(
     'worker_process',
     metadata,
-    Column('server_name', Text, primary_key=True),
+    Column("id", Integer, primary_key=True),
+    Column("server_name", String(255), index=True),
+    Column("hostname", String(255)),
     Column("update_time", DateTime, default=now, onupdate=now),
+    UniqueConstraint('server_name', 'hostname'),
 )
-
 
 model.User.table = Table(
     "galaxy_user", metadata,
@@ -130,6 +132,21 @@ model.UserAuthnzToken.table = Table(
     Column('extra_data', JSONType, nullable=True),
     Column('lifetime', Integer),
     Column('assoc_type', VARCHAR(64)))
+
+model.CustosAuthnzToken.table = Table(
+    "custos_authnz_token", metadata,
+    Column('id', Integer, primary_key=True),
+    Column('user_id', Integer, ForeignKey("galaxy_user.id")),
+    Column('external_user_id', String(64)),
+    Column('provider', String(255)),
+    Column('access_token', Text),
+    Column('id_token', Text),
+    Column('refresh_token', Text),
+    Column("expiration_time", DateTime),
+    Column("refresh_expiration_time", DateTime),
+    UniqueConstraint("user_id", "external_user_id", "provider"),
+    UniqueConstraint("external_user_id", "provider"),
+)
 
 model.CloudAuthz.table = Table(
     "cloudauthz", metadata,
@@ -1123,6 +1140,7 @@ model.MetadataFile.table = Table(
     Column("create_time", DateTime, default=now),
     Column("update_time", DateTime, index=True, default=now, onupdate=now),
     Column("object_store_id", TrimmedString(255), index=True),
+    Column("uuid", UUIDType(), index=True),
     Column("deleted", Boolean, index=True, default=False),
     Column("purged", Boolean, index=True, default=False))
 
@@ -1601,6 +1619,12 @@ mapper(model.UserAuthnzToken, model.UserAuthnzToken.table, properties=dict(
                   backref='social_auth')
 ))
 
+mapper(model.CustosAuthnzToken, model.CustosAuthnzToken.table, properties=dict(
+    user=relation(model.User,
+                  primaryjoin=(model.CustosAuthnzToken.table.c.user_id == model.User.table.c.id),
+                  backref='custos_auth')
+))
+
 mapper(model.CloudAuthz, model.CloudAuthz.table, properties=dict(
     user=relation(model.User,
                   primaryjoin=(model.CloudAuthz.table.c.user_id == model.User.table.c.id),
@@ -1636,9 +1660,6 @@ simple_mapping(model.HistoryDatasetAssociation,
                      model.LibraryDatasetDatasetAssociation.table.c.id)),
     implicitly_converted_datasets=relation(model.ImplicitlyConvertedDatasetAssociation,
         primaryjoin=(model.ImplicitlyConvertedDatasetAssociation.table.c.hda_parent_id ==
-                     model.HistoryDatasetAssociation.table.c.id)),
-    implicitly_converted_parent_datasets=relation(model.ImplicitlyConvertedDatasetAssociation,
-        primaryjoin=(model.ImplicitlyConvertedDatasetAssociation.table.c.hda_id ==
                      model.HistoryDatasetAssociation.table.c.id)),
     tags=relation(model.HistoryDatasetAssociationTagAssociation,
         order_by=model.HistoryDatasetAssociationTagAssociation.table.c.id,
@@ -1720,10 +1741,12 @@ mapper(model.ImplicitlyConvertedDatasetAssociation, model.ImplicitlyConvertedDat
                      model.LibraryDatasetDatasetAssociation.table.c.id)),
     dataset_ldda=relation(model.LibraryDatasetDatasetAssociation,
         primaryjoin=(model.ImplicitlyConvertedDatasetAssociation.table.c.ldda_id ==
-                     model.LibraryDatasetDatasetAssociation.table.c.id)),
+                     model.LibraryDatasetDatasetAssociation.table.c.id),
+        backref="implicitly_converted_parent_datasets"),
     dataset=relation(model.HistoryDatasetAssociation,
         primaryjoin=(model.ImplicitlyConvertedDatasetAssociation.table.c.hda_id ==
-                     model.HistoryDatasetAssociation.table.c.id))
+                     model.HistoryDatasetAssociation.table.c.id),
+        backref="implicitly_converted_parent_datasets")
 ))
 
 mapper(model.History, model.History.table, properties=dict(
@@ -2197,7 +2220,7 @@ mapper(model.Job, model.Job.table, properties=dict(
     # user=relation( model.User.mapper ),
     user=relation(model.User),
     galaxy_session=relation(model.GalaxySession),
-    history=relation(model.History),
+    history=relation(model.History, backref="jobs"),
     library_folder=relation(model.LibraryFolder, lazy=True),
     parameters=relation(model.JobParameter, lazy=True),
     input_datasets=relation(model.JobToInputDatasetAssociation),
