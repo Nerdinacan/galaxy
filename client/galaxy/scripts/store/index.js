@@ -6,17 +6,21 @@ import Vue from "vue";
 import Vuex from "vuex";
 import { gridSearchStore } from "./gridSearchStore";
 import { tagStore } from "./tagStore";
-import historyStore, { historyPersist } from "./historyStore";
+import historyStore, { historyPersist, observeHistory } 
+    from "components/History/historyStore";
 
 Vue.use(Vuex);
 
-export default new Vuex.Store({
+const store = new Vuex.Store({
     modules: {
         gridSearch: gridSearchStore,
         tags: tagStore,
         history: historyStore
     },
     plugins: [
-        historyPersist.plugin
+        // historyPersist.plugin,
+        observeHistory
     ]
 })
+
+export default store;

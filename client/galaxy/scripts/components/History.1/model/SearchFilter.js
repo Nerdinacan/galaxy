@@ -1,8 +1,8 @@
+// Filter returned results
 export class SearchFilter {
     
     constructor(props = {}) {
         this.filterText = "";
-        Object.assign(this, props);
     }
     
     match(ds) {
@@ -13,7 +13,4 @@ export class SearchFilter {
         this.filterText = "";
     }
 
-    static create(props = {}) {
-        return new SearchFilter(props);
-    }
 }
