@@ -1,33 +1,28 @@
 import { combineLatest, isObservable, of, from } from "rxjs";
-import { map, tap, switchMap, share, pluck } from "rxjs/operators";
+import { map, tap, switchMap, share, pluck, mergeMap } from "rxjs/operators";
 import { db$ } from "../db";
 import { SearchParams } from "../SearchParams";
 import { doUpdates } from "./doUpdates";
 import { log } from "../utils";
 
-
-export function HistoryContent$(h, p = new SearchParams()) {
-
-    let history$ = isObservable(h) ? h : of(h);
-    let param$ = isObservable(p) ? p : of(p);
-
-    // Actual return value has nothing to do with any of that stuff above, we
-    // look at indexDB directly using rxdb
+export function HistoryContent$(history$, param$) {
     return combineLatest(history$, param$).pipe(
+        tap(log('combineLatest history, params')),
         tap(doUpdates),
-        switchMap(buildContentObservable),
+        mergeMap(buildContentObservable),
         map(scrubDocs),
         share()
     );
 }
 
 // Return an observable that emits results of the query
-function buildContentObservable([ history, params ]) {
+function buildContentObservable([ history, params = new SearchParams() ]) {
     return db$.pipe(
         pluck('historyContent'),
         switchMap(collection => {
-            let query = collection.find().where('history_id').eq(history.id);
-            return query.$;
+            return collection.find()
+                .where('history_id').eq(history.id)
+                .$;
         })
     );
 }

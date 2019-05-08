@@ -19,9 +19,7 @@ export function Manifest$(history, params) {
 }
 
 function buildUrl(history, params) {
-    let baseUrl = history.contents_url;
-    let url = `${baseUrl}?v=dev&keys=id,hid,history_id,history_content_type,url,update_time`;
-    return url;
+    return `/api/histories/${history.id}/contents?v=dev&keys=id,hid,history_id,history_content_type,url,update_time`;
 }
 
 export function loadManifest(url) {

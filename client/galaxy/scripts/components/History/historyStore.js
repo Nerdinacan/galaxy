@@ -1,23 +1,35 @@
 import VuexPersistence from "vuex-persist";
-import { CurrentHistory$ } from "./model";
+import { CurrentHistory$, setCurrentHistory } from "./model";
+import { HistoryList$ } from "./model";
 
 export const state = {
-    currentHistory: null
+    currentHistory: null,
+    histories: []
 };
 
 export const getters = {
-    currentHistory: state => state.currentHistory
+    currentHistory: state => state.currentHistory,
+    histories: state => state.histories
 };
 
-export const actions = {};
+export const actions = {
+    // manual update
+    updateCurrentHistory(context, newHistory)  {
+        setCurrentHistory(newHistory);
+    }
+};
 
 export const mutations = {
     setCurrentHistory: (state, newHistory) => {
         state.currentHistory = newHistory;
+    },
+    setHistoryList: (state, list) => {
+        state.histories = list;
     }
 };
 
 export default {
+    namespaced: true,
     state,
     getters,
     actions,
@@ -39,8 +51,14 @@ export const historyPersist = new VuexPersistence({
 // plugin to subscribe to global observables
 
 export const observeHistory = store => {
+
     CurrentHistory$.subscribe(history => {
-        // console.log("Initial load of current history", history);
-        store.commit("setCurrentHistory", history);
+        console.log("observable updating store", history);
+        store.commit("history/setCurrentHistory", history);
+    });
+
+    HistoryList$.subscribe(list => {
+        console.log("Initial history list", list);
+        store.commit("history/setHistoryList", list);
     });
 }

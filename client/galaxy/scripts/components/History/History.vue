@@ -11,7 +11,8 @@
 
 import Vue from "vue";
 import VueRx from "vue-rx";
-import { pluck, debounceTime } from "rxjs/operators";
+import { of } from "rxjs/index";
+import { startWith, tap, pluck, debounceTime } from "rxjs/operators";
 import { log } from "./model/utils";
 import { HistoryContent$, SearchParams } from "./model";
 import HistoryContent from "./HistoryContent";
@@ -34,15 +35,26 @@ export default {
     },
     subscriptions() {
 
-        const watchProps = { immediate: true, deep: true };
-
-        const param$ = this.$watchAsObservable('params', watchProps).pipe(
+        let param$ = this.$watchAsObservable('params', { 
+            immediate: true, 
+            deep: true
+        }).pipe(
             pluck('newValue'),
             debounceTime(200)
         );
 
-        return {
-            historyContent$: HistoryContent$(this.history, param$)
+        let history$ = this.$watchAsObservable('history', { 
+            immediate: true 
+        }).pipe(
+            pluck('newValue')
+        );
+
+        let historyContent$ = HistoryContent$(history$, param$);
+
+        return { 
+            param$,
+            history$,
+            historyContent$
         };
     }
 }
