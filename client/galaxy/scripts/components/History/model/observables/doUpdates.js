@@ -35,7 +35,7 @@ export function doUpdates([ history, params = new SearchParams() ]) {
 
     // cache the datasets
     const scrubDataset = conformToSchema(datasetSchema);
-    const dataset$ = db$.pipe(pluck('dataset'));
+    const dataset$ = db$.pipe(pluck('collections','dataset'));
     const dsUpdate$ = update$.pipe(
         filter(o => o.history_content_type == "dataset"),
         map(scrubDataset),
@@ -45,7 +45,7 @@ export function doUpdates([ history, params = new SearchParams() ]) {
     
     // cache the collections
     const scrubDatasetCollection = conformToSchema(datasetCollectionSchema);
-    const datasetCollection$ = db$.pipe(pluck('datasetCollection'));
+    const datasetCollection$ = db$.pipe(pluck('collections','datasetcollection'));
     const dscUpdate$ = update$.pipe(
         filter(o => o.history_content_type == "dataset_collection"),
         map(raw => {
@@ -74,8 +74,8 @@ function getStaleContent(m$) {
     // eagerly loading those into the database
 
     const manifest$ = m$.pipe(share());
-    const dataset$ = db$.pipe(pluck('dataset'));
-    let datasetCollection$ = db$.pipe(pluck('datasetCollection'));
+    const dataset$ = db$.pipe(pluck('collections','dataset'));
+    let datasetCollection$ = db$.pipe(pluck('collections','datasetcollection'));
 
     const ds$ = manifest$.pipe(
         filter(o => o.history_content_type == "dataset"),

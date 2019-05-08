@@ -1,13 +1,15 @@
-import { combineLatest, isObservable, of, from } from "rxjs";
+import { combineLatest } from "rxjs";
 import { map, tap, switchMap, share, pluck, mergeMap } from "rxjs/operators";
 import { db$ } from "../db";
-import { SearchParams } from "../SearchParams";
 import { doUpdates } from "./doUpdates";
 import { log } from "../utils";
 
+const historyContent$ = db$.pipe(
+    pluck('collections', 'historycontent')
+);
+
 export function HistoryContent$(history$, param$) {
     return combineLatest(history$, param$).pipe(
-        tap(log('combineLatest history, params')),
         tap(doUpdates),
         mergeMap(buildContentObservable),
         map(scrubDocs),
@@ -16,13 +18,12 @@ export function HistoryContent$(history$, param$) {
 }
 
 // Return an observable that emits results of the query
-function buildContentObservable([ history, params = new SearchParams() ]) {
-    return db$.pipe(
-        pluck('historyContent'),
-        switchMap(collection => {
-            return collection.find()
-                .where('history_id').eq(history.id)
-                .$;
+function buildContentObservable([ history, params ]) {
+    return historyContent$.pipe(
+        switchMap(coll => {
+            // TODO: apply params object to the query characteristics
+            let query = coll.find().where('history_id').eq(history.id);
+            return query.$;
         })
     );
 }

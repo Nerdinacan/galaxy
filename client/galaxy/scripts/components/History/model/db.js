@@ -26,24 +26,23 @@ async function buildDb() {
 
     let db = await RxDB.create(dbConfig);
 
-    let historyContent = await db.collection({
+    // "manifest", not sure we need to store this
+    await db.collection({
         name: "historycontent",
         schema: historyContentSchema
     });
 
-    let dataset = await db.collection({
+    // cached dataset
+    await db.collection({
         name: "dataset",
         schema: datasetSchema
     });
-
-    let datasetCollection = await db.collection({
+    
+    // cached collections
+    await db.collection({
         name: "datasetcollection",
         schema: datasetCollectionSchema
     });
 
-    return {
-        historyContent,
-        dataset,
-        datasetCollection
-    }
+    return db;
 }

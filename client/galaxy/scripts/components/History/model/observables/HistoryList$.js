@@ -1,9 +1,9 @@
 import { defer } from "rxjs";
 import { ajax } from "rxjs/ajax";
 
-export const HistoryList$ = defer(loadHistories);
+export const HistoryList$ = defer(getHistories);
 
-export function loadHistories() {
-    let url = "/api/histories";
+export function getHistories() {
+    let url = "/api/histories?view=detailed";
     return ajax.getJSON(url);
 }
