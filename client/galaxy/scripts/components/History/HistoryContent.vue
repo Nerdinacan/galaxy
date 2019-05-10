@@ -26,7 +26,7 @@ export default {
     },
     computed: {
         listing() {
-            return this.historyContent.sort((a,b) => (a.hid - b.hid));
+            return this.historyContent.sort((a,b) => a.hid - b.hid);
         }
     }
 }

@@ -13,7 +13,6 @@ export const getters = {
 };
 
 export const actions = {
-    // manual update
     updateCurrentHistory(context, newHistory)  {
         setCurrentHistory(newHistory);
     }

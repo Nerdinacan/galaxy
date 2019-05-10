@@ -3,7 +3,7 @@ import idb from "pouchdb-adapter-idb";
 // import hooks from "rxdb-utils/hooks";
 // import timestamps from 'rxdb-utils/timestamps';
 import { from } from "rxjs";
-import { shareReplay } from "rxjs/operators";
+import { mergeMap, shareReplay } from "rxjs/operators";
 // import { log } from "./utils";
 
 import {
@@ -17,32 +17,28 @@ RxDB.plugin(idb);
 // RxDB.plugin(hooks);
 // RxDB.plugin(timestamps);
 
-
-export const db$ = from(buildDb()).pipe(
+const db$ = from(RxDB.create(dbConfig)).pipe(
     shareReplay(1)
 );
 
-async function buildDb() {
-
-    let db = await RxDB.create(dbConfig);
-
-    // "manifest", not sure we need to store this
-    await db.collection({
-        name: "historycontent",
-        schema: historyContentSchema
-    });
-
-    // cached dataset
-    await db.collection({
-        name: "dataset",
-        schema: datasetSchema
-    });
-    
-    // cached collections
-    await db.collection({
-        name: "datasetcollection",
-        schema: datasetCollectionSchema
-    });
-
-    return db;
+function buildCollection(config) {
+    return db$.pipe(
+        mergeMap(db => from(db.collection(config))),
+        shareReplay(1)
+    );
 }
+
+export const historyContent$ = buildCollection({
+    name: "historycontent",
+    schema: historyContentSchema
+});
+
+export const dataset$ = buildCollection({
+    name: "dataset",
+    schema: datasetSchema
+});
+
+export const datasetCollection$ = buildCollection({
+    name: "datasetcollection",
+    schema: datasetCollectionSchema
+});

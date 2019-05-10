@@ -20,11 +20,6 @@ import History from "./History";
 
 export default {
     components: { History },
-    data() {
-        return {
-            selectedHistory: null
-        }
-    },
     computed: {
         currentHistory: {
             get() {

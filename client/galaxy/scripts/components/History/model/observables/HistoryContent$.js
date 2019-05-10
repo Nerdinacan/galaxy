@@ -1,12 +1,9 @@
 import { combineLatest } from "rxjs";
 import { map, tap, switchMap, share, pluck, mergeMap } from "rxjs/operators";
-import { db$ } from "../db";
+import { historyContent$ } from "../db";
 import { doUpdates } from "./doUpdates";
 import { log } from "../utils";
 
-const historyContent$ = db$.pipe(
-    pluck('collections', 'historycontent')
-);
 
 export function HistoryContent$(history$, param$) {
     return combineLatest(history$, param$).pipe(

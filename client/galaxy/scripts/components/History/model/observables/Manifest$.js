@@ -1,12 +1,8 @@
 import { of, from } from "rxjs";
-import { pluck, tap, withLatestFrom, mergeMap, concatMap } from "rxjs/operators";
+import { tap, withLatestFrom, mergeMap, concatMap } from "rxjs/operators";
 import { ajax } from "rxjs/ajax";
-import { db$ } from "../db";
+import { historyContent$ } from "../db";
 import { log } from "../utils";
-
-const historyContent$ = db$.pipe(
-    pluck('collections', 'historycontent')
-);
 
 export function Manifest$(history, params) {
     return of(buildUrl(history, params)).pipe(

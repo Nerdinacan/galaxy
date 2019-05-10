@@ -1,7 +1,7 @@
 import { merge, from } from "rxjs";
 import { withLatestFrom, reduce, pluck, filter, map, tap, mergeMap, share } from "rxjs/operators";
 import { ajax } from "rxjs/ajax";
-import { db$ } from "../db";
+import { dataset$, datasetCollection$ } from "../db";
 import { Manifest$ } from "./Manifest$";
 import { SearchParams } from "../SearchParams";
 import { log } from "../utils";
@@ -35,7 +35,6 @@ export function doUpdates([ history, params = new SearchParams() ]) {
 
     // cache the datasets
     const scrubDataset = conformToSchema(datasetSchema);
-    const dataset$ = db$.pipe(pluck('collections','dataset'));
     const dsUpdate$ = update$.pipe(
         filter(o => o.history_content_type == "dataset"),
         map(scrubDataset),
@@ -44,18 +43,9 @@ export function doUpdates([ history, params = new SearchParams() ]) {
     );
     
     // cache the collections
-    const scrubDatasetCollection = conformToSchema(datasetCollectionSchema);
-    const datasetCollection$ = db$.pipe(pluck('collections','datasetcollection'));
     const dscUpdate$ = update$.pipe(
         filter(o => o.history_content_type == "dataset_collection"),
-        map(raw => {
-            // for whatever reason (incompetence), the api delivers no update_time
-            let dsc = scrubDatasetCollection(raw);
-            if (!dsc.update_time) {
-                dsc.update_time = (new Date()).toISOString();
-            }
-            return dsc;
-        }),
+        map(prepareDatasetCollection),
         withLatestFrom(datasetCollection$),
         mergeMap(cacheItem)
     );
@@ -74,8 +64,6 @@ function getStaleContent(m$) {
     // eagerly loading those into the database
 
     const manifest$ = m$.pipe(share());
-    const dataset$ = db$.pipe(pluck('collections','dataset'));
-    let datasetCollection$ = db$.pipe(pluck('collections','datasetcollection'));
 
     const ds$ = manifest$.pipe(
         filter(o => o.history_content_type == "dataset"),
@@ -126,4 +114,17 @@ function cacheItem([ item, collection ]) {
     let p = collection.atomicUpsert(item)
         .catch(err => console.log("upsert error", err))
     return from(p);
+}
+
+
+// for whatever reason (incompetence), the api delivers no update_time
+
+const scrubDatasetCollection = conformToSchema(datasetCollectionSchema);
+
+function prepareDatasetCollection(raw) {
+    let dsc = scrubDatasetCollection(raw);
+    if (!dsc.update_time) {
+        dsc.update_time = (new Date()).toISOString();
+    }
+    return dsc;
 }
