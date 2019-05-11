@@ -7,7 +7,7 @@ import Vuex from "vuex";
 import { gridSearchStore } from "./gridSearchStore";
 import { tagStore } from "./tagStore";
 import historyStore, { historyPersist, observeHistory } 
-    from "components/History/historyStore";
+    from "components/History/model/historyStore";
 
 Vue.use(Vuex);
 

@@ -1,5 +1,5 @@
 import { combineLatest } from "rxjs";
-import { map, tap, switchMap, share, pluck, mergeMap } from "rxjs/operators";
+import { map, tap, switchMap, share, mergeMap } from "rxjs/operators";
 import { historyContent$ } from "../db";
 import { doUpdates } from "./doUpdates";
 import { log } from "../utils";

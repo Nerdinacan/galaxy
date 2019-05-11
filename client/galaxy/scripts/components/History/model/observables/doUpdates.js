@@ -1,20 +1,18 @@
 import { merge, from } from "rxjs";
-import { withLatestFrom, reduce, pluck, filter, map, tap, mergeMap, share } from "rxjs/operators";
+import { withLatestFrom, reduce, pluck, filter, map, mergeMap, share } from "rxjs/operators";
 import { ajax } from "rxjs/ajax";
 import { dataset$, datasetCollection$ } from "../db";
 import { Manifest$ } from "./Manifest$";
-import { SearchParams } from "../SearchParams";
-import { log } from "../utils";
 
 import { conformToSchema, datasetSchema, datasetCollectionSchema } from "../schema";
 
 
-export function doUpdates([ history, params = new SearchParams() ]) {
+export function doUpdates([ history, params ]) {
 
     // Request and cache a list of the contents for this history/params
     const manifest$ = Manifest$(history, params);
 
-    // get a list of the stuff on the manifest that needs and update
+    // get a list of the stuff on the manifest that needs an update
     const staleContent$ = getStaleContent(manifest$);
 
     // collect those ids for a bulk query
@@ -34,10 +32,9 @@ export function doUpdates([ history, params = new SearchParams() ]) {
     );
 
     // cache the datasets
-    const scrubDataset = conformToSchema(datasetSchema);
     const dsUpdate$ = update$.pipe(
         filter(o => o.history_content_type == "dataset"),
-        map(scrubDataset),
+        map(conformToSchema(datasetSchema)),
         withLatestFrom(dataset$),
         mergeMap(cacheItem)
     );
@@ -117,7 +114,7 @@ function cacheItem([ item, collection ]) {
 }
 
 
-// for whatever reason (incompetence), the api delivers no update_time
+// for whatever reason, the api delivers no update_time for collections
 
 const scrubDatasetCollection = conformToSchema(datasetCollectionSchema);
 

@@ -2,23 +2,17 @@
     <div>
         <h2>History</h2>
         <history-search-params v-model="params" />
-        <history-content v-if="historyContent$"
-            :historyContent="historyContent$" />
+        <history-content v-if="historyContent"
+            :historyContent="historyContent" />
     </div>
 </template>
 
 <script>
 
-import Vue from "vue";
-import VueRx from "vue-rx";
-import { of } from "rxjs/index";
-import { startWith, tap, pluck, debounceTime } from "rxjs/operators";
-import { log } from "./model/utils";
-import { HistoryContent$, SearchParams } from "./model";
 import HistoryContent from "./HistoryContent";
 import HistorySearchParams from "./HistorySearchParams";
-
-Vue.use(VueRx);
+import { SearchParams } from "./model";
+import { mapState, mapGetters, mapActions } from "vuex";
 
 export default {
     components: { 
@@ -29,33 +23,33 @@ export default {
         history: { type: Object, required: true }
     },
     data() {
-        return {
-            params: new SearchParams()
+        return { 
+            params: new SearchParams() 
+        };
+    },
+    computed: {
+        historyContent() {
+            let getContent = this.$store.getters["history/historyContent"];
+            return getContent(this.history.id);
+        },
+        requestParams() {
+            let { history, params } = this;
+            return { history, params };
         }
     },
-    subscriptions() {
-
-        let param$ = this.$watchAsObservable('params', { 
-            immediate: true, 
-            deep: true
-        }).pipe(
-            pluck('newValue'),
-            debounceTime(200)
-        );
-
-        let history$ = this.$watchAsObservable('history', { 
-            immediate: true 
-        }).pipe(
-            pluck('newValue')
-        );
-
-        let historyContent$ = HistoryContent$(history$, param$);
-
-        return { 
-            param$,
-            history$,
-            historyContent$
-        };
+    methods: {
+        ...mapActions("history", ["loadContent", "unsubLoader"])
+    },
+    watch: {
+        requestParams: {
+            handler(payload) {
+                this.loadContent(payload);  
+            },
+            immediate: true
+        }
+    },
+    beforeDestroy() {
+        this.unsubLoader(this.history);
     }
 }
 

@@ -1,5 +1,3 @@
-import { parse } from "url";
-
 export class SearchParams {
 
     constructor(props = {}) {
@@ -29,6 +27,10 @@ export class SearchParams {
 
     get pageSize() {
         return this._pageSize;
+    }
+
+    clone() {
+        return new SearchParams(this);
     }
 
     static equals(instance, otherInstance) {

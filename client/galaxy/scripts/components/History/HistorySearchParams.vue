@@ -15,9 +15,20 @@ export default {
     props: {
         value: { type: SearchParams, required: true }
     },
-    computed: {
-        params() {
-            return this.value;
+    data() {
+        return {
+            params: this.value.clone()
+        }
+    },
+    watch: {
+        params: {
+            handler(newVal) {
+                let newParams = new SearchParams(newVal);
+                if (!SearchParams.equals(newParams, this.value)) {
+                    this.$emit('input', newParams);
+                }
+            },
+            deep: true
         }
     }
 }

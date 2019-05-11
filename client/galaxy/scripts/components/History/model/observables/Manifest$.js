@@ -1,13 +1,12 @@
 import { of, from } from "rxjs";
-import { tap, withLatestFrom, mergeMap, concatMap } from "rxjs/operators";
+import { withLatestFrom, mergeMap, concatMap } from "rxjs/operators";
 import { ajax } from "rxjs/ajax";
 import { historyContent$ } from "../db";
-import { log } from "../utils";
 
 export function Manifest$(history, params) {
     return of(buildUrl(history, params)).pipe(
         mergeMap(loadManifest),
-        mergeMap(o => from(o)), // split
+        mergeMap(from), // split
         withLatestFrom(historyContent$),
         concatMap(cacheManifestItem),
     );
