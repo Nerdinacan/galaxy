@@ -1,8 +1,7 @@
-import { combineLatest } from "rxjs";
+import { combineLatest } from "rxjs/index";
 import { map, tap, switchMap, share, mergeMap } from "rxjs/operators";
 import { historyContent$ } from "../db";
 import { doUpdates } from "./doUpdates";
-import { log } from "../utils";
 
 
 export function HistoryContent$(history$, param$) {

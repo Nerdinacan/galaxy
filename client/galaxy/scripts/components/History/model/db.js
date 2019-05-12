@@ -2,9 +2,8 @@ import RxDB from "rxdb";
 import idb from "pouchdb-adapter-idb";
 // import hooks from "rxdb-utils/hooks";
 // import timestamps from 'rxdb-utils/timestamps';
-import { from } from "rxjs";
-import { mergeMap, shareReplay } from "rxjs/operators";
-// import { log } from "./utils";
+import { defer } from "rxjs/index";
+import { shareReplay, mergeMap } from "rxjs/operators";
 
 import {
     dbConfig,
@@ -17,13 +16,21 @@ RxDB.plugin(idb);
 // RxDB.plugin(hooks);
 // RxDB.plugin(timestamps);
 
-const db$ = from(RxDB.create(dbConfig)).pipe(
+export const db$ = defer(buildDB).pipe(
     shareReplay(1)
 );
 
+async function buildDB() {
+    // console.log("building DB");
+    return await RxDB.create(dbConfig);
+}
+
 function buildCollection(config) {
     return db$.pipe(
-        mergeMap(db => from(db.collection(config))),
+        mergeMap(db => {
+            // console.log(`building collection: ${config.name}`);
+            return db.collection(config);
+        }),
         shareReplay(1)
     );
 }

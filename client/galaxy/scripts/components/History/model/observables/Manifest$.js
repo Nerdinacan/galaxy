@@ -1,14 +1,17 @@
-import { of, from } from "rxjs";
-import { withLatestFrom, mergeMap, concatMap } from "rxjs/operators";
+import { of } from "rxjs/index";
+import { mergeMap, share } from "rxjs/operators";
 import { ajax } from "rxjs/ajax";
 import { historyContent$ } from "../db";
+import { split, withLatestFromDb } from "./utils";
+
 
 export function Manifest$(history, params) {
     return of(buildUrl(history, params)).pipe(
         mergeMap(loadManifest),
-        mergeMap(from), // split
-        withLatestFrom(historyContent$),
-        concatMap(cacheManifestItem),
+        split(),
+        withLatestFromDb(historyContent$),
+        mergeMap(cacheManifestItem),
+        share()
     );
 }
 
@@ -22,6 +25,14 @@ export function loadManifest(url) {
     return ajax.getJSON(url);
 }
 
-export function cacheManifestItem([ item, collection ]) {
-    return from(collection.upsert(item));
+export async function cacheManifestItem([ manifestItem, collection ]) {
+    let existing = await collection.findOne(manifestItem.id).exec();
+    if (existing) {
+        let newVersionDate = Date.parse(manifestItem.update_time);
+        let existingDate = Date.parse(existing.update_time);
+        if (existingDate >= newVersionDate) {
+            return existing;
+        }
+    }
+    return await collection.upsert(manifestItem);
 }

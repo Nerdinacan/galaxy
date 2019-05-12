@@ -1,4 +1,4 @@
-import { defer } from "rxjs";
+import { defer } from "rxjs/index";
 import { ajax } from "rxjs/ajax";
 
 export const HistoryList$ = defer(getHistories);

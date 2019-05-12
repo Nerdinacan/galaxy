@@ -1,7 +1,5 @@
 import { defer, merge, Subject } from "rxjs/index";
-import { tap } from "rxjs/operators";
 import { ajax } from "rxjs/ajax";
-import { log } from "../utils";
 
 
 // Initial ajax call when app loads
@@ -25,4 +23,7 @@ export function setCurrentHistory(newHistory) {
 
 // Main observable
 
-export const CurrentHistory$ = merge(InitialLoad$, updateHistory$);
+export const CurrentHistory$ = merge(
+    InitialLoad$, 
+    updateHistory$
+);

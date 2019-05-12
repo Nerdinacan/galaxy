@@ -1,9 +1,9 @@
-import { merge, from } from "rxjs";
-import { withLatestFrom, reduce, pluck, filter, map, mergeMap, share } from "rxjs/operators";
+import { merge } from "rxjs/index";
+import { reduce, pluck, filter, map, mergeMap, share } from "rxjs/operators";
 import { ajax } from "rxjs/ajax";
+import { split, withLatestFromDb } from "./utils";
 import { dataset$, datasetCollection$ } from "../db";
 import { Manifest$ } from "./Manifest$";
-
 import { conformToSchema, datasetSchema, datasetCollectionSchema } from "../schema";
 
 
@@ -27,7 +27,7 @@ export function doUpdates([ history, params ]) {
         filter(ids => ids.length),
         map(buildUpdateUrl(history)),
         mergeMap(ajax.getJSON),
-        mergeMap(from), // split again for separate cachig
+        split(),
         share()
     );
 
@@ -35,7 +35,7 @@ export function doUpdates([ history, params ]) {
     const dsUpdate$ = update$.pipe(
         filter(o => o.history_content_type == "dataset"),
         map(conformToSchema(datasetSchema)),
-        withLatestFrom(dataset$),
+        withLatestFromDb(dataset$),
         mergeMap(cacheItem)
     );
     
@@ -43,61 +43,56 @@ export function doUpdates([ history, params ]) {
     const dscUpdate$ = update$.pipe(
         filter(o => o.history_content_type == "dataset_collection"),
         map(prepareDatasetCollection),
-        withLatestFrom(datasetCollection$),
+        withLatestFromDb(datasetCollection$),
         mergeMap(cacheItem)
     );
-    
-    merge(dsUpdate$, dscUpdate$).subscribe(
-        result => null,
+
+    return merge(dsUpdate$, dscUpdate$).subscribe(
+        result => console.log("doUpdates result", result),
         error => console.log("doUpdates error", error),
         () => console.log("doUpdates complete")
     );
 }
 
 
-function getStaleContent(m$) {
-
-    // check the listed datasets and collections and start
-    // eagerly loading those into the database
-
-    const manifest$ = m$.pipe(share());
+// check the listed datasets and collections and start
+// eagerly loading those into the database
+function getStaleContent(manifest$) {
 
     const ds$ = manifest$.pipe(
         filter(o => o.history_content_type == "dataset"),
-        withLatestFrom(dataset$),
+        withLatestFromDb(dataset$),
         mergeMap(cacheCheck)
     );
 
-    let dsc$ = manifest$.pipe(
+    const dsc$ = manifest$.pipe(
         filter(o => o.history_content_type == "dataset_collection"),
-        withLatestFrom(datasetCollection$),
+        withLatestFromDb(datasetCollection$),
         mergeMap(cacheCheck)
     );
 
     return merge(ds$, dsc$);
 }
 
+
 // Check cache for valid version of indicated item
 // if no valid version, then return the stale id so the
 // bulk update can request the new version
-function cacheCheck([ manifestItem, collection ]) {
+async function cacheCheck([ manifestItem, collection ]) {
 
     let newVersionDate = Date.parse(manifestItem.update_time);
 
     // If valid version exists, and it was saved after
     // the manifestItem then we have a valid cache
-    let promise = collection.findOne(manifestItem.id).exec()
-        .then(existing => {
-            if (existing) {
-                let existingDate = Date.parse(existing.update_time);
-                if (existingDate >= newVersionDate) {
-                    return null;
-                }
-            }
-            return manifestItem;
-        });
+    let existing = await collection.findOne(manifestItem.id).exec();
+    if (existing) {
+        let existingDate = Date.parse(existing.update_time);
+        if (existingDate >= newVersionDate) {
+            return null;
+        }
+    }
 
-    return from(promise);
+    return manifestItem;
 }
 
 function buildUpdateUrl(history) {
@@ -108,9 +103,7 @@ function buildUpdateUrl(history) {
 }
 
 function cacheItem([ item, collection ]) {
-    let p = collection.atomicUpsert(item)
-        .catch(err => console.log("upsert error", err))
-    return from(p);
+    return collection.atomicUpsert(item);
 }
 
 

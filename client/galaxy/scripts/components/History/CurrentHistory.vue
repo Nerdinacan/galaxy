@@ -1,16 +1,12 @@
 <template>
     <section class="history">
         <h1>Current History</h1>
-        <pre>{{ currentHistory }}</pre>
-
         <select v-model="currentHistoryId">
             <option v-for="h in histories" :key="h.id" :value="h.id">
                 {{ h.id }}: {{ h.name }}
             </option>
         </select>
-
         <history :history="currentHistory" />
-        
     </section>
 </template>
 
@@ -45,4 +41,5 @@ export default {
         }
     }
 }
+
 </script>

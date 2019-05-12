@@ -4,11 +4,15 @@ import { CurrentHistory$, setCurrentHistory } from "./observables/CurrentHistory
 import { HistoryList$ } from "./observables/HistoryList$";
 import { HistoryContentLoader } from "./HistoryContentLoader";
 
+// container for a bunch of observables for querying content
+// for individual histories, didn't seem appropriate to put
+// it in state
+const loaders = {};
+
 export const state = {
     currentHistory: null,
     histories: [],
     contents: {}, // map, history.id to contents results
-    loaders: {} // map, history.id to loader object
 };
 
 export const getters = {
@@ -19,37 +23,30 @@ export const getters = {
 
 export const actions = {
 
-    loadContent({ state, commit }, { history, params }) {
-
-        let loader;
-
-        if (!(history.id in state.loaders)) {
-           
+    loadContent({ commit }, { history, params }) {
+        let loader, id = history.id;
+        if (!(id in loaders)) {
             loader = HistoryContentLoader(history);
-            
             loader.sub = loader.content$.subscribe(
-                contents => commit("setHistoryContents", { id: history.id, contents }),
+                contents => commit("setHistoryContents", { id, contents }),
                 err => console.warn("loader error", err),
                 () => console.log("loader complete")
             );
-
-            commit("setContentLoader", { id: history.id, loader });
-
         } else {
-            loader = state.loaders[history.id];
+            loader = loaders[id];
         }
-        
         loader.setParams(params);
     },
 
-    unsubLoader({ state, commit }, { history }) {
-        if (history.id in state.loaders) {
-            let loader = state.loaders[history.id];
+    unsubLoader(context, { history }) {
+        let id = history.id;
+        if (id in loaders) {
+            let loader = loaders[id];
             if (loader.sub) {
                 loader.sub.unsubscribe();
             }
         }
-        commit("removeContentLoader", history.id);
+        delete loaders[id];
     },
 
     updateCurrentHistory(context, newHistory)  {
@@ -66,15 +63,6 @@ export const mutations = {
     },
     setHistoryContents: (state, { id, contents }) => {
         Vue.set(state.contents, id, contents);
-    },
-    
-    // not 100% certain the loder objects need to live in the store
-    // since they're just service instances for retrieving content
-    setContentLoader: (state, { id, loader }) => {
-        Vue.set(state.loaders, id, loader);
-    },
-    removeContentLoader: (state, id) => {
-        Vue.delete(state.loaders, id);
     }
 };
 

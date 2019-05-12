@@ -1,6 +1,7 @@
 <template>
     <div>
         <h2>History</h2>
+        <!-- <pre>{{ history }}</pre> -->
         <history-search-params v-model="params" />
         <history-content v-if="historyContent"
             :historyContent="historyContent" />
@@ -9,10 +10,10 @@
 
 <script>
 
+import { mapActions } from "vuex";
+import { SearchParams } from "./model";
 import HistoryContent from "./HistoryContent";
 import HistorySearchParams from "./HistorySearchParams";
-import { SearchParams } from "./model";
-import { mapState, mapGetters, mapActions } from "vuex";
 
 export default {
     components: { 
@@ -38,7 +39,10 @@ export default {
         }
     },
     methods: {
-        ...mapActions("history", ["loadContent", "unsubLoader"])
+        ...mapActions("history", [
+            "loadContent", 
+            "unsubLoader"
+        ])
     },
     watch: {
         requestParams: {
