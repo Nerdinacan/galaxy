@@ -24,26 +24,26 @@ export const getters = {
 export const actions = {
 
     loadContent({ commit }, { history, params }) {
+        console.log("loadContent", history.id, params);
         let loader, id = history.id;
-        if (id in loaders) {
-            loader = loaders[id];
+        if (loaders.has(id)) {
+            loader = loaders.get(id);
         } else {
             loader = HistoryContentLoader(history);
-            loader.subscribe(
-                contents => commit("setHistoryContents", { id, contents }),
-                err => console.warn("content loader error", err),
-                () => console.log("content loader complete")
-            );
-            loaders[id] = loader;
+            loader.subscribe(contents => {
+                commit("setHistoryContents", { id, contents });
+            });
+            loaders.set(id, loader);
         }
         loader.setParams(params);
     },
 
-    unsubLoader(context, { id }) {
-        if (id in loaders) {
-            loaders[id].unsubscribe();
+    unsubLoader(context, id) {
+        console.log("unsubLoader", id);
+        if (loaders.has(id)) {
+            loaders.get(id).unsubscribe();
         }
-        delete loaders[id];
+        loaders.delete(id);
     },
 
     updateCurrentHistory(context, newHistory)  {

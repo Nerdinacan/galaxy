@@ -54,6 +54,12 @@ export default {
                 this.loadContent(payload);  
             },
             immediate: true
+        },
+        history(newValue, oldValue) {
+            console.log("history changed", newValue.id, oldValue.id);
+            if (oldValue) {
+                this.unsubLoader(oldValue.id);
+            }
         }
     },
     beforeDestroy() {
