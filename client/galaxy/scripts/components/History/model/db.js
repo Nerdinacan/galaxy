@@ -1,9 +1,7 @@
 import RxDB from "rxdb";
 import idb from "pouchdb-adapter-idb";
-// import hooks from "rxdb-utils/hooks";
-// import timestamps from 'rxdb-utils/timestamps';
-import { defer } from "rxjs/index";
-import { shareReplay, mergeMap } from "rxjs/operators";
+import { throwError, defer, from } from "rxjs/index";
+import { shareReplay, mergeMap, catchError, retry } from "rxjs/operators";
 
 import {
     dbConfig,
@@ -13,24 +11,33 @@ import {
 } from "./schema";
 
 RxDB.plugin(idb);
-// RxDB.plugin(hooks);
-// RxDB.plugin(timestamps);
 
 export const db$ = defer(buildDB).pipe(
     shareReplay(1)
 );
 
 async function buildDB() {
-    // console.log("building DB");
     return await RxDB.create(dbConfig);
+}
+
+async function killDB() {
+    return await RxDB.removeDatabase(dbConfig.name, dbConfig.adapater);
 }
 
 function buildCollection(config) {
     return db$.pipe(
-        mergeMap(db => {
-            // console.log(`building collection: ${config.name}`);
-            return db.collection(config);
+        mergeMap(db => db.collection(config)),
+        catchError((err, caught) => {
+            if (err.code == "DB6") {
+                return from(killDB()).pipe(
+                    mergeMap(buildDB),
+                    mergeMap(buildCollection(config)),
+                    mergeMap(() => throwError(err))
+                );
+            }
+            return caught;
         }),
+        retry(1),
         shareReplay(1)
     );
 }

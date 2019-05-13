@@ -1,7 +1,7 @@
 <template>
     <div>
-        <h3>Dataset Collection: {{ dsc.id }}</h3>
-        <pre>{{ dsc }}</pre>
+        <h4>Collection</h4>
+        <h3>{{ dsc.id }}</h3>
     </div>
 </template>
 

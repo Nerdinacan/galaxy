@@ -1,5 +1,5 @@
 // For mounting the component in non-vue environments
-import CurrentHistory from "./CurrentHistory";
+import HistoryPanel from "./HistoryPanel";
 import { mountVueComponent } from "utils/mountVueComponent";
 
-export const mountHistory = mountVueComponent(CurrentHistory);
+export const mountHistory = mountVueComponent(HistoryPanel);

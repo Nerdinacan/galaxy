@@ -1,7 +1,8 @@
 <template>
     <div>
-        <h2>History</h2>
-        <!-- <pre>{{ history }}</pre> -->
+        <header>
+            <h2>{{ history.name }}</h2>
+        </header>
         <history-search-params v-model="params" />
         <history-content v-if="historyContent"
             :historyContent="historyContent" />
@@ -21,11 +22,14 @@ export default {
         HistorySearchParams
     },
     props: {
-        history: { type: Object, required: true }
+        history: { 
+            type: Object,
+            required: true
+        }
     },
     data() {
-        return { 
-            params: new SearchParams() 
+        return {
+            params: new SearchParams()
         };
     },
     computed: {
@@ -40,7 +44,7 @@ export default {
     },
     methods: {
         ...mapActions("history", [
-            "loadContent", 
+            "loadContent",
             "unsubLoader"
         ])
     },
@@ -53,7 +57,7 @@ export default {
         }
     },
     beforeDestroy() {
-        this.unsubLoader(this.history);
+        this.unsubLoader(this.history.id);
     }
 }
 

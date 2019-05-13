@@ -2,6 +2,7 @@ import { defer, merge, Subject } from "rxjs/index";
 import { ajax } from "rxjs/ajax";
 
 
+
 // Initial ajax call when app loads
 
 const InitialLoad$ = defer(loadCurrentHistory);
@@ -26,4 +27,4 @@ export function setCurrentHistory(newHistory) {
 export const CurrentHistory$ = merge(
     InitialLoad$, 
     updateHistory$
-);
+)

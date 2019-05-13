@@ -1,10 +1,9 @@
 <template>
     <div>
-        <h3>Dataset: {{ dataset.id }}</h3>
-        <pre>{{ dataset }}</pre>
+        <h4>Dataset</h4>
+        <h3>{{ dataset.id }}</h3>
     </div>
 </template>
-
 
 <script>
 

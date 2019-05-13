@@ -1,10 +1,9 @@
 <template>
-    <div>
-        <h3>Params</h3>
-        <input type="text" v-model="params.start" />
-        <input type="text" v-model="params.pageSize" />
+    <form>
+        <!-- <input type="text" v-model="params.start" />
+        <input type="text" v-model="params.pageSize" /> -->
         <input type="text" v-model="params.filterText" />
-    </div>
+    </form>
 </template>
 
 <script>

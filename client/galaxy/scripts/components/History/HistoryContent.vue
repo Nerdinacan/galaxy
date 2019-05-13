@@ -1,13 +1,16 @@
 <template>
     <div>
-        <h2>History Contents</h2>
-        <ul>
+        <ol v-if="listing.length">
             <li v-for="content in listing" :key="content.id">
                 <content-item :content="content" />
             </li>
-        </ul>
+        </ol>
+        <div v-if="!listing.length">
+            <p>No content.</p>
+        </div>
     </div>
 </template>
+
 
 <script>
 
@@ -18,11 +21,7 @@ export default {
         ContentItem 
     },
     props: {
-        historyContent: { 
-            type: Array, 
-            required: true, 
-            default: () => ([])
-        }
+        historyContent: { type: Array, required: true }
     },
     computed: {
         listing() {

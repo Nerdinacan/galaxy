@@ -1,31 +1,25 @@
 import { combineLatest } from "rxjs/index";
-import { map, tap, switchMap, share, mergeMap } from "rxjs/operators";
+import { map, tap, switchMap, share } from "rxjs/operators";
 import { historyContent$ } from "../db";
 import { doUpdates } from "./doUpdates";
 
 
 export function HistoryContent$(history$, param$) {
-    return combineLatest(history$, param$).pipe(
+    return combineLatest(history$, param$, historyContent$).pipe(
         tap(doUpdates),
-        mergeMap(buildContentObservable),
+        switchMap(buildContentObservable),
         map(scrubDocs),
         share()
     );
 }
 
 // Return an observable that emits results of the query
-function buildContentObservable([ history, params ]) {
-    return historyContent$.pipe(
-        switchMap(coll => {
-            // TODO: apply params object to the query characteristics
-            let query = coll.find().where('history_id').eq(history.id);
-            return query.$;
-        })
-    );
+// TODO: apply params object to the query characteristics
+function buildContentObservable([ history, params, coll ]) {
+    return coll.find().where('history_id').eq(history.id).$;
 }
 
-// turns array of rxdb docs into plain objects
-// TODO: do this in component?
+// Turns array of RxDB docs into plain objects
 function scrubDocs(results) {
     return results.map(o => o.toJSON())
 }

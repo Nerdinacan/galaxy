@@ -1,5 +1,3 @@
-// Single top-level item in the history contents
-
 export default {
     title: "historycontent",
     version: 0,

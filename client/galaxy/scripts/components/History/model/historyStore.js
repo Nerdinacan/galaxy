@@ -7,12 +7,12 @@ import { HistoryContentLoader } from "./HistoryContentLoader";
 // container for a bunch of observables for querying content
 // for individual histories, didn't seem appropriate to put
 // it in state
-const loaders = {};
+const loaders = new Map();
 
 export const state = {
     currentHistory: null,
     histories: [],
-    contents: {}, // map, history.id to contents results
+    contents: {}
 };
 
 export const getters = {
@@ -25,26 +25,23 @@ export const actions = {
 
     loadContent({ commit }, { history, params }) {
         let loader, id = history.id;
-        if (!(id in loaders)) {
-            loader = HistoryContentLoader(history);
-            loader.sub = loader.content$.subscribe(
-                contents => commit("setHistoryContents", { id, contents }),
-                err => console.warn("loader error", err),
-                () => console.log("loader complete")
-            );
-        } else {
+        if (id in loaders) {
             loader = loaders[id];
+        } else {
+            loader = HistoryContentLoader(history);
+            loader.subscribe(
+                contents => commit("setHistoryContents", { id, contents }),
+                err => console.warn("content loader error", err),
+                () => console.log("content loader complete")
+            );
+            loaders[id] = loader;
         }
         loader.setParams(params);
     },
 
-    unsubLoader(context, { history }) {
-        let id = history.id;
+    unsubLoader(context, { id }) {
         if (id in loaders) {
-            let loader = loaders[id];
-            if (loader.sub) {
-                loader.sub.unsubscribe();
-            }
+            loaders[id].unsubscribe();
         }
         delete loaders[id];
     },
@@ -97,4 +94,5 @@ export const observeHistory = store => {
     HistoryList$.subscribe(list => {
         store.commit("history/setHistoryList", list);
     });
+
 }
