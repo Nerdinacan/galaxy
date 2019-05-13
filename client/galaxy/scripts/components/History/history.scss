@@ -1,0 +1,117 @@
+@import "theme/blue.scss";
+@import "scss/mixins.scss";
+
+@mixin flexColumn() {
+    display: flex;
+    flex-direction: column;
+}
+
+// flex-boxin'
+.history-container {
+    @include flexColumn();
+
+    .history {
+        z-index: 0;
+        flex: 1;
+
+        @include flexColumn();
+
+        > header {
+            flex: 0;
+        }
+
+        > .scrollContainer {
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+    }
+
+    .unified-panel-footer {
+        z-index: 1;
+    }
+}
+
+
+.history {
+    
+    > header hgroup {
+        margin: 1em;
+    }
+
+    ol {
+        @include list_reset();
+        li {
+            display: flex;
+            flex-direction: row;
+            padding: 0.5rem 1rem;
+            margin-bottom: 1px;
+            background-color: rgba(0,0,0,0.1);
+
+            &.loading {
+                background: transparent;
+                height: 50px;
+                opacity: 0;
+            }
+            &.loading.active {
+                opacity: 1;
+            }
+        }
+        
+    }
+
+    .dataset, 
+    .datasetCollection {
+        > header {
+            h3, h4 {
+                margin: 0;
+            } 
+            a {
+                cursor: pointer;
+            }
+            & + * {
+                margin-top: 0.5rem;
+            }
+        }
+        > textarea {
+            width: 100%;
+        }
+    }
+}
+
+
+// Transitions
+
+.shutterfade-enter,
+.shutterfade-leave-to {
+    opacity: 0;
+    max-height: 0;
+}
+
+.shutterfade-enter-to,
+.shutterfade-leave {
+    opacity: 1.0;
+    max-height: 250px;
+}
+
+.shutterfade-enter-active,
+.shutterfade-leave-active {
+    transition-property: opacity max-height;
+    transition-duration: 0.35s;
+}
+
+
+.fade-enter,
+.fade-leave-to {
+    opacity: 0;
+}
+
+.fade-enter-to,
+.fade-leave {
+    opacity: 1.0;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition-property: opacity;
+    transition-duration: 0.35s;
+}

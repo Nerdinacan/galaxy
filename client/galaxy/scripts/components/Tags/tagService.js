@@ -14,6 +14,7 @@ import { Subject } from "rxjs";
 import { map, filter, debounceTime, switchMap, distinctUntilChanged } from "rxjs/operators";
 
 export class TagService {
+
     constructor({ id, itemClass, context, debounceInterval = 150 }) {
         this.id = id;
         this.itemClass = itemClass;
