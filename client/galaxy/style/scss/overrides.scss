@@ -59,6 +59,10 @@ input[type="radio"] {
     overflow: auto;
 }
 
+.modal-backdrop {
+    opacity: 0.5;
+}
+
 // Tabs -- border color is hardcoded in navs.scss, change to $btnBorder here
 
 .nav-tabs {

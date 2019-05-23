@@ -36,6 +36,7 @@ export const mutations = {
 };
 
 export const tagStore = {
+    namespaced: true,
     state,
     getters,
     actions,

@@ -23,7 +23,7 @@
 </template>
 
 <script>
-import MaskedInput from "components/MaskedInput";
+import MaskedInput from "components/Form/MaskedInput";
 
 export default {
     components: {

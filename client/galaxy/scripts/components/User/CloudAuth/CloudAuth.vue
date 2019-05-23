@@ -240,6 +240,7 @@ export default {
 
 .cloud-auth {
     // header sticks, bottom part scrolls
+    @include fill();
     @include scrollingListLayout("header", ".scroll-container");
 
     // title left, icons right

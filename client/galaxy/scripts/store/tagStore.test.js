@@ -39,7 +39,7 @@ describe("store/tagStore.js", () => {
     });
 
     describe("getters/getTagsById", () => {
-        const { getTagsById } = tagStore.getters;
+        const { getTagsById } = tagStore.tags.getters;
         const { setTags } = tagStore.mutations;
         const testKey = "foo";
         const testTags = ["a", "b", "c", "b"];

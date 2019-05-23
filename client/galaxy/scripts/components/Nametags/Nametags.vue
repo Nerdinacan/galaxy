@@ -17,14 +17,15 @@ export default {
     computed: {
         // only display tags that start with name:
         nameTags() {
-            return this.$store.getters.getTagsById(this.storeKey).filter(tag => tag.startsWith("name:"));
+            const getter = this.$store.getters["tags/getTagsById"];
+            return getter(this.storeKey).filter(tag => tag.startsWith("name:"));
         },
         title() {
             return `${this.nameTags.length} nametags`;
         }
     },
     methods: {
-        ...mapActions(["updateTags", "initializeTags"])
+        ...mapActions("tags", ["updateTags", "initializeTags"])
     },
     mounted() {
         this.initializeTags({ key: this.storeKey, tags: this.tags });

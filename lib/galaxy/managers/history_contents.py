@@ -490,8 +490,12 @@ class HistoryContentsFilters(base.ModelFilterParser,
             if attr in ('update_time', 'create_time'):
                 if op == 'ge':
                     return sql.column(attr) >= self.parse_date(val)
+                if op == 'gt':
+                    return sql.column(attr) > self.parse_date(val)
                 if op == 'le':
                     return sql.column(attr) <= self.parse_date(val)
+                if op == 'lt':
+                    return sql.column(attr) < self.parse_date(val)
                 self.raise_filter_err(attr, op, val, 'bad op in filter')
 
             if attr == 'state':
@@ -539,6 +543,6 @@ class HistoryContentsFilters(base.ModelFilterParser,
             'name'          : {'op': ('eq', 'contains', 'like')},
             'state'         : {'op': ('eq', 'in')},
             'visible'       : {'op': ('eq'), 'val': self.parse_bool},
-            'create_time'   : {'op': ('le', 'ge'), 'val': self.parse_date},
-            'update_time'   : {'op': ('le', 'ge'), 'val': self.parse_date},
+            'create_time'   : {'op': ('le', 'ge', 'gt', 'lt'), 'val': self.parse_date},
+            'update_time'   : {'op': ('le', 'ge', 'gt', 'lt'), 'val': self.parse_date},
         })

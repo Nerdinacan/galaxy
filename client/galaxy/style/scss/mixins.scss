@@ -11,6 +11,15 @@ $fa-font-path: "~font-awesome/fonts/";
     height: 100%;
 }
 
+@mixin absfill() {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+
 // animates max-height and visibility hidden by default, add .active to show
 // boxHeight must be larger than the expected maximum height of the element
 // or it will be clipped
@@ -36,24 +45,19 @@ $fa-font-path: "~font-awesome/fonts/";
 
 @mixin scrollMe() {
     overflow-x: hidden;
-    overflow-y: scroll;
-    &::-webkit-scrollbar {
-        display: none;
-    }
+    overflow-y: auto;
 }
 
 // top selector fixed, bottom list scrolls
 @mixin scrollingListLayout($fixedTop, $listRegion) {
-    @include fill();
-
     display: flex;
     flex-direction: column;
 
-    #{$fixedTop} {
+    & #{$fixedTop} {
         flex-grow: 0;
     }
 
-    #{$listRegion} {
+    & #{$listRegion} {
         flex-grow: 1;
         @include scrollMe();
     }
@@ -79,5 +83,29 @@ $fa-font-path: "~font-awesome/fonts/";
         // Span for text readers
         // <a><span>Label</span></a>
         @include sr-only();
+    }
+}
+
+
+@mixin forScreenReader() {
+    position: absolute;
+    top: auto;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+@mixin flexRowHeader() {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+// Do we not have a general css reset?
+@mixin resetHeaders() {
+    h1, h2, h3, h4, h5, h6 {
+        margin: 0;
     }
 }

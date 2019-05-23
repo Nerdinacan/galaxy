@@ -1166,48 +1166,57 @@ ul.manage-table-actions li {
 
 // State colors
 
-.state-color-new {
+.state-color-new,
+[data-state="new"] {
     border-color: $state-default-border;
     background: $state-default-bg;
 }
 
-.state-color-upload {
+.state-color-upload,
+[data-state="upload"] {
     border-color: $state-info-border;
     background: $state-info-bg;
 }
 
-.state-color-waiting {
+.state-color-waiting,
+[data-state="waiting"] {
     border-color: $state-default-border;
     background: $state-default-bg;
 }
 
-.state-color-queued {
+.state-color-queued,
+[data-state="queued"] {
     border-color: $state-default-border;
     background: $state-default-bg;
 }
 
-.state-color-running {
+.state-color-running,
+[data-state="running"] {
     border-color: $state-running-border;
     background: $state-running-bg;
 }
 
-.state-color-ok {
+.state-color-ok,
+[data-state="ok"] {
     border-color: $state-success-border;
     background: $state-success-bg;
 }
 
-.state-color-error {
+.state-color-error,
+[data-state="error"] {
     border-color: $state-danger-border;
     background: $state-danger-bg;
 }
 
-.state-color-deleted {
+.state-color-deleted,
+[data-state="deleted"] {
     border-color: darken($state-default-border, 30%);
     border-style: dotted;
     background: darken($state-default-bg, 30%);
 }
 
-.state-color-hidden {
+.state-color-hidden,
+[data-state="hidden"] {
     border-color: $state-default-border;
     border-style: dotted;
     background: $state-default-bg;

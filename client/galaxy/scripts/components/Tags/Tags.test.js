@@ -79,7 +79,8 @@ describe("Tags/Tags.vue", () => {
     });
 
     it("should put the initialized tags into the store at initialization", async () => {
-        let storedTags = store.getters.getTagsById(storeKey);
+        let getter = this.$store.getters["tags/getTagsById"];
+        let storedTags = getter(storeKey);
         expect(storedTags.length).to.equal(3);
         startingTags.forEach((tag, i) => {
             expect(tag).to.equal(storedTags[i]);

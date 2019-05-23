@@ -66,13 +66,6 @@ export default Backbone.View.extend({
     /** Show/hide upload dialog */
     show: function() {
         const Galaxy = getGalaxyInstance();
-        var self = this;
-        if (!Galaxy.currHistoryPanel || !Galaxy.currHistoryPanel.model) {
-            window.setTimeout(() => {
-                self.show();
-            }, 500);
-            return;
-        }
         this.current_user = Galaxy.user.id;
         if (!this.modal) {
             this.tabs = new Tabs.View();

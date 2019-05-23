@@ -43,7 +43,8 @@ export default {
     computed: {
         observedTags: {
             get() {
-                return this.$store.getters.getTagsById(this.storeKey);
+                const getter = this.$store.getters["tags/getTagsById"];
+                return getter(this.storeKey);
             },
             set(tags) {
                 this.updateTags({ key: this.storeKey, tags });
@@ -87,7 +88,7 @@ export default {
             this.tagService.autocompleteSearchText = searchTxt;
         },
 
-        ...mapActions(["updateTags", "initializeTags"])
+        ...mapActions("tags", ["updateTags", "initializeTags"])
     },
 
     mounted() {

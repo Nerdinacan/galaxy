@@ -293,7 +293,10 @@ class HDASerializer(  # datasets._UnflattenedMetadataDatasetAssociationSerialize
 
             'display_apps',
             'display_types',
-            'visualizations',
+
+            # Visualizations is large and poorly-defined (schema-wise),
+            # will lazy load as needed from client
+            # 'visualizations',
 
             # 'url',
             'download_url',

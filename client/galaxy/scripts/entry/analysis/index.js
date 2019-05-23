@@ -1,7 +1,7 @@
 import { standardInit, addInitialization } from "onload";
 import { getAnalysisRouter } from "./AnalysisRouter";
 import ToolPanel from "entry/panels/tool-panel";
-import HistoryPanel from "entry/panels/history-panel";
+import { HistoryPanelProxy as HistoryPanel } from "components/History";
 import Page from "layout/page";
 
 addInitialization((Galaxy, { options = {} }) => {

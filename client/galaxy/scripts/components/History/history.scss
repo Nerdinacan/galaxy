@@ -1,0 +1,17 @@
+// Fixes for overall right-column container. Had to remove some of the original
+// unified-panel nonsense in order to bring the whole panel under control of one
+// History component.
+
+// TODO: This file can die when we house the panel in a Vue app
+
+.history-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    .unified-panel-footer {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        z-index: 1;
+    }
+}

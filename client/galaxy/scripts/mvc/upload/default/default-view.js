@@ -13,6 +13,13 @@ import Ui from "mvc/ui/ui-misc";
 import LazyLimited from "mvc/lazy/lazy-limited";
 import "utils/uploadbox";
 import { getGalaxyInstance } from "app";
+import vuexStore from "../../../store";
+
+
+function currentHistory() {
+    return vuexStore.getters["history/currentHistory"];
+}
+
 
 export default Backbone.View.extend({
     // current upload size in bytes
@@ -260,7 +267,6 @@ export default Backbone.View.extend({
 
     /** Success */
     _eventSuccess: function(index, message) {
-        const Galaxy = getGalaxyInstance();
         var it = this.collection.get(index);
         it.set({ percentage: 100, status: "success" });
         this.ui_button.model.set("percentage", this._uploadPercentage(100, it.get("file_size")));
@@ -268,7 +274,6 @@ export default Backbone.View.extend({
         this.counter.announce--;
         this.counter.success++;
         this.render();
-        Galaxy.currHistoryPanel.refreshContents();
     },
 
     /** Warning */
@@ -367,7 +372,9 @@ export default Backbone.View.extend({
                 status: "success"
             });
             this.counter.running = this.counter.announce;
-            this.history_id = this.app.currentHistory();
+            
+            // retrieve history_id from Vuex store instead of galaxy
+            this.history_id = currentHistory().id;
 
             // package ftp files separately, and remove them from queue
             this._uploadFtp();
