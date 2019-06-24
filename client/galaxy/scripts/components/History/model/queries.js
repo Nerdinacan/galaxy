@@ -14,7 +14,7 @@ export async function getCurrentHistory() {
 
 
 export async function getHistoryById(id) {
-    const url = prependPath(`/api/histories/${id}?view=dev-detailed&keys=contents_active`);
+    const url = prependPath(`/api/histories/${id}?view=dev-detailed&keys=visible,contents_active`);
     const response = await axios.get(url);
     return response.data; // history object
 }
@@ -22,7 +22,7 @@ export async function getHistoryById(id) {
 
 // pass in a dictionary of fields to update
 export async function updateHistoryFields(history, payload) {
-    const url = prependPath(`/api/histories/${history.id}?view=dev-detailed&keys=contents_active`);
+    const url = prependPath(`/api/histories/${history.id}?view=dev-detailed&keys=visible,contents_active`);
     const response = await axios.put(url, payload);
     if (response.status != 200) {
         throw new Error(response);

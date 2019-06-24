@@ -1,41 +1,143 @@
-import { merge } from "rxjs";
-import { map, mergeMap } from "rxjs/operators";
-import {
-    history$ as historyColl$, 
-    historyContent$,
-    dataset$, 
-    datasetCollection$    
-} from "../db";
+/**
+ * Rxjs custom operators and other functions for accessing
+ * the data stored locally in indexDb
+ */
 
-import { prepareManifestItem } from "../schema/prepare";
+import { merge } from "rxjs";
+import { tap, map, mergeMap, withLatestFrom } from "rxjs/operators";
+import { history$, historyContent$, dataset$, datasetCollection$ } from "../db";
+import { prepareHistory, prepareManifestItem, prepareDataset, prepareDatasetCollection } from "../schema/prepare";
 import { safeAssign } from "utils/safeAssign";
 
-// General caching lookup by pkey
-// live = true => function that returns an observable
-// live = false => function that returns a promise
 
-export const CachedItem = (coll$, keyField = "id", live = true) => key => {
-    return coll$.pipe(
-        map(coll => coll.findOne().where(keyField).eq(key)),
-        mergeMap(query => live ? query.$ : query.exec()),
-        map(doc => doc ? doc.toJSON() : null)
+/**
+ * Retrieves item from indexDB collection given an
+ * observable primary key
+ * @param {Observable<RxCollection>} collection$
+ */
+const getCachedItem = collection$ => key$ => {
+    return key$.pipe(
+        withLatestFrom(collection$),
+        mergeMap(([ key, coll ]) => {
+            const keyField = coll.schema.primaryPath;
+            const query = coll.findOne().where(keyField).eq(key);
+            return query.$;
+        })
+    );
+}
+
+export const getCachedHistory = () => key$ => {
+    return key$.pipe(
+        getCachedItem(history$)
+    );
+}
+
+export const getCachedContent = () => key$ => {
+    return key$.pipe(
+        getCachedItem(historyContent$)
+    );
+}
+
+export const getCachedDataset = () => key$ => {
+    return key$.pipe(
+        getCachedItem(dataset$)
+    );
+}
+
+export const getCachedDatasetCollection = () => key$ => {
+    return key$.pipe(
+        getCachedItem(datasetCollection$)
     );
 }
 
 
-// Root history object
-export const History$ = CachedItem(historyColl$);
+/**
+ * Cache object in rxdb collection
+ * @param {Observable<RxCollection>} collection$
+ */
+const cacheItemInDb = collection$ => item$ => {
+    return item$.pipe(
+        withLatestFrom(collection$),
+        mergeMap(async ([ item, coll ]) => {
+            return await coll.atomicUpsert(item)
+        })
+    );
+}
 
-// individual contents by type_id, summary version
-export const HistoryContent$ = CachedItem(historyContent$, "type_id");
+export const cacheHistory = () => rawHistory$ => {
+    return rawHistory$.pipe(
+        map(prepareHistory),
+        cacheItemInDb(history$)
+    );
+}
 
-// Dataset by id
-export const Dataset$ = CachedItem(dataset$);
+export const cacheContent = () => rawContent$ => {
+    return rawContent$.pipe(
+        map(prepareManifestItem),
+        cacheItemInDb(historyContent$)
+    );
+}
 
-// Dataset Collection by id
-export const DatasetCollection$ = CachedItem(datasetCollection$);
+export const cacheDataset = () => rawDS$ => {
+    return rawDS$.pipe(
+        map(prepareDataset),
+        cacheItemInDb(dataset$)
+    );
+}
+
+export const cacheDatasetCollection = () => rawDSC$ => {
+    return rawDSC$.pipe(
+        map(prepareDatasetCollection),
+        cacheItemInDb(datasetCollection$)
+    );
+}
 
 
+/**
+ * Delete object from collection
+ * @param {Observable<RxCollection>} collection$
+ */
+const deleteItemFromLocalDb = collection$ => item$ => {
+    return item$.pipe(
+        withLatestFrom(collection$),
+        mergeMap(async ([ item, coll ]) => {
+            const keyField = coll.schema.primaryPath;
+            const pKey = item[keyField];
+            const query = coll.find().where(keyField).eq(pKey);
+            return await query.remove();
+        })
+    )
+}
+
+export const deleteHistory = () => item$ => {
+    return item$.pipe(
+        deleteItemFromLocalDb(history$)
+    );
+}
+
+export const deleteContent = () => item$ => {
+    return item$.pipe(
+        deleteItemFromLocalDb(historyContent$)
+    );
+}
+
+export const deleteDataset = () => item$ => {
+    return item$.pipe(
+        deleteItemFromLocalDb(dataset$)
+    );
+}
+
+export const deleteDatasetCollection = () => item$ => {
+    return item$.pipe(
+        deleteItemFromLocalDb(datasetCollection$)
+    );
+}
+
+
+
+
+
+// TODO? rewrite in terms of tested operators?
 
 // Delete stuff from dataset and historycontent
 
@@ -70,12 +172,8 @@ export async function cacheContentItem(item) {
     const coll = await historyContent$.toPromise();
     const existing = await coll.findOne(item.type_id).exec();
     if (!existing) {
-        const newDoc = await coll.newDocument(props).save();
-        console.log("newDoc", newDoc);
-        return newDoc;
+        return await coll.newDocument(props).save();
     }
     
-    const updated = await existing.atomicUpdate(doc => safeAssign(doc, props));
-    console.log("updated", updated);
-    return updated;
+    return await existing.atomicUpdate(doc => safeAssign(doc, props));
 }

@@ -1,98 +1,78 @@
-// Retrieves history content summary objects for given history/params, 
-// designed to work in the polling process.
-
-import { of, combineLatest } from "rxjs";
-import { map, withLatestFrom, share } from "rxjs/operators";
-import { history$ as historyCollection$, historyContent$ } from "../db";
-import { prepareHistory, prepareManifestItem } from "../schema";
-import { load, split, cacheInLocalDb, firstItem } from "./utils";
-import capitalize from "underscore.string/capitalize";
-import { CachedItem } from "./CachedData";
+import { filter, map, withLatestFrom } from "rxjs/operators";
+import { load, split } from "./utils";
+import { cacheContent } from "./CachedData";
 
 
-export function Manifest$(history, params, counter) {
+// Content Manifest
+// do a contents request, this is a list of all the content matching
+// the indicated parameters
 
-    const history$ = of(history);
-    const param$ = of(params);
-    const counter$ = of(counter);
-    const since$ = lastHistoryUpdateTime$(history.id).pipe(share());
-
-    // check to see if this history has been updated, 
-    const historyUpdate$ = combineLatest(history$, since$, counter$).pipe(
-        map(buildHistoryUpdateUrl),
-        load(),
-        firstItem(),
-        map(prepareHistory),
-        cacheInLocalDb(historyCollection$)
-    );
-    
-    // if we get this far, do a contents request, this is
-    // a list of all the content matching the indicated
-    // parameters that have changed sinde the since$ date
-    // Cache results
-    const contentUpdate$ = historyUpdate$.pipe(
-        withLatestFrom(param$, since$, counter$),
-        map(buildContentsUrl),
+export function Manifest$(history$, param$) {
+    return history$.pipe(
+        withLatestFrom(param$),
+        filter(needsManifest),
+        map(buildManifestUrl),
         load(),
         split(),
-        map(prepareManifestItem),
-        cacheInLocalDb(historyContent$)
-    );
-
-    return contentUpdate$;
-}
-
-
-
-// Last update time for a history, from cache or default
-
-const dateZero = (new Date(0)).toISOString();
-const historyLookup = CachedItem(historyCollection$, "id", false);
-
-function lastHistoryUpdateTime$(id) {
-    return historyLookup(id).pipe(
-        map(doc => doc ? doc.update_time : dateZero),
+        cacheContent()
     );
 }
 
-function buildHistoryUpdateUrl([ history, since, counter ]) {
-    const base = "/api/histories?view=detailed&keys=contents_active";
-    const idCriteria = `q=encoded_id-in&qv=${history.id}`;
-    const updateCriteria = (counter != -1) ? `q=update_time-gt&qv=${since}` : "";
-    const parts = [ base, updateCriteria, idCriteria ];
-    return parts.filter(o => o.length).join("&");
+
+// checks to see if history/params needs a manifest
+
+function needsManifest([ history, params ]) {
+    const contentDate = params.contentLastUpdated;
+    const historyDate = new Date(history.update_time);
+    if (contentDate) {
+        if (contentDate > historyDate) {
+            return false;
+        }
+    }
+    return true;
 }
 
-// just using a regular contents query with minimal fields
-// TODO: make a very fast manifest endpoint since we'll be checking this a lot?
-function buildContentsUrl([ history, params, since, counter ]) {
+
+// gets content manifest
+
+function buildManifestUrl([ history, params ]) {
 
     const base = `/api/histories/${history.id}/contents?v=dev&view=summary`;
-
-    // pagination
-    const limit = `limit=${params.pageSize}`;
     const offset = `offset=${params.offset}`;
+    const limit = `limit=${params.limit}`;
+    const orderClause = "order=hid-dsc";
 
-    // deleted, purged, visible, mysteriously don't take normal true/false vals
-    const deleteFilter = "q=deleted&qv=" + capitalize(String(params.showDeleted));
-    const purgeFilter = "q=purged&qv=" + capitalize(String(params.showPurged));
-    const visibleFilter = "q=visible&qv=" + capitalize(String(params.showVisible));
+    // deleted purged
+    // TODO: rework ridiculous api boolean filter-failure
+    let deleteFilter = "", purgeFilter = "";
+    if (params.showDeleted === false) {
+        deleteFilter = "q=deleted&qv=False";
+        purgeFilter = "q=purged&qv=False";
+    }
+
+    // hide/show
+    let visibleFilter = "";
+    if (params.showHidden) {
+        visibleFilter = "q=visible&qv=True";
+    }
 
     // text filter
-    const textFilter = (params.filterText.length) 
-        ? `q=name-contains&qv=${params.filterText}` 
-        : "";
+    let textFilter = "";
+    if (params.filterText.length) {
+        textFilter = `q=name-contains&qv=${params.filterText}`;
+    }
 
-    // only look for updates since the latest update_time from the cache
-    // but only if thie params have not changed. When the params change,
-    // the counter will be -1 and we want to reset the "since"
-    const updateCriteria = (counter != -1) 
-        ? `q=update_time-gt&qv=${since}` 
-        : "";
+    // Update time
+    const lastUpdated = params.contentLastUpdated;
+    const updateCriteria = lastUpdated ? `q=update_time-gt&qv=${lastUpdated.toISOString()}` : "";
+    params.contentLastUpdated = new Date();
 
-    return [
-        base, limit, offset, textFilter, 
-        deleteFilter, purgeFilter, visibleFilter, 
-        updateCriteria 
-    ].filter(o => o.length).join("&");
+    // Url
+    const parts = [
+        base, limit, offset, orderClause, 
+        textFilter, deleteFilter, purgeFilter, visibleFilter,
+        updateCriteria
+    ];
+
+    return parts.filter(o => o.length).join("&");
 }

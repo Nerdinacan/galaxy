@@ -1,6 +1,6 @@
 import RxDB from "rxdb";
 import idb from "pouchdb-adapter-idb";
-import { defer, from } from "rxjs";
+import { defer } from "rxjs";
 import { shareReplay, mergeMap, catchError } from "rxjs/operators";
 
 import {

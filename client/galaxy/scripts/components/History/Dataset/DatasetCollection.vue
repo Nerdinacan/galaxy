@@ -24,7 +24,7 @@
 <script>
 
 import { IconMenu, IconMenuItem } from "components/IconMenu";
-import { DatasetCollection$ } from "../model/observables/CachedData";
+import { getCachedDatasetCollection } from "../model/observables/CachedData";
 import { eventHub } from "../eventHub";
 
 export default {
@@ -58,9 +58,8 @@ export default {
         }
     },
     subscriptions() {
-        return { 
-            dsc: DatasetCollection$(this.content.id)
-        };
+        const dsc = of(this.content.id).pipe(getCachedDatasetCollection())
+        return { dsc };
     },
     created() {
         eventHub.$on('collapse-content', this.collapse);

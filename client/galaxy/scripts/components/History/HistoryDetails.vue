@@ -14,6 +14,11 @@
                         title="Downloads"
                         icon="download"
                         :useTooltip="false" />
+                    <icon-menu-item
+                        title="Raw History Data"
+                        icon="eye"
+                        @click="showRaw = !showRaw"
+                        :useTooltip="false" />
                     <icon-menu-item id="historyOperationsIcon"
                         title="Current History Operations"
                         icon="cog"
@@ -74,6 +79,8 @@
                 :history="history" />
         </transition>
 
+
+        <pre v-if="showRaw">{{ history }}</pre>
 
 
         <!-- menus and modals -->
@@ -194,7 +201,8 @@ export default {
             showCopyModal: false,
             editName: false,
             editAnnotation: false,
-            messages
+            messages,
+            showRaw: false
         }
     },
     computed: {

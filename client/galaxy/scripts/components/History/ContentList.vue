@@ -1,87 +1,87 @@
 <template>
-    <div class="scrollContainer">
-        <div class="scrollContent" ref="scrollContainer" @wheel="onScroll" v-scroll="onScroll">
+    <div>
 
-            <transition name="fade">
-                <ol v-if="content.length">
-                    <li v-for="c in content" :key="c.type_id"
-                        class="d-flex p-2 mb-1"
-                        :data-state="itemState(c)">
+        <transition name="fade">
+            <div v-if="content.length" class="scrollContainer"
+                ref="scrollContainer">
+
+                <ol ref="scrollContent">
+                    <li v-for="(c, index) in content" :key="c.type_id"
+                        class="d-flex p-2 mb-1" 
+                        :data-state="c.state"
+                        v-observe-visibility="updatePageRange(index)">
                         <b-form-checkbox v-if="showSelection"
-                            v-model="selection"
-                            :value="c.toJSON()" />
-                        <content-item :content="c" class="flex-grow-1" />
+                            v-model="selection" :value="c" />
+                        <content-item class="flex-grow-1"
+                            :content="c" 
+                            :index="index" />
                     </li>
                 </ol>
-            </transition>
 
-            <transition name="fade">
-                <div v-if="!(loading || content.length)">
-                    <p>No content, man.</p>
-                </div>
-            </transition>
+            </div>
+        </transition>
 
-            <transition name="fade">
-                <div v-if="loading" class="">
-                    <b-spinner label="Loading..."></b-spinner>
-                </div>
-            </transition>
+        <transition name="fade">
+            <div v-if="!(loading || content.length)">
+                <p>No content, man.</p>
+            </div>
+        </transition>
 
-        </div>
+        <transition name="fade">
+            <div v-if="loading" class="d-flex justify-content-center mt-3">
+                <b-spinner label="Loading..."></b-spinner>
+            </div>
+        </transition>
+
     </div>
 </template>
 
+
 <script>
 
-import Vue from "vue";
 import { mapGetters, mapActions } from "vuex";
-import vuescroll from "vue-scroll";
-import { BehaviorSubject } from "rxjs";
-import { tap, map, debounceTime, distinctUntilChanged } from "rxjs/operators";
-import ContentItem from "./ContentItem";
 import { debounce } from "debounce";
 import { eventHub } from "./eventHub";
-
-Vue.use(vuescroll);
-
+import { ObserveVisibility } from "vue-observe-visibility";
+import ContentItem from "./ContentItem";
+import { SearchParams } from "./model/SearchParams";
 
 export default {
+
+    directives: {
+        ObserveVisibility
+    },
     components: {
         ContentItem
     },
     props: {
         history: { type: Object, required: true }
     },
+
     data() {
         return {
             loading: false,
             showSelection: false,
-            scrollSubject: new BehaviorSubject(0)
+            localParams: new SearchParams()
         }
     },
+
     computed: {
+
         ...mapGetters("history", [
             "searchParams",
             "historyContent",
             "contentSelection"
         ]),
-        historyId() {
-            return this.history.id;
+
+        params() {
+            return this.searchParams(this.history.id).clone();
         },
-        params: {
-            get() {
-                return this.searchParams(this.historyId);
-            },
-            set(newParams) {
-                this.setSearchParams({
-                    history: this.history,
-                    params: newParams
-                });
-            }
-        },
+
         content() {
-            return this.historyContent(this.historyId);
+            return this.historyContent(this.history.id);
         },
+
         selection: {
             get() {
                 const selectionSet = this.contentSelection(this.history);
@@ -95,16 +95,10 @@ export default {
                     selection: new Set(newList)
                 });
             }, 100, true)
-        },
-        listStateClasses() {
-            const { loading } = this;
-            return { loading };
-        },
-        contentParameters() {
-            const { history, params } = this;
-            return { history, params };
         }
+
     },
+
     methods: {
 
         ...mapActions("history", [
@@ -113,12 +107,6 @@ export default {
             "setSearchParams",
             "setContentSelection"
         ]),
-
-        onScroll(evt) {
-            const container = this.$refs['scrollContainer'];
-            const newTop = container.scrollTop;
-            this.scrollSubject.next(newTop);
-        },
 
         itemClasses(c) {
             const stateClass = this.itemStateClass(c);
@@ -129,79 +117,102 @@ export default {
             return classConfig;
         },
 
-        itemState(c) {
-            return c.state || "ok";
-        },
-
-
-        // list pagination, just extend page size
-
-        paginate(numRows) {
-            const newParams = this.params.clone();
-            newParams.pageSize = newParams.minPageSize + numRows;
-            this.params = newParams;
-        },
-
-        // show/hide checkboxes
-
         displaySelection(show) {
             this.showSelection = show;
+        },
+
+        updateParams(newParams) {
+            if (!SearchParams.equals(newParams, this.params)) {
+                // console.log("sending new params", newParams);
+                this.setSearchParams({
+                    history: this.history,
+                    params: newParams
+                })
+            }
+        },
+
+
+        // Scrolling
+
+        updatePageRange(index) {
+            return (isVisible, entry) => {
+                if (this.suppressVizEvents) {
+                    return;
+                }
+                if (isVisible) {
+                    this.localParams.expand(index);
+                } else {
+                    if (this.isAboveWindow(entry)) {
+                        this.localParams.clipTop(index);
+                    }
+                }
+            }
+        },
+
+        getContainerRect() {
+            return this.$refs.scrollContainer.getBoundingClientRect();
+        },
+
+        isAboveWindow(entry, index) {
+            const { boundingClientRect } = entry;
+            const containerRect = this.getContainerRect();
+            return boundingClientRect.bottom < containerRect.top;
+        },
+
+        isBelowWindow({ boundingClientRect }) {
+            return boundingClientRect.top > this.getContainerRect().bottom;
         }
 
     },
+
     watch: {
-        historyId:{
-            handler(newId, oldId) {
-                if (newId !== oldId) {
-                    this.unsubLoader(oldId);
+        history:{
+            handler(history, oldHistory) {
+                if (oldHistory && (history.id !== oldHistory.id)) {
+                    this.unsubLoader(oldHistory.id);
+                }
+                if (history && history.id) {
+                    this.loadContent({ history });
                 }
             },
             immediate: true
         },
-        contentParameters: {
-            handler(newVals, oldVals) {
-                this.loading = true;
-                this.loadContent(newVals);
+        params: {
+            handler(newParams) {
+                if (!SearchParams.equals(newParams, this.localParams)) {
+                    // console.log("updating localParams from params", newParams);
+                    this.localParams = newParams.clone();               
+                }
             },
-            immediate: true,
-            deep: true
+            immediate: true
         },
-        content() {
-            this.loading = false;
+        localParams: {
+            handler: debounce(function(newParams) {
+                // newParams.report("LOCALPARAMS WATCH", this);
+                
+            }, 200),
+            deep: true
         }
     },
+
     mounted() {
-
-        // prop? calculate?
-        const heightGuess = 36;
-
-        const scroll$ = this.scrollSubject.pipe(
-            tap(scrollTop => console.log("scrollTop", scrollTop)),
-            map(scrollTop => Math.round(scrollTop / heightGuess)),
-            debounceTime(100),
-            tap(numRows => console.log("numRows", numRows)),
-            distinctUntilChanged()
-        );
-
-        this.$subscribeTo(scroll$, numRows => {
-            console.log("subscription", numRows);
-            // this.paginate(numRows);
-            // this.loading = true;
-        });
-
-        // show/hide selection from event bus
         eventHub.$on('toggleShowSelection', this.displaySelection);
-
     },
     beforeDestroy() {
-        this.unsubLoader(this.historyId);
+        this.unsubLoader(this.history.id);
         eventHub.$off('toggleShowSelection', this.displaySelection);
+    },
+    beforeUpdate() {
+        // Visibility directive clumsily uses nextTick so we can't just
+        // use that or updated() because it's still too soon
+        this.suppressVizEvents = true;
+        setTimeout(() => {
+            this.suppressVizEvents = false;
+        }, 1000);
     }
 }
 
 </script>
-
-
 
 <style lang="scss" scoped>
 
@@ -211,14 +222,29 @@ export default {
     position: relative;
     overflow-x: hidden;
     overflow-y: auto;
-}
-
-.scrollContent {
-    @include absfill();
+    height: 100%;
 }
 
 ol {
     @include list_reset();
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding-bottom: 1000px;
+}
+
+li {
+    position: relative;
+}
+
+.sensor {
+    background-color: red;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 2px;
 }
 
 </style>

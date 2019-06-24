@@ -23,8 +23,8 @@ import { setEquals } from "utils/setFunctions";
 // this in the state since it's just housing the subscriptions
 // to the observables that ultimately populate state.contents
 
-// history.id => ContentLoader
-const loaders = new Map();
+// Holds subscriptions to ContentLoaders
+const loaderSubscriptions = new Map();
 
 
 export const state = {
@@ -48,7 +48,6 @@ export const state = {
 export const getters = {
 
     currentHistory: (state, getters) => {
-        debugger;
         return getters.getHistory(state.currentHistoryId);
     },
 
@@ -90,9 +89,8 @@ export const getters = {
 export const actions = {
 
 
-    // USED
     // Select a new current history from the available options, must
-    // alert server because it is monitoring this for some damned reason
+    // alert server because it is monitoring this for no clear reason
 
     selectCurrentHistory({ state }, id) {
         if (state.currentHistoryId !== id) {
@@ -157,47 +155,36 @@ export const actions = {
     // Search parameters for a given history
     // Controls output and query contents
 
-    setSearchParams({ commit, getters }, { history, params }) {
-        const existingParams = getters.searchParams(history.id);
-        if (!SearchParams.equals(existingParams, params)) {
-            commit("setSearchParams", { 
-                history, 
-                params: params.clone()
-            });
-        }
+    setSearchParams({ commit }, { history, params }) {
+        commit("setSearchParams", {
+            history,
+            params: params.clone()
+        });
     },
 
 
-    // History content subscription, manages subscription to
-    // the observable that monitors the indexDB content query
-    // for the indicated history/params. We transplanted the
-    // subscription for the observable here into the store
-
-    loadContent({ commit }, { history, params }) {
-        const id = history.id;
-        let loader;
-        if (!loaders.has(id)) {
-            loader = ContentLoader(history);
-            loader.subscribe(contents => {
-                commit("setHistoryContents", { history, contents });
-            });
-            loaders.set(id, loader);
+    // Subscribes to an observable that returns content as observed
+    // from IndexDB and runs polling updates for the indicated history
+    
+    loadContent({ commit }, { history }) {
+        if (!loaderSubscriptions.has(history.id)) {
+            const sub = ContentLoader(history).subscribe(
+                contents => commit("setHistoryContents", { history, contents }),
+                err => console.warn("ContentLoader err", err)
+            );
+            loaderSubscriptions.set(history.id, sub);
         }
-        loader = loaders.get(id);
-        loader.setParams(params);
     },
 
     unsubLoader(context, id) {
-        if (loaders.has(id)) {
-            loaders.get(id).unsubscribe();
-            loaders.delete(id);
+        if (loaderSubscriptions.has(id)) {
+            loaderSubscriptions.get(id).unsubscribe();
+            loaderSubscriptions.delete(id);
         }
     },
 
 
     // Current dataset/dataset collection selection from the history content
-    // check to make sure it's not the same as what's in the store or we
-    // go in infinite loops
 
     setContentSelection({ commit, getters }, { history, selection }) {
         const existingSelection = getters.contentSelection(history);
@@ -227,10 +214,10 @@ export const actions = {
     },
 
 
-    // Datasets
+    // Content
 
     deleteContent({ getters }, { content }) {
-        deleteContent(content).then(result => {
+        deleteContent(content).then(() => {
             flushCachedDataset(content);
         });
     },
@@ -239,7 +226,7 @@ export const actions = {
         return deleteContent(content);
     },
 
-    async updateSelectedContent({ getters, dispatch }, { history, field, value }) {
+    async updateSelectedContent({ getters }, { history, field, value }) {
         const contentSet = getters.contentSelection(history);
         const items = Array.from(contentSet)
             .filter(c => c[field] != value)
@@ -249,7 +236,7 @@ export const actions = {
             }));
         const payload = { items, [field]: value }; // this is not awesome
         const updates = await bulkUpdate(history, payload);
-        for (let item of updates) {
+        for (const item of updates) {
             await cacheContentItem(item);
         }
     }

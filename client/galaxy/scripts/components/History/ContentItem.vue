@@ -3,7 +3,8 @@
         class="history-content-item"
         :class="contentClassName"
         :is="contentItemComponent"
-        :content="content" />
+        :content="content"
+        :index="index" />
 </template>
 
 <script>
@@ -13,7 +14,8 @@ import dasherize from "underscore.string/dasherize";
 
 export default {
     props: {
-        content: { type: Object, required: true }
+        content: { type: Object, required: true },
+        index: { type: Number, required: false, default: 0 }
     },
     components: {
         "dataset": Dataset,

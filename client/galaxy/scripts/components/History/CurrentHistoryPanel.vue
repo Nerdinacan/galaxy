@@ -15,6 +15,11 @@
                         icon="bolt"
                         @click="deleteLocalDatabase"
                         tooltip-placement="bottom" />
+                    <icon-menu-item
+                        title="Stop Polling"
+                        icon="clock-o"
+                        @click="stopPolling"
+                        tooltip-placement="bottom" />
                     <icon-menu-item id="endlessMenuGear"
                         title="History Options"
                         icon="cog"
@@ -25,7 +30,6 @@
                     target="endlessMenuGear"
                     placement="bottomleft"
                     triggers="focus">
-
                     <gear-menu #default="{ go, backboneGo, iframeGo }">
                         <div @clicked="$refs.endlessMenu.$emit('close')">
                             <a class="dropdown-item" href="#"
@@ -46,9 +50,7 @@
                             </a>
                         </div>
                     </gear-menu>
-
                 </b-popover>
-
             </nav>
 
         </template>
@@ -64,6 +66,7 @@ import History from "./History";
 import HistorySelector from "./HistorySelector";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
 import GearMenu from "./GearMenu";
+import { stopPolling } from "./model/observables/PollUpdate$";
 
 export default {
     components: {
@@ -91,7 +94,8 @@ export default {
         ]),
         deleteLocalDatabase() {
             wipeDB().subscribe(db => console.log("Local database deleted"));
-        }
+        },
+        stopPolling
     }
 }
 

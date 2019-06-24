@@ -7,6 +7,10 @@ export default {
     version: 0,
     type: "object",
     properties: {
+        
+        // client-side only prop tracks content polling updates
+        // content_update_time: { type: "string", default: "" },
+
         annotation: nullableString,
         contents_active: { 
             type: "object",

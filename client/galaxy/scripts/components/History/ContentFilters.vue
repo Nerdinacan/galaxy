@@ -9,12 +9,12 @@
             <b-input-group-append>
                 <b-button size="sm"
                     :variant="params.showDeleted ? 'info' : 'secondary'"
-                    :pressed.sync="params.showDeleted">
+                    @click="toggleDeleted">
                     {{ 'Deleted' | localize }}
                 </b-button>
                 <b-button size="sm"
                     :variant="params.showHidden ? 'info' : 'secondary'"
-                    :pressed.sync="params.showHidden">
+                    @click="toggleHidden">
                     {{ 'Hidden' | localize }}
                 </b-button>
             </b-input-group-append>
@@ -52,6 +52,18 @@ export default {
                 }
             },
             deep: true
+        }
+    },
+    methods: {
+        toggleDeleted() {
+            const p = this.params.clone();
+            p.showDeleted = !p.showDeleted;
+            this.params = p;
+        },
+        toggleHidden() {
+            const p = this.params.clone();
+            p.showHidden = !p.showHidden;
+            this.params = p;
         }
     }
 }

@@ -1,17 +1,24 @@
-import { from, combineLatest, of } from "rxjs";
-import { tap, map, mergeMap, filter, scan } from "rxjs/operators";
+import { Subject, Observable, from } from "rxjs";
+import { tap, map, mergeMap, filter, scan, repeatWhen, delay } from "rxjs/operators";
 import { ajax } from "rxjs/ajax";
 import { prependPath } from "utils/redirect";
 
 
-// Logging
-
+/**
+ * Tap/console.log
+ * @param {any} label 
+ */
 export const log = label => source => {
     return source.pipe(
         tap(o => console.log(label, o))
     )
 }
 
+
+/**
+ * Tap/console.warn
+ * @param {any} label 
+ */
 export const warn = label => source => {
     return source.pipe(
         tap(o => console.warn(label, o))
@@ -19,9 +26,9 @@ export const warn = label => source => {
 }
 
 
-// split observable array result into individual items and
-// emit as individuals
-
+/**
+ * Split array result into individual items
+ */
 export const split = () => source => {
     return source.pipe(
         mergeMap(from)
@@ -29,8 +36,9 @@ export const split = () => source => {
 }
 
 
-// Emit the First item from an array result
-
+/**
+ * Emit the first item from an array result
+ */
 export const firstItem = () => source => {
     return source.pipe(
         filter(list => list.length > 0),
@@ -39,72 +47,89 @@ export const firstItem = () => source => {
 }
 
 
-// "withLatestFrom" not behaving as expected
-// with rxdb observables, think it might be a flaw
-// in rxdb, but this works
-
-export const withLatestFromDb = dbo$ => source$ => {
-    return source$.pipe(
-        mergeMap(o => combineLatest(of(o), dbo$)),
-    );
-}
-
-
-// Cache stream of objects in rxdb collection
-
-export const cacheInLocalDb = collection$ => source$ => {
-    return source$.pipe(
-        withLatestFromDb(collection$),
-        mergeMap(cacheItem)
-    );
-}
-
-export const deleteFromLocalDb = collection$ => source$ => {
-    return source$.pipe(
-        withLatestFromDb(collection$),
-        mergeMap(wipeItem)
-    )
-}
-
-async function cacheItem([ item, collection ]) {
-    return await collection.upsert(item);
-}
-
-async function wipeItem([ item, collection ]) {
-    const keyField = collection.schema.primaryPath;
-    const pKey = item[keyField];
-    const query = collection.find().where(keyField).eq(pKey);
-    return await query.remove();
-}
-
-
-// Custom operator: runs a scan against incoming object/operations
-// to add or subtract incoming values from a running map. Resulting
-// map is keyed by configured keyField property name
-
+/**
+ * Run a scan against incoming objects, and/subtract to a map
+ * keyed by the configured keyfield property
+ * @param {string} keyField
+ */
 export const scanToMap = keyField => source$ => {
     return source$.pipe(
-        scan((mapping, { operation, item }) => {
+        scan((resultMap, { operation, item }) => {
             const key = item[keyField];
-            switch(operation) {
+            switch (operation) {
                 case "set":
-                    mapping.set(key, item);
+                    resultMap.set(key, item);
                     break;
                 case "delete":
-                    mapping.delete(key);
+                    resultMap.delete(key);
                     break;
             }
-            return mapping;
+            return resultMap;
         }, new Map())
     );
 }
 
 
-// simple ajax get request as an observable
-
-export const load = () => source => {
-    return source.pipe(
+/**
+ * Simple ajax load passthrough, applies generic ajax handling
+ */
+export const load = () => url$ => {
+    return url$.pipe(
         map(prependPath),
         mergeMap(ajax.getJSON)
     )
+}
+
+
+/**
+ * Default strict equality comparitor
+ * @param {any} a 
+ * @param {any} b 
+ */
+const strictEquality = (a, b) => (b === undefined) ? false : a === b;
+
+
+/**
+ * Converts a watched expression against a vuex store into
+ * an observable
+ * @param {object} store
+ * @param {function} selector
+ * @param {object} opts
+ */
+export function watchVuexStore(store, selector, comparator = strictEquality, opts = { immediate: true }) {
+    return new Observable(subscriber => {
+        const handler = (result, lastResult) => {
+            if (lastResult && comparator(result, lastResult)) {
+                return;
+            }
+            subscriber.next(result);
+        };
+        return store.watch(selector, handler, opts);
+    });
+}
+
+
+/**
+ * Creates a function that updates an internal observable subject for manual
+ * manipulation of stream contents. Access to the internal observable is
+ * through the .$ property of the resulting function.
+ */
+export function createInputFunction() {
+    const buffer = new Subject();
+    const updateFn = buffer.next.bind(buffer);
+    updateFn.$ = buffer;
+    return updateFn;
+}
+
+
+/**
+ * Generic polling operator
+ * @param {integer} pollDelay
+ */
+export const poll = pollDelay => source => {
+    return source.pipe(
+        repeatWhen(done => {
+            return done.pipe(delay(pollDelay));
+        })
+    );
 }

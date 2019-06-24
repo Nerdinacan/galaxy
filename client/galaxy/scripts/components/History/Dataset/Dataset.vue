@@ -5,7 +5,7 @@
                 <a href="#" tabindex="0"
                     @keyup.space="toggleDetails" 
                     @click="toggleDetails">
-                    {{ title }}
+                    {{ title }} {{ index }}
                 </a>
             </h5>
             <primary-actions v-if="dataset" :dataset="dataset" />
@@ -91,10 +91,11 @@
                     <div v-if="showToolHelp && toolHelp" v-html="toolHelp"></div>
                 </transition>
 
+                <pre>{{ content }}</pre>
+                <pre>{{ dataset }}</pre>
+
             </div>
         </transition>
-
-        
 
     </div>
 </template>
@@ -102,12 +103,13 @@
 
 <script>
 
+import { of } from "rxjs";
 import PrimaryActions from "./PrimaryActions";
 import SecondaryActions from "./SecondaryActions";
 import DatasetTags from "./DatasetTags";
 import DatasetPeek from "./DatasetPeek";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
-import { Dataset$ } from "../model/observables/CachedData";
+import { getCachedDataset } from "../model/observables/CachedData";
 import { eventHub } from "../eventHub";
 import { prependPath, redirectToSiteUrl, backboneRedirect, iframeRedirect } from "utils/redirect";
 import STATES from "mvc/dataset/states";
@@ -123,7 +125,8 @@ export default {
         IconMenuItem
     },
     props: {
-        content: { type: Object, required: true }
+        content: { type: Object, required: true },
+        index: { type: Number, required: false, default: 0 }
     },
     data() {
         return {
@@ -141,14 +144,17 @@ export default {
             if (!this.dataset) {
                 return "Loading";   
             }
-            const { hid, name, isDeleted, visible } = this.dataset;
+            const { hid, name, isDeleted, visible, purged } = this.content;
             let result = `${hid}: ${name}`;
             const itemStates = [];
             if (isDeleted) {
                 itemStates.push("Deleted");
             }
-            if (!visible) {
+            if (visible == false) {
                 itemStates.push("Hidden");
+            }
+            if (purged) {
+                itemStates.push("Purged");
             }
             if (itemStates.length) {
                 result += ` (${itemStates.join(", ")})`;
@@ -197,9 +203,8 @@ export default {
         }
     },
     subscriptions() {
-        return { 
-            dataset: Dataset$(this.content.id)
-        };
+        const dataset = of(this.content.id).pipe(getCachedDataset());
+        return { dataset };
     },
     created() {
         eventHub.$on('collapse-content', this.collapse);

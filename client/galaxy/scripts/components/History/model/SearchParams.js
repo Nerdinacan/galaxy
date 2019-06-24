@@ -1,13 +1,14 @@
+const lastUpdated = new Map();
+
 export class SearchParams {
 
     constructor(props = {}) {
-        this.minPageSize = 20;
-        this._offset = 0;
-        this._pageSize = this.minPageSize;
         this.filterText = "";
         this.showDeleted = false;
-        this.showPurged = false;
         this.showHidden = false;
+        this.pageSize = 30;
+        this._offset = 0;
+        this._limit = 30;
         Object.assign(this, props);
     }
 
@@ -16,50 +17,76 @@ export class SearchParams {
     }
 
     set offset(val) {
-        const newInt = parseInt(val);
-        if (!isNaN(newInt)) {
-            this._offset = Math.max(0, newInt);
+        const newVal = parseInt(val);
+        if (!isNaN(newVal)) {
+            this._offset = Math.max(0, newVal);
         }
     }
 
-    get pageSize() {
-        return this._pageSize;
+    get limit() {
+        return this._limit;
     }
 
-    set pageSize(val) {
-        const newInt = parseInt(val);
-        if (!isNaN(newInt)) {
-            this._pageSize = Math.max(newInt, this.minPageSize);
+    set limit(val) {
+        const newVal = parseInt(val);
+        if (!isNaN(newVal)) {
+            this._limit = Math.max(this.pageSize, newVal);
         }
     }
 
-    get showVisible() {
-        return !this.showHidden;
+    get visible() {
+        return (this.hidden !== null) ? !this.hidden : null;
     }
 
+    get contentLastUpdated() {
+        return lastUpdated.get(this.contentUpdateKey) || null;
+    }
+
+    set contentLastUpdated(newDate) {
+        this.markLastUpdated(newDate);
+    }
     
-
-    toggleHidden() {
-        this.showHidden = !this.showHidden;
+    get contentUpdateKey() {
+        return JSON.stringify(this);
     }
 
-    toggleVisible() {
-        this.showVisible = !this.showVisible;
+    markLastUpdated(nextDate = new Date()) {
+        lastUpdated.set(this.contentUpdateKey, nextDate);
     }
 
-    togglePurged() {
-        this.showPurged = !this.showPurged;
+    // this index came into view, make sure it's being updated
+    expand(index) {
+        this.offset = Math.min(this.offset, index);
+    }
+
+    // this index ran off the top
+    clipTop(index) {
+        this.offset = Math.max(this.offset, index + 1);
+    }
+
+    // debugging
+    report(label = "params") {
+        const { offset, limit } = this;
+        console.group(label, offset, limit);
+        console.dir(this);
+        console.warn(offset, limit);
+        console.groupEnd();
     }
 
     clone() {
         return new SearchParams(this);
     }
 
-    static equals(instance, otherInstance) {
-        return JSON.stringify(instance) == JSON.stringify(otherInstance);
+    static equals(a, b) {
+        if (!(a instanceof SearchParams)) return false;
+        if (!(b instanceof SearchParams)) return false;
+        const same = Object.getOwnPropertyNames(a).reduce((same, prop) => {
+            return same && a[prop] === b[prop];
+        }, true);
+        return same;
     }
 
-    static create() {
-        return new SearchParams();
+    static different(instance, otherInstance) {
+        return !SearchParams.equals(instance, otherInstance);
     }
 }

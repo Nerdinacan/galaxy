@@ -1,13 +1,10 @@
 <template>
     <section v-if="history" class="history d-flex flex-column">
         <header class="flex-grow-0">
-            <slot name="history-top-nav" :history="history" />
-            <history-messages class="history-messages p-2"
-                :history="history" />
-            <history-details class="history-details p-2"
-                :history="history" />
-            <content-selection class="history-content-selection p-2"
-                :history="history" />
+            <slot name="history-top-nav" :history="history"></slot>
+            <history-messages class="history-messages p-2" :history="history" />
+            <history-details class="history-details p-2" :history="history" />
+            <content-selection class="history-content-selection p-2" :history="history" />
         </header>
         <content-list :history="history" class="history-contents flex-grow-1" />
     </section>
@@ -15,7 +12,8 @@
 
 
 <script>
-    
+
+import { mapGetters } from "vuex";
 import HistoryDetails from "./HistoryDetails";
 import HistoryMessages from "./HistoryMessages";
 import ContentSelection from "./ContentSelection";
@@ -32,9 +30,11 @@ export default {
         historyId: { type: String, required: true }
     },
     computed: {
+        ...mapGetters("history", [
+            "getHistory"
+        ]),
         history() {
-            const gtr = this.$store.getters["history/getHistory"];
-            return gtr(this.historyId);
+            return this.getHistory(this.historyId);
         }
     }
 }

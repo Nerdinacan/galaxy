@@ -1,50 +1,47 @@
-import { defer, Subject, merge, of, combineLatest } from "rxjs";
-import { tap, map, mapTo, debounceTime, mergeMap, withLatestFrom, filter }
-    from "rxjs/operators";
-import { scanToMap, split, load, cacheInLocalDb, deleteFromLocalDb, firstItem } from "./utils";
-import { CurrentUser$ } from "components/User/model/CurrentUser$";
+import { merge, combineLatest } from "rxjs";
+import { map, mapTo, debounceTime, mergeMap, mergeMapTo, share } from "rxjs/operators";
+import { split, load, createInputFunction } from "./utils";
+import { cacheHistory, deleteHistory as deleteCachedHistory } from "./CachedData";
+import { CurrentUserId$ } from "components/User/model/CurrentUser$";
 import { history$ } from "../db";
 import { prepareHistory } from "../schema/prepare";
 
 
 // every time the user changes we load new histories
-const listingUrl = "/api/histories?view=dev-detailed&keys=contents_active";
-const loadHistories$ = CurrentUser$.pipe(
+
+const listingUrl = "/api/histories?view=dev-detailed&keys=visible,contents_active&q=purged&qv=False";
+const loadHistories$ = CurrentUserId$.pipe(
     mapTo(listingUrl),
     load(),
     split()
-)
-
-// Change queues
-const updates$ = new Subject();
-const add$ = merge(loadHistories$, updates$).pipe(
-    map(prepareHistory),
-    cacheInLocalDb(history$),
-    map(item => ({ item, operation: "set" }))
-)
-const deletes$ = new Subject();
-const subtract$ = deletes$.pipe(
-    deleteFromLocalDb(history$),
-    map(item => ({ item, operation: "delete" }))
-)
-
-// Returns a map of history.id => history object, filtered to histories
-// available to currently logged in user
-const currentHistoryMap$ = merge(add$, subtract$).pipe(
-    withLatestFrom(CurrentUser$),
-    filter(([ { item }, user ]) => item.user_id === user.id),
-    firstItem(),
-    scanToMap("id")
 );
 
-// functions to modify the stored list of history
-export const updateHistory = newHistory => updates$.next(newHistory);
-export const deleteHistory = doomedHistory => deletes$.next(doomedHistory);
+
+// update queues, add/subtract history
+
+export const updateHistory = createInputFunction();
+export const deleteHistory = createInputFunction();
+
+const add$ = merge(loadHistories$, updateHistory.$).pipe(
+    cacheHistory()
+);
+
+const subtract$ = deleteHistory.$.pipe(
+    deleteCachedHistory()
+);
 
 
-export const HistoryList$ = currentHistoryMap$.pipe(
-    withLatestFrom(CurrentUser$, history$),
-    mergeMap(([ _, user, coll ]) => coll.find().where('user_id').eq(user.id).$),
-    map(docs => docs.map(h => h.toJSON())),
-    debounceTime(100)
-)
+// List of histories available to current user
+
+const dbHistoryList$ = combineLatest(CurrentUserId$, history$).pipe(
+    mergeMap(([ id, c ]) => {
+        return c.find().where('user_id').eq(id).$;
+    }),
+    map(docs => docs.map(h => h.toJSON()))
+);
+
+export const HistoryList$ = merge(CurrentUserId$, add$, subtract$).pipe(
+    debounceTime(100),
+    mergeMapTo(dbHistoryList$),
+    share()
+);

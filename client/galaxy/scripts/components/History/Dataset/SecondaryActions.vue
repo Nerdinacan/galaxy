@@ -46,7 +46,7 @@
                     <a class="dropdown-item" :href="downloadUrl">
                         {{ 'Download Dataset' | localize }}
                     </a>
-                    <a v-for="mf in dataset.meta_files" :key="mf.download_url"
+                    <a class="dropdown-item" v-for="mf in dataset.meta_files" :key="mf.download_url"
                         :href="metadataDownloadUrl(mf)">
                         {{ 'Download' | localize }} {{ mf.file_type }}
                     </a>

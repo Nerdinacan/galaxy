@@ -3,7 +3,7 @@
 
         <header>
             <h6>
-                <span>Contents</span>
+                <span>Contents {{ params.offset }}/{{ params.limit }}</span>
                 <span>{{ countShown }} shown</span>
                 <span v-if="countHidden">
                     <a v-if="!params.showHidden" href="#"
@@ -16,6 +16,7 @@
                     </a>
                 </span>
             </h6>
+            
             <icon-menu>
                 <icon-menu-item
                     title="Filter History Content"
@@ -228,18 +229,17 @@ export default {
         // content selection
 
         selectAllVisibleContent() {
-            const ids = this.content.map(o => o.type_id);
-            this.updateSelection(ids);
+            this.updateSelection(this.content);
         },
 
         clearSelection() {
             this.updateSelection([]);
         },
 
-        updateSelection(ids = []) {
+        updateSelection(content = []) {
             this.setContentSelection({
                 history: this.history,
-                selection: new Set(ids)
+                selection: new Set(content)
             })
         },
 
@@ -269,10 +269,11 @@ export default {
                 history: this.history,
                 field: "visible",
                 value: false
-            });
-            this.clearContentSelection({
-                history: this.history
-            });
+            }).then(() => {
+                this.clearContentSelection({
+                    history: this.history
+                });
+            })
         },
 
         unhideDatasets() {
@@ -284,11 +285,26 @@ export default {
         },
 
         deleteDatasets() {
-            console.log("deleteDatasets");
+            this.updateSelectedContent({
+                history: this.history,
+                field: "deleted",
+                value: true
+            }).then(() => {
+                this.clearContentSelection({
+                    history: this.history
+                });
+            })
         },
 
         undeleteDatasets() {
-            console.log("undeleteDatasets");
+            this.updateSelectedContent({
+                history: this.history,
+                field: "deleted",
+                value: false
+            });
+            this.clearContentSelection({
+                history: this.history
+            });
         },
 
         purgeDatasets() {
@@ -323,3 +339,43 @@ export default {
 }
 
 </script>
+
+<!---
+"<% var shown = Math.max( view.views.length, history.contents_active.active ) %>",
+"<% if( shown ){ %>",
+'<span class="shown-count">',
+"<%- shown %> ",
+_l("shown"),
+"</span>",
+"<% } %>",
+
+"<% if( history.contents_active.deleted ){ %>",
+'<span class="deleted-count">',
+"<% if( view.model.contents.includeDeleted ){ %>",
+'<a class="toggle-deleted-link" href="javascript:void(0);">',
+_l("hide deleted"),
+"</a>",
+"<% } else { %>",
+"<%- history.contents_active.deleted %> ",
+'<a class="toggle-deleted-link" href="javascript:void(0);">',
+_l("deleted"),
+"</a>",
+"<% } %>",
+"</span>",
+"<% } %>",
+
+"<% if( history.contents_active.hidden ){ %>",
+'<span class="hidden-count">',
+"<% if( view.model.contents.includeHidden ){ %>",
+'<a class="toggle-hidden-link" href="javascript:void(0);">',
+_l("hide hidden"),
+"</a>",
+"<% } else { %>",
+"<%- history.contents_active.hidden %> ",
+'<a class="toggle-hidden-link" href="javascript:void(0);">',
+_l("hidden"),
+"</a>",
+"<% } %>",
+"</span>",
+"<% } %>"
+-->

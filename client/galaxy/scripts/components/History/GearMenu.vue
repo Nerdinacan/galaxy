@@ -1,6 +1,7 @@
 <template>
     <div class="gear-menu" ref="menu" @click="$emit('clicked', $event)">
-        <slot :go="go" :iframeGo="iframeGo" :backboneGo="backboneGo" 
+        <slot :go="go" :iframeGo="iframeGo"
+            :backboneGo="backboneGo" 
             :eventHub="eventHub"></slot>
     </div>
 </template>
@@ -11,10 +12,10 @@ import { redirectToSiteUrl, backboneRedirect, iframeRedirect } from "utils/redir
 import { eventHub } from "./eventHub";
 
 export default {
-    computed: {
-        eventHub() {
-            return eventHub;
-        }
+    data() {
+        return { 
+            eventHub
+        };
     },
     methods: {
         go: redirectToSiteUrl,
