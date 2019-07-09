@@ -1,3 +1,9 @@
+/**
+ * Subscribes to a live content query observable (Content$) and a pollling
+ * update (PollUpdate$) that updates the local database with changed data
+ * corresponding to the history and parameters passed in.
+ */
+
 import { isObservable, of } from "rxjs";
 import { PollUpdate$ } from "./PollUpdate$";
 import { Param$ } from "./Param$";

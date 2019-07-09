@@ -1,7 +1,6 @@
 import { combineLatest } from "rxjs";
 import { map, switchMap } from "rxjs/operators";
 import { historyContent$ } from "../db";
-import { log } from "./utils";
 
 
 /**

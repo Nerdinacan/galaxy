@@ -1,6 +1,6 @@
-import { combineLatest, merge, defer, of } from "rxjs";
-import { tap, concatMap, share, take, delay, repeatWhen, throttleTime, shareReplay } from "rxjs/operators";
-import { log, warn, createInputFunction } from "./utils";
+import { combineLatest, defer, of } from "rxjs";
+import { tap, concatMap, share, take, delay, repeatWhen } from "rxjs/operators";
+// import { createInputFunction } from "./utils";
 import { CheckHistory$ } from "./CheckHistory$";
 import { Manifest$ } from "./Manifest$";
 import { ContentUpdate$ } from "./ContentUpdate$";
@@ -33,14 +33,12 @@ export function PollUpdate$(history$, param$) {
 
 
 /**
- * Check server for fresh history
- * Retrieve list of content for that history
- * Retrieve individual content detail updates if stale
+ * Check server for fresh history (CheckHistory$)
+ * Retrieve list of content for that history (Manifest$)
+ * Retrieve required individual detailed updates (ContentUpdate$)
  */
 export function doUpdates([ history, params ]) {
-    const activeHistory$ = CheckHistory$(of(history)).pipe(
-        share()
-    );
+    const activeHistory$ = CheckHistory$(of(history)).pipe(share());
     const manifest$ = Manifest$(activeHistory$, of(params));
     return ContentUpdate$(manifest$, activeHistory$);
 }

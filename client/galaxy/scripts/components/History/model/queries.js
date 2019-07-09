@@ -157,55 +157,6 @@ export async function deleteContent(c, purge = false, recursive = false) {
 
 // Content & Dataset Queries
 
-
-
-    // Batch property assignment for selected items
-
-    // const batchUpdate = (key, value) => {
-    //     const actionModels = {};
-    //     const items = panel
-    //         .getSelectedModels()
-    //         .filter(model => {
-    //             console.log(model.attributes[key]);
-    //             return model.attributes[key] != value;
-    //         })
-    //         .map(model => {
-    //             const res = {
-    //                 history_content_type: model.attributes.history_content_type,
-    //                 id: model.attributes.id
-    //             };
-    //             actionModels[model.id] = model;
-    //             // Tried "optimistically" deleting the dataset - but it didn't quite work -
-    //             // maybe history polling restored the previous state?
-    //             return res;
-    //         });
-
-    //     if (items.length == 0) {
-    //         return;
-    //     }
-
-    //     const options = {};
-    //     options.url = `${Galaxy.root}api/histories/${this.model.id}/contents`;
-    //     options.type = "PUT";
-    //     const requestData = { items: items };
-    //     requestData[key] = value;
-    //     options.data = JSON.stringify(requestData);
-    //     options.contentType = "application/json";
-
-    //     var xhr = jQuery.ajax(options);
-    //     xhr.done((message, status, responseObj) => {
-    //         for (const updated of message) {
-    //             const typeId = updated.history_content_type + "-" + updated.id;
-    //             actionModels[typeId].set(updated);
-    //         }
-    //     });
-    //     xhr.fail((xhr, status, message) => {
-    //         console.error(message);
-    //     });
-    //     return xhr;
-    // };
-
-
 export async function bulkUpdate({ id }, payload) {
     if (!payload.items.length) {
         return;

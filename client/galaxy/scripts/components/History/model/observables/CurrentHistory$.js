@@ -1,5 +1,8 @@
-// This logic is super-stupid because of the need to ask
-// the server who the client thinks the current history is.
+/**
+ * Maintains a local list of available histories. The vuex store subscribes to
+ * this observable to keep updated.... thus illustrating the uselessness of the
+ * vuex store.
+ */
 
 import { merge, concat } from "rxjs";
 import { tap, map, mergeMap, filter, share, 
@@ -10,8 +13,7 @@ import { split, firstItem, createInputFunction } from "./utils";
 import { CurrentUserId$ } from "components/User/model/CurrentUser$";
 
 
-// Initial load during application init, returns a uselessly-formed
-// history object, but we have to look through it for the id
+// Initial load
 
 const historyValid = h => !h.deleted;
 const validHistories$ = HistoryList$.pipe(
@@ -20,10 +22,9 @@ const validHistories$ = HistoryList$.pipe(
     share()
 );
 
-const firstValidHistory$ = validHistories$.pipe(
-    take(1),
-    tap(history => selectCurrentHistory(history.id))
-);
+
+// Get what the server thinks the current history is
+// TODO: remove server's role in maintaining this variable
 
 const ServerCurrentHistoryId$ = CurrentUserId$.pipe(
     mergeMap(getCurrentHistory),
@@ -38,29 +39,34 @@ const loadCurrentHistory$ = validHistories$.pipe(
 );
 
 
-// Initial lookup, or first non-deleted history in the list
+// If the server returned a deleted history or something like that
+// take the first valid history from the list of available ones
+
+const firstValidHistory$ = validHistories$.pipe(
+    take(1),
+    tap(history => selectCurrentHistory(history.id))
+);
+
+
+// This is the history we start with
 
 const initialValue$ = concat(loadCurrentHistory$, firstValidHistory$).pipe(
     take(1)
 );
 
 
-// Somebody explicitly changed the history
+// User explicitly changes the history id
 
 export const setCurrentHistoryId = createInputFunction();
 
 const manualSelection$ = setCurrentHistoryId.$.pipe(
     withLatestFrom(HistoryList$),
-    map(([ id, list ]) => {
-        return list.find(h => h.id == id);
-    }),
+    map(([ id, list ]) => list.find(h => h.id == id)),
     tap(history => selectCurrentHistory(history.id))
 );
 
 
-
-// Publics
+// Final observables for the current history
 
 export const CurrentHistory$ = merge(initialValue$, manualSelection$);
-
 export const CurrentHistoryId$ = CurrentHistory$.pipe(pluck('id'));

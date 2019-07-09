@@ -4,19 +4,19 @@
  */
 
 import { of, merge, combineLatest } from "rxjs";
-import { tap, filter, map, mergeMap, concatMap, withLatestFrom } from "rxjs/operators";
+import { tap, filter, map, mergeMap } from "rxjs/operators";
 import { history$, historyContent$, dataset$, datasetCollection$ } from "../db";
-import { prepareHistory, prepareManifestItem, prepareDataset, prepareDatasetCollection } from "../schema/prepare";
+import { prepareHistory, prepareManifestItem, prepareDataset, prepareDatasetCollection } from "../schema";
 import { safeAssign } from "utils/safeAssign";
-import { log } from "./utils";
 
 
 // There's something buggy about rxdb's collection
-// objects, standard combineLatest, withLatest don't
-// seem to work reliably.
-export const withLatestFromDb = dbobj$ => src$ => {
+// objects, standard combineLatest/withLatestFrom don't
+// seem to work reliably, this more explicit version does though
+
+export const withLatestFromDb = rxDbObj$ => src$ => {
     return src$.pipe(
-        mergeMap(src => combineLatest(of(src), dbobj$))
+        mergeMap(src => combineLatest(of(src), rxDbObj$))
     )
 }
 
@@ -30,10 +30,12 @@ const getCachedItem = (collection$, debug = false) => key$ => {
     return key$.pipe(
         filter(Boolean),
         withLatestFromDb(collection$),
-        mergeMap(([ key, coll ]) => {
+        tap(([ key, coll ]) => {
             if (debug) {
-                console.log(key, coll);
+                console.log("getCachedItem", coll.name, key);
             }
+        }),
+        mergeMap(([ key, coll ]) => {
             const keyField = coll.schema.primaryPath;
             const query = coll.findOne().where(keyField).eq(key);
             return query.$;

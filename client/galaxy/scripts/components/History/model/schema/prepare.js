@@ -1,4 +1,8 @@
-
+/**
+ * Functions that prepare a raw object for insertion into the collection of the
+ * indicated schema. I tried implementing this with collection hooks, but had
+ * erratic results.
+ */
 import historySchema from "./history.schema";
 import historyContentSchema from "./historyContent.schema";
 import datasetSchema from "./dataset.schema";
@@ -18,7 +22,7 @@ export function prepareHistory(raw) {
 }
 
 
-// Scrub history content
+// History content
 
 const conformManifest = conformToSchema(historyContentSchema);
 
@@ -29,7 +33,7 @@ export function prepareManifestItem(raw) {
 }
 
 
-// Prep Dataset for insert
+// Dataset
 
 const conformDataset = conformToSchema(datasetSchema);
 
@@ -40,7 +44,7 @@ export function prepareDataset(raw) {
 }
 
 
-// Prep Dataset Collection
+// Dataset Collection
 
 const conformDsc = conformToSchema(datasetCollectionSchema);
 

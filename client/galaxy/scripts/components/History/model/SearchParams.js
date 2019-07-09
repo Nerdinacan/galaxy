@@ -6,9 +6,25 @@ export class SearchParams {
         this.filterText = "";
         this.showDeleted = false;
         this.showHidden = false;
-        this.start = null;
-        this.end = null;
+        this._start = null;
+        this._end = null;
         Object.assign(this, props);
+    }
+
+    get start() {
+        return this._start;
+    }
+
+    set start(val) {
+        this._start = Math.max(0, val);
+    }
+
+    get end() {
+        return this._end;
+    }
+
+    set end(val) {
+        this._end = Math.max(0, val);
     }
 
     get visible() {

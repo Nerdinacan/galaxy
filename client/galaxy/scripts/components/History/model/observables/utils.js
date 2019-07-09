@@ -71,9 +71,10 @@ export const scanToMap = keyField => source$ => {
 
 
 /**
- * Simple ajax load passthrough, applies generic ajax handling
+ * Simple ajax load passthrough, applies generic ajax handling. This only exists
+ * so we can dress it up with standard error-retry and data preparation features.
  */
-export const load = () => url$ => {
+export const ajaxGet = () => url$ => {
     return url$.pipe(
         map(prependPath),
         mergeMap(ajax.getJSON)

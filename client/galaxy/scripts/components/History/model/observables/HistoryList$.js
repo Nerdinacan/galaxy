@@ -1,7 +1,7 @@
-import { merge, combineLatest } from "rxjs";
-import { map, mapTo, mergeMap, mergeMapTo, share, shareReplay, 
-    withLatestFrom, distinctUntilChanged, throttleTime } from "rxjs/operators";
-import { log, warn, split, load, createInputFunction } from "./utils";
+import { merge } from "rxjs";
+import { map, mapTo, mergeMap, mergeMapTo, shareReplay, withLatestFrom,
+    throttleTime } from "rxjs/operators";
+import { split, ajaxGet, createInputFunction } from "./utils";
 import { cacheHistory, deleteHistory as deleteCachedHistory } from "./CachedData";
 import { CurrentUserId$ } from "components/User/model/CurrentUser$";
 import { history$ } from "../db";
@@ -13,7 +13,7 @@ const listingUrl = "/api/histories?view=dev-detailed&keys=visible,contents_activ
 
 const loadHistories$ = CurrentUserId$.pipe(
     mapTo(listingUrl),
-    load(),
+    ajaxGet(),
     split()
 );
 

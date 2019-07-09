@@ -1,7 +1,7 @@
-import { concat, of, isObservable }from "rxjs";
+import { concat }from "rxjs";
 import { pluck, map, first, share } from "rxjs/operators";
 import { cacheHistory, getCachedHistory } from "./CachedData";
-import { load, firstItem } from "./utils";
+import { ajaxGet, firstItem } from "./utils";
 
 
 /**
@@ -21,10 +21,10 @@ export function CheckHistory$(h$) {
         getCachedHistory()
     );
 
-    // load from server if update_time stale
+    // ajaxGet from server if update_time stale
     const serverHistory$ = history$.pipe(
         map(buildHistoryUrl),
-        load(),
+        ajaxGet(),
         firstItem(),
         cacheHistory()
     );

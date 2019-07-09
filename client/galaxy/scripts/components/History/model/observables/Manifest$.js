@@ -1,6 +1,6 @@
 import { combineLatest } from "rxjs";
-import { tap, filter, map, take } from "rxjs/operators";
-import { log, load, split } from "./utils";
+import { tap, filter, map } from "rxjs/operators";
+import { ajaxGet, split } from "./utils";
 import { cacheContent } from "./CachedData";
 
 
@@ -12,7 +12,7 @@ export function Manifest$(history$, param$) {
     return combineLatest(history$, param$).pipe(
         filter(needsManifest),
         map(buildManifestUrl),
-        load(),
+        ajaxGet(),
         split(),
         cacheContent()
     );

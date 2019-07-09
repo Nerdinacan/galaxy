@@ -1,6 +1,11 @@
+/**
+ * Given a list of fresh server content (manifest$) corresponding to the current
+ * history/params, this observable splits up the returned content into dataset
+ * and datasetCollection segments and requests and caches a detailed view locally.
+ */
 import { merge } from "rxjs";
 import { tap, pluck, reduce, filter, mergeMap, withLatestFrom, map, share } from "rxjs/operators";
-import { log, load, split } from "./utils";
+import { ajaxGet, split } from "./utils";
 import { cacheDataset, cacheDatasetCollection, withLatestFromDb } from "./CachedData";
 import { dataset$, datasetCollection$ } from "../db";
 
@@ -22,7 +27,7 @@ export function ContentUpdate$(manifest$, history$) {
     const details$ = staleIds$.pipe(
         withLatestFrom(history$),
         map(buildBulkContentUrl),
-        load(),
+        ajaxGet(),
         split(),
         share()
     );
@@ -78,16 +83,13 @@ const collectStaleIds = () => manifest$ => {
 }
 
 
-// Check database for valid version of indicated item
-// if no valid version, then return the stale id so the
-// bulk update can request the new version
+// Compare returned content object to version stored in the local database. If
+// the update_time is newer, then store this ID for a later bulk detail update.
 
 async function filterStaleContent([ item, collection ]) {
 
     const newVersionDate = Date.parse(item.update_time);
 
-    // If valid version exists, and it was saved after
-    // the manifestItem then we have a valid cache
     const existing = await collection.findOne(item.id).exec();
     if (existing) {
         const existingDate = Date.parse(existing.update_time);
@@ -96,6 +98,6 @@ async function filterStaleContent([ item, collection ]) {
         }
     }
 
-    // returning a summary item means this item is stale
+    // returning an item means this item is stale and needs a server update
     return item;
 }

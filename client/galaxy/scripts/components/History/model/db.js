@@ -2,21 +2,16 @@ import RxDB from "rxdb";
 import idb from "pouchdb-adapter-idb";
 import { defer } from "rxjs";
 import { shareReplay, mergeMap, catchError } from "rxjs/operators";
+import { dbConfig, historySchema, historyContentSchema, 
+    datasetSchema, datasetCollectionSchema } from "./schema";
 
-import {
-    dbConfig,
-    historySchema,
-    historyContentSchema, 
-    datasetSchema, 
-    datasetCollectionSchema,
-} from "./schema";
 
 RxDB.plugin(idb);
 
 
 export const db$ = defer(getDB).pipe(
     catchError(err => wipeDB()),
-    shareReplay()
+    shareReplay(1)
 );
 
 export const history$ = initCollection({

@@ -10,6 +10,7 @@ import { watchVuexStore } from "./utils";
 export const Param$ = (store, history$) => {
     return history$.pipe(
         pluck('id'),
+        // build selector fn
         map(id => (_, getters) => getters["history/searchParams"](id)),
         mergeMap(selector => watchVuexStore(store, selector)),
         distinctUntilChanged(SearchParams.equals),

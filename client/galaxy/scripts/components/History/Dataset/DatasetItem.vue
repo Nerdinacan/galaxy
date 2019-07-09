@@ -6,7 +6,7 @@
                 <a href="#" tabindex="0"
                     @keyup.space="toggleDetails" 
                     @click="toggleDetails">
-                    {{ content.hid }}: {{ title }}
+                    {{ title }}
                 </a>
             </h5>
             <primary-actions v-if="dataset" :dataset="dataset" />
@@ -100,12 +100,12 @@
 import Vue from "vue";
 import VueRx from "vue-rx";
 
-import { of } from "rxjs";
-import { tap, filter, pluck, startWith } from "rxjs/operators";
+import STATES from "mvc/dataset/states";
 
+import { of } from "rxjs";
+import { tap, filter, pluck, startWith, distinctUntilChanged } from "rxjs/operators";
 import { getCachedDataset } from "../model/observables/CachedData";
 import { prependPath, redirectToSiteUrl, backboneRedirect, iframeRedirect } from "utils/redirect";
-import STATES from "mvc/dataset/states";
 import { loadToolFromDataset } from "../model/queries";
 import { eventHub } from "components/eventHub";
 
@@ -146,7 +146,7 @@ export default {
                 return "Loading";   
             }
             const { hid, name, isDeleted, visible, purged } = this.content;
-            let result = `${hid}: ${name}`;
+            let result = name;
             const itemStates = [];
             if (isDeleted) {
                 itemStates.push("Deleted");
@@ -206,6 +206,7 @@ export default {
 
         const dataset$ = this.$watchAsObservable("content", { immediate: true }).pipe(
             pluck("newValue", "id"),
+            distinctUntilChanged(),
             getCachedDataset(),
             startWith(null)
         );

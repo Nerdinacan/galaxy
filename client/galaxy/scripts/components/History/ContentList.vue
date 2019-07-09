@@ -14,6 +14,7 @@
                         <content-item class="flex-grow-1"
                             :content="c" />
                     </li>
+                    <li v-observe-visibility="updatePageRange(0)">&nbsp;</li>
                 </ol>
 
             </div>
