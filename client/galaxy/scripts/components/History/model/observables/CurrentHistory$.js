@@ -1,12 +1,12 @@
 // This logic is super-stupid because of the need to ask
 // the server who the client thinks the current history is.
 
-import { defer, merge, concat } from "rxjs";
-import { tap, map, mergeMap, mergeMapTo, filter, share, 
-    pluck, take, shareReplay, withLatestFrom } from "rxjs/operators";
+import { merge, concat } from "rxjs";
+import { tap, map, mergeMap, filter, share, 
+    pluck, take, withLatestFrom } from "rxjs/operators";
 import { getCurrentHistory, selectCurrentHistory } from "../queries";
 import { HistoryList$ } from "./HistoryList$";
-import { log, split, firstItem, createInputFunction } from "./utils";
+import { split, firstItem, createInputFunction } from "./utils";
 import { CurrentUserId$ } from "components/User/model/CurrentUser$";
 
 
@@ -37,7 +37,9 @@ const loadCurrentHistory$ = validHistories$.pipe(
     take(1)
 );
 
-// Initial lookup, first in valid list, or manual selection
+
+// Initial lookup, or first non-deleted history in the list
+
 const initialValue$ = concat(loadCurrentHistory$, firstValidHistory$).pipe(
     take(1)
 );
@@ -50,12 +52,14 @@ export const setCurrentHistoryId = createInputFunction();
 const manualSelection$ = setCurrentHistoryId.$.pipe(
     withLatestFrom(HistoryList$),
     map(([ id, list ]) => {
-        debugger;
         return list.find(h => h.id == id);
     }),
     tap(history => selectCurrentHistory(history.id))
 );
 
+
+
+// Publics
 
 export const CurrentHistory$ = merge(initialValue$, manualSelection$);
 

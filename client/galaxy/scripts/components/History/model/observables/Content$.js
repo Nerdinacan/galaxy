@@ -1,6 +1,8 @@
 import { combineLatest } from "rxjs";
 import { map, switchMap } from "rxjs/operators";
 import { historyContent$ } from "../db";
+import { log } from "./utils";
+
 
 /**
  * Returns an observable content query that emits content whenever
@@ -14,6 +16,7 @@ export const Content$ = (history$, param$) => {
         map(docs => docs.map(d => d.toJSON()))
     );
 }
+
 
 const buildContentObservable = ([ history, params, coll ]) => {
 

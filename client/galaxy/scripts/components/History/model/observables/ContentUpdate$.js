@@ -1,6 +1,6 @@
 import { merge } from "rxjs";
-import { pluck, reduce, filter, mergeMap, withLatestFrom, map, share } from "rxjs/operators";
-import { load, split } from "./utils";
+import { tap, pluck, reduce, filter, mergeMap, withLatestFrom, map, share } from "rxjs/operators";
+import { log, load, split } from "./utils";
 import { cacheDataset, cacheDatasetCollection } from "./CachedData";
 import { dataset$, datasetCollection$ } from "../db";
 

@@ -172,7 +172,8 @@ export const actions = {
         if (!loaderSubscriptions.has(history.id)) {
             const sub = ContentLoader(history).subscribe(
                 contents => commit("setHistoryContents", { history, contents }),
-                err => console.warn("ContentLoader err", err)
+                err => console.warn("ContentLoader err", err),
+                () => console.log("ContentLoader complete")
             );
             loaderSubscriptions.set(history.id, sub);
         }

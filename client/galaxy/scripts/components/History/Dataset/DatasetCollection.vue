@@ -23,6 +23,7 @@
 
 <script>
 
+import { of } from "rxjs";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
 import { getCachedDatasetCollection } from "../model/observables/CachedData";
 import { eventHub } from "../eventHub";

@@ -3,11 +3,22 @@
  * the data stored locally in indexDb
  */
 
-import { merge } from "rxjs";
-import { tap, map, mergeMap, withLatestFrom } from "rxjs/operators";
+import { of, merge, combineLatest } from "rxjs";
+import { tap, map, mergeMap, concatMap, withLatestFrom } from "rxjs/operators";
 import { history$, historyContent$, dataset$, datasetCollection$ } from "../db";
 import { prepareHistory, prepareManifestItem, prepareDataset, prepareDatasetCollection } from "../schema/prepare";
 import { safeAssign } from "utils/safeAssign";
+import { log } from "./utils";
+
+
+// There's something buggy about rxdb's collection
+// objects, standard combineLatest, withLatest don't
+// seem to work reliably.
+const withLatestFromDb = dbobj$ => src$ => {
+    return src$.pipe(
+        mergeMap(src => combineLatest(of(src), dbobj$))
+    )
+}
 
 
 /**
@@ -17,7 +28,7 @@ import { safeAssign } from "utils/safeAssign";
  */
 const getCachedItem = collection$ => key$ => {
     return key$.pipe(
-        withLatestFrom(collection$),
+        withLatestFromDb(collection$),
         mergeMap(([ key, coll ]) => {
             const keyField = coll.schema.primaryPath;
             const query = coll.findOne().where(keyField).eq(key);
@@ -55,13 +66,20 @@ export const getCachedDatasetCollection = () => key$ => {
  * Cache object in rxdb collection
  * @param {Observable<RxCollection>} collection$
  */
-const cacheItemInDb = collection$ => item$ => {
+const cacheItemInDb = (collection$, debug = false) => item$ => {
     return item$.pipe(
-        withLatestFrom(collection$),
+        withLatestFromDb(collection$),
         mergeMap(async ([ item, coll ]) => {
-            return await coll.atomicUpsert(item)
+            if (debug) {
+                console.log("caching", item);
+            }
+            const result = await coll.upsert(item);
+            if (debug) {
+                console.log("cache result", result);
+            }
+            return result;
         })
-    );
+    )
 }
 
 export const cacheHistory = () => rawHistory$ => {
@@ -99,14 +117,14 @@ export const cacheDatasetCollection = () => rawDSC$ => {
  */
 const deleteItemFromLocalDb = collection$ => item$ => {
     return item$.pipe(
-        withLatestFrom(collection$),
+        withLatestFromDb(collection$),
         mergeMap(async ([ item, coll ]) => {
             const keyField = coll.schema.primaryPath;
             const pKey = item[keyField];
             const query = coll.find().where(keyField).eq(pKey);
             return await query.remove();
         })
-    )
+    );
 }
 
 export const deleteHistory = () => item$ => {
