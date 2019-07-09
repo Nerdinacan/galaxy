@@ -1,7 +1,7 @@
 import { merge } from "rxjs";
 import { tap, pluck, reduce, filter, mergeMap, withLatestFrom, map, share } from "rxjs/operators";
 import { log, load, split } from "./utils";
-import { cacheDataset, cacheDatasetCollection } from "./CachedData";
+import { cacheDataset, cacheDatasetCollection, withLatestFromDb } from "./CachedData";
 import { dataset$, datasetCollection$ } from "../db";
 
 
@@ -59,13 +59,13 @@ const collectStaleIds = () => manifest$ => {
 
     const ds$ = sharedManifest$.pipe(
         filter(o => o.history_content_type == "dataset"),
-        withLatestFrom(dataset$),
+        withLatestFromDb(dataset$),
         mergeMap(filterStaleContent)
     );
 
     const dsc$ = sharedManifest$.pipe(
         filter(o => o.history_content_type == "dataset_collection"),
-        withLatestFrom(datasetCollection$),
+        withLatestFromDb(datasetCollection$),
         mergeMap(filterStaleContent)
     );
 

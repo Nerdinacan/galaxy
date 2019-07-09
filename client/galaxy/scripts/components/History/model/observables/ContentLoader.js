@@ -20,7 +20,7 @@ export function ContentLoader(history) {
     function subscribeToPolling() {
         const update$ = PollUpdate$(history$, param$);
         return update$.subscribe(
-            result => console.log("poll result", result),
+            null, // result => console.log("poll result", result),
             error => console.warn("poll error", error),
             () => console.log("poll complete")
         );

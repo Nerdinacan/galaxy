@@ -3,23 +3,22 @@
         class="history-content-item"
         :class="contentClassName"
         :is="contentItemComponent"
-        :content="content"
-        :index="index" />
+        :content="content" />
 </template>
 
 <script>
 
-import { Dataset, DatasetCollection } from "./Dataset";
+import { DatasetItem } from "./Dataset";
+import { DatasetCollectionItem } from "./DatasetCollection";
 import dasherize from "underscore.string/dasherize";
 
 export default {
     props: {
         content: { type: Object, required: true },
-        index: { type: Number, required: false, default: 0 }
     },
     components: {
-        "dataset": Dataset,
-        "dataset_collection": DatasetCollection
+        "dataset": DatasetItem,
+        "dataset_collection": DatasetCollectionItem
     },
     computed: {
         contentItemComponent() {

@@ -10,11 +10,11 @@ import $ from "jquery";
 import Backbone from "backbone";
 
 // For mounting the component in non-vue environments
-import CurrentHistoryPanel from "./CurrentHistoryPanel";
+import HistoryPanel from "./HistoryPanel";
 import { mountVueComponent } from "utils/mountVueComponent";
 
 // mount fn
-const mountHistory = mountVueComponent(CurrentHistoryPanel);
+const mountHistory = mountVueComponent(HistoryPanel);
 
 
 export default Backbone.View.extend({

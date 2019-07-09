@@ -38,7 +38,9 @@ export function PollUpdate$(history$, param$) {
  * Retrieve individual content detail updates if stale
  */
 export function doUpdates([ history, params ]) {
-    const activeHistory$ = CheckHistory$(history).pipe(share());
+    const activeHistory$ = CheckHistory$(of(history)).pipe(
+        share()
+    );
     const manifest$ = Manifest$(activeHistory$, of(params));
     return ContentUpdate$(manifest$, activeHistory$);
 }

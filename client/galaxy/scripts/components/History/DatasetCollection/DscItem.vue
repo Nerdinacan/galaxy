@@ -1,5 +1,5 @@
 <template>
-    <div v-if="dsc">
+    <div v-if="content">
         <header>
             <h5 class="m-0">
                 <a href="#" @click="toggleDetails">{{ title }}</a>
@@ -12,21 +12,18 @@
                     tooltip-placement="topleft" />
             </icon-menu>
         </header>
-        <transition name="shutterfade">
-            <div v-if="showDetails">
-                <pre>{{ Object.keys(dsc) }}</pre>
-            </div>
-        </transition>
     </div>
 </template>
 
 
 <script>
 
-import { of } from "rxjs";
-import { IconMenu, IconMenuItem } from "components/IconMenu";
+import { filter, pluck, startWith } from "rxjs/operators";
+import { mapState, mapMutations } from "vuex";
 import { getCachedDatasetCollection } from "../model/observables/CachedData";
-import { eventHub } from "../eventHub";
+import { eventHub } from "components/eventHub";
+import { IconMenu, IconMenuItem } from "components/IconMenu";
+
 
 export default {
     components: {
@@ -47,8 +44,13 @@ export default {
         }
     },
     methods: {
+
+        ...mapMutations("dsc", [ "setCurrentCollectionId" ]),
+
         toggleDetails() {
             this.showDetails = !this.showDetails;
+            const id = this.showDetails ? this.content.id : null;
+            this.setCurrentCollectionId(id)
         },
         collapse() {
             this.showDetails = false;
@@ -59,7 +61,11 @@ export default {
         }
     },
     subscriptions() {
-        const dsc = of(this.content.id).pipe(getCachedDatasetCollection())
+        const dsc = this.$watchAsObservable("content", { immediate: true }).pipe(
+            pluck("newValue", "id"),
+            getCachedDatasetCollection(),
+            startWith(null)
+        );
         return { dsc };
     },
     created() {

@@ -1,6 +1,5 @@
 <template>
     <div>
-
         <transition name="fade">
             <div v-if="content.length" class="scrollContainer"
                 ref="scrollContainer">
@@ -9,12 +8,11 @@
                     <li v-for="(c, index) in content" :key="c.type_id"
                         class="d-flex p-2 mb-1" 
                         :data-state="c.state"
-                        v-observe-visibility="updatePageRange(index)">
+                        v-observe-visibility="updatePageRange(c.hid)">
                         <b-form-checkbox v-if="showSelection"
                             v-model="selection" :value="c" />
                         <content-item class="flex-grow-1"
-                            :content="c" 
-                            :index="index" />
+                            :content="c" />
                     </li>
                 </ol>
 
@@ -41,7 +39,7 @@
 
 import { mapGetters, mapActions } from "vuex";
 import { debounce } from "debounce";
-import { eventHub } from "./eventHub";
+import { eventHub } from "components/eventHub";
 import { ObserveVisibility } from "vue-observe-visibility";
 import ContentItem from "./ContentItem";
 import { SearchParams } from "./model/SearchParams";
@@ -123,30 +121,42 @@ export default {
 
         updateParams(newParams) {
             if (!SearchParams.equals(newParams, this.params)) {
-                // console.log("sending new params", newParams);
-                this.setSearchParams({
-                    history: this.history,
-                    params: newParams
-                })
+                newParams.report("sending new params");
+                // this.setSearchParams({
+                //     history: this.history,
+                //     params: newParams
+                // })
             }
         },
 
 
         // Scrolling
 
-        updatePageRange(index) {
-            return (isVisible, entry) => {
-                if (this.suppressVizEvents) {
-                    return;
-                }
+        updatePageRange(hid) {
+            
+            // have to disable this handler while the page
+            // is stil updating, but the beforeUpdate and
+            // updated methods are basically no help
+            // let active = false;
+            // setTimeout(() => active = true, 500);
+
+            function handler(isVisible, entry) {
+                // if (!active) {
+                //     return;
+                // }
                 if (isVisible) {
-                    this.localParams.expand(index);
+                    this.localParams.expand(hid);
                 } else {
                     if (this.isAboveWindow(entry)) {
-                        this.localParams.clipTop(index);
+                        this.localParams.clipTop(hid);
+                    }
+                    if (this.isBelowWindow(entry)) {
+                        this.localParams.clipBottom(hid);
                     }
                 }
             }
+
+            return handler.bind(this);
         },
 
         getContainerRect() {
@@ -177,20 +187,16 @@ export default {
             },
             immediate: true
         },
-        params: {
-            handler(newParams) {
-                if (!SearchParams.equals(newParams, this.localParams)) {
-                    // console.log("updating localParams from params", newParams);
-                    this.localParams = newParams.clone();               
-                }
-            },
-            immediate: true
+        params(newParams) {
+            if (!SearchParams.equals(newParams, this.localParams)) {
+                // console.log("updating localParams from params", newParams);
+                this.localParams = newParams.clone();               
+            }
         },
         localParams: {
             handler: debounce(function(newParams) {
-                // newParams.report("LOCALPARAMS WATCH", this);
-                
-            }, 200),
+                this.updateParams(newParams);
+            }, 500),
             deep: true
         }
     },
@@ -201,14 +207,6 @@ export default {
     beforeDestroy() {
         this.unsubLoader(this.history.id);
         eventHub.$off('toggleShowSelection', this.displaySelection);
-    },
-    beforeUpdate() {
-        // Visibility directive clumsily uses nextTick so we can't just
-        // use that or updated() because it's still too soon
-        this.suppressVizEvents = true;
-        setTimeout(() => {
-            this.suppressVizEvents = false;
-        }, 1000);
     }
 }
 

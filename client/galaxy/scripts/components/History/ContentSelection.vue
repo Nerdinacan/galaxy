@@ -3,7 +3,7 @@
 
         <header>
             <h6>
-                <span>Contents {{ params.offset }}/{{ params.limit }}</span>
+                <span>Contents {{ params.start }}-{{ params.end }}</span>
                 <span>{{ countShown }} shown</span>
                 <span v-if="countHidden">
                     <a v-if="!params.showHidden" href="#"
@@ -148,7 +148,7 @@ import { mapGetters, mapActions } from "vuex";
 import ContentFilters from "./ContentFilters";
 import GearMenu from "./GearMenu";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
-import { eventHub } from "./eventHub";
+import { eventHub } from "components/eventHub";
 
 const messages = {
     unhideContent: "Really unhide all hidden datasets?",

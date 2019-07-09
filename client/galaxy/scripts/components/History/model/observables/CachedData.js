@@ -4,7 +4,7 @@
  */
 
 import { of, merge, combineLatest } from "rxjs";
-import { tap, map, mergeMap, concatMap, withLatestFrom } from "rxjs/operators";
+import { tap, filter, map, mergeMap, concatMap, withLatestFrom } from "rxjs/operators";
 import { history$, historyContent$, dataset$, datasetCollection$ } from "../db";
 import { prepareHistory, prepareManifestItem, prepareDataset, prepareDatasetCollection } from "../schema/prepare";
 import { safeAssign } from "utils/safeAssign";
@@ -14,7 +14,7 @@ import { log } from "./utils";
 // There's something buggy about rxdb's collection
 // objects, standard combineLatest, withLatest don't
 // seem to work reliably.
-const withLatestFromDb = dbobj$ => src$ => {
+export const withLatestFromDb = dbobj$ => src$ => {
     return src$.pipe(
         mergeMap(src => combineLatest(of(src), dbobj$))
     )
@@ -26,10 +26,14 @@ const withLatestFromDb = dbobj$ => src$ => {
  * observable primary key
  * @param {Observable<RxCollection>} collection$
  */
-const getCachedItem = collection$ => key$ => {
+const getCachedItem = (collection$, debug = false) => key$ => {
     return key$.pipe(
+        filter(Boolean),
         withLatestFromDb(collection$),
         mergeMap(([ key, coll ]) => {
+            if (debug) {
+                console.log(key, coll);
+            }
             const keyField = coll.schema.primaryPath;
             const query = coll.findOne().where(keyField).eq(key);
             return query.$;
@@ -73,7 +77,7 @@ const cacheItemInDb = (collection$, debug = false) => item$ => {
             if (debug) {
                 console.log("caching", item);
             }
-            const result = await coll.upsert(item);
+            const result = await coll.atomicUpsert(item);
             if (debug) {
                 console.log("cache result", result);
             }

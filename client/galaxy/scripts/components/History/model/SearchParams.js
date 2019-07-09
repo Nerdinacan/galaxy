@@ -6,32 +6,9 @@ export class SearchParams {
         this.filterText = "";
         this.showDeleted = false;
         this.showHidden = false;
-        this.pageSize = 30;
-        this._offset = 0;
-        this._limit = 30;
+        this.start = null;
+        this.end = null;
         Object.assign(this, props);
-    }
-
-    get offset() {
-        return this._offset;
-    }
-
-    set offset(val) {
-        const newVal = parseInt(val);
-        if (!isNaN(newVal)) {
-            this._offset = Math.max(0, newVal);
-        }
-    }
-
-    get limit() {
-        return this._limit;
-    }
-
-    set limit(val) {
-        const newVal = parseInt(val);
-        if (!isNaN(newVal)) {
-            this._limit = Math.max(this.pageSize, newVal);
-        }
     }
 
     get visible() {
@@ -54,22 +31,44 @@ export class SearchParams {
         lastUpdated.set(this.contentUpdateKey, nextDate);
     }
 
-    // this index came into view, make sure it's being updated
-    expand(index) {
-        this.offset = Math.min(this.offset, index);
+    // this one came into view
+    expand(hid) {
+        if (this.start === null) {
+            this.start = hid;
+        }
+        if (this.end === null) {
+            this.end = hid;
+        }
+        this.start = Math.min(this.start, hid);
+        this.end = Math.max(this.end, hid);
+        // this.report(`expand: ${hid}`);
     }
 
-    // this index ran off the top
-    clipTop(index) {
-        this.offset = Math.max(this.offset, index + 1);
+    // this one ran off the top
+    clipTop(hid) {
+        if (this.end === null) {
+            this.end = hid;
+        }
+        this.end = Math.min(this.end, hid - 1);
+        // this.report(`clipTop: ${hid}`);
+    }
+
+    // ran off the bottom
+    clipBottom(hid) {
+        if (this.start === null) {
+            this.start = hid;
+        }
+        this.start = Math.max(this.start, hid + 1);
+        // this.report(`clipBottom: ${hid}`);
     }
 
     // debugging
     report(label = "params") {
-        const { offset, limit } = this;
-        console.group(label, offset, limit);
+        const { start, end, showDeleted, showHidden } = this;
+        console.group(label, `${start}-${end}`);
+        console.log("showDeleted", showDeleted);
+        console.log("showHidden", showHidden);
         console.dir(this);
-        console.warn(offset, limit);
         console.groupEnd();
     }
 

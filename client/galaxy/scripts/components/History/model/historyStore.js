@@ -158,6 +158,8 @@ export const actions = {
     // Controls output and query contents
 
     setSearchParams({ commit }, { history, params }) {
+        // if we don't do a comparison check here, the components
+        // will update over and over
         commit("setSearchParams", {
             history,
             params: params.clone()
@@ -283,11 +285,6 @@ export default {
     actions,
     mutations
 }
-
-
-
-// localstorage persistence handles re-hydration of
-// json representation of the History model
 
 export const historyPersist = new VuexPersistence({
     key: "state-history",

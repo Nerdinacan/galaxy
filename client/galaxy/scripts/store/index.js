@@ -11,6 +11,7 @@ import { tagStore } from "./tagStore";
 import { jobMetricsStore } from "./jobMetricsStore";
 import historyStore, { observeHistory } from "components/History/model/historyStore";
 import userStore from "store/userStore";
+import dscStore from "components/History/DatasetCollection/store";
 
 Vue.use(Vuex);
 
@@ -20,7 +21,8 @@ export default new Vuex.Store({
         tags: tagStore,
         jobMetrics: jobMetricsStore,
         history: historyStore,
-        user: userStore
+        user: userStore,
+        dsc: dscStore
     },
     plugins: [
         createCache(),

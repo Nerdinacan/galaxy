@@ -38,8 +38,8 @@ function needsManifest([ history, params ]) {
 function buildManifestUrl([ history, params ]) {
 
     const base = `/api/histories/${history.id}/contents?v=dev&view=summary`;
-    const offset = `offset=${params.offset}`;
-    const limit = `limit=${params.limit}`;
+    const start = params.start !== null ? `q=hid-ge&qv=${params.start}` : "";
+    const end = params.end !== null ? `q=hid-le&qv=${params.end}` : "";
     const orderClause = "order=hid-dsc";
 
     // deleted/purged
@@ -69,7 +69,7 @@ function buildManifestUrl([ history, params ]) {
 
     // result
     const parts = [
-        base, limit, offset, orderClause, 
+        base, start, end, orderClause, 
         textFilter, deleteFilter, purgeFilter, visibleFilter,
         updateCriteria
     ];

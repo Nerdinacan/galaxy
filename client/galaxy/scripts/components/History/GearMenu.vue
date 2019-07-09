@@ -9,7 +9,7 @@
 <script>
 
 import { redirectToSiteUrl, backboneRedirect, iframeRedirect } from "utils/redirect";
-import { eventHub } from "./eventHub";
+import { eventHub } from "components/eventHub";
 
 export default {
     data() {

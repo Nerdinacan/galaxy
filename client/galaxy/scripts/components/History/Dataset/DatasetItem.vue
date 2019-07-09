@@ -1,11 +1,12 @@
 <template>
     <div>
+
         <header>
             <h5>
                 <a href="#" tabindex="0"
                     @keyup.space="toggleDetails" 
                     @click="toggleDetails">
-                    {{ title }} {{ index }}
+                    {{ content.hid }}: {{ title }}
                 </a>
             </h5>
             <primary-actions v-if="dataset" :dataset="dataset" />
@@ -25,13 +26,11 @@
                     accessible: {{ dataset.accessible }}
                 </div>
 
-                <!-- ? -->
                 <div>
                     <p>0 lines</p>
                     <p>format: tabular, database: ?</p>
                 </div>
 
-                <!-- old formatting -->
                 <div v-if="dataset.misc_blurb">
                     <span>{{ dataset.misc_blurb }}</span>
                 </div>
@@ -47,8 +46,6 @@
                     <span>{{ dataset.misc_info }}</span>
                 </div>
 
-
-                <!-- tool bar, buttons -->
                 <div class="d-flex justify-content-between align-items-center">
 
                     <secondary-actions :dataset="dataset" 
@@ -91,9 +88,6 @@
                     <div v-if="showToolHelp && toolHelp" v-html="toolHelp"></div>
                 </transition>
 
-                <pre>{{ content }}</pre>
-                <pre>{{ dataset }}</pre>
-
             </div>
         </transition>
 
@@ -103,17 +97,25 @@
 
 <script>
 
+import Vue from "vue";
+import VueRx from "vue-rx";
+
 import { of } from "rxjs";
-import PrimaryActions from "./PrimaryActions";
-import SecondaryActions from "./SecondaryActions";
-import DatasetTags from "./DatasetTags";
-import DatasetPeek from "./DatasetPeek";
-import { IconMenu, IconMenuItem } from "components/IconMenu";
+import { tap, filter, pluck, startWith } from "rxjs/operators";
+
 import { getCachedDataset } from "../model/observables/CachedData";
-import { eventHub } from "../eventHub";
 import { prependPath, redirectToSiteUrl, backboneRedirect, iframeRedirect } from "utils/redirect";
 import STATES from "mvc/dataset/states";
 import { loadToolFromDataset } from "../model/queries";
+import { eventHub } from "components/eventHub";
+
+import PrimaryActions from "./PrimaryActions";
+import SecondaryActions from "./SecondaryActions";
+import DatasetTags from "./Tags";
+import DatasetPeek from "./Peek";
+import { IconMenu, IconMenuItem } from "components/IconMenu";
+
+Vue.use(VueRx);
 
 export default {
     components: {
@@ -125,8 +127,7 @@ export default {
         IconMenuItem
     },
     props: {
-        content: { type: Object, required: true },
-        index: { type: Number, required: false, default: 0 }
+        content: { type: Object, required: true }
     },
     data() {
         return {
@@ -169,7 +170,6 @@ export default {
         showDetails() {
             return this.dataset && this.showDetailsToggle && !this.unViewable;
         }
-        
     },
     methods: {
         
@@ -203,8 +203,16 @@ export default {
         }
     },
     subscriptions() {
-        const dataset = of(this.content.id).pipe(getCachedDataset());
-        return { dataset };
+
+        const dataset$ = this.$watchAsObservable("content", { immediate: true }).pipe(
+            pluck("newValue", "id"),
+            getCachedDataset(),
+            startWith(null)
+        );
+
+        return { 
+            dataset: dataset$
+        };
     },
     created() {
         eventHub.$on('collapse-content', this.collapse);

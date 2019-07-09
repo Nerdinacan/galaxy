@@ -10,10 +10,9 @@ import { load, firstItem } from "./utils";
  * @param {object} h history
  * @return {Observable} Observable history
  */
-export function CheckHistory$(h) {
+export function CheckHistory$(h$) {
 
     // clean params
-    const h$ = isObservable(h) ? h : of(h);
     const history$ = h$.pipe(share());
 
     // get existing database value
