@@ -1,5 +1,5 @@
 <template>
-    <history class="ml-1" :historyId="currentHistoryId">
+    <history v-if="currentHistoryId" class="ml-1" :historyId="currentHistoryId">
         <template v-slot:history-top-nav>
 
             <nav class="history-list-menu p-2">

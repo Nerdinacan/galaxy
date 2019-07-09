@@ -1,15 +1,16 @@
 import { merge, combineLatest } from "rxjs";
-import { map, mapTo, debounceTime, mergeMap, mergeMapTo, share } from "rxjs/operators";
-import { split, load, createInputFunction } from "./utils";
+import { map, mapTo, mergeMap, mergeMapTo, share, shareReplay, 
+    withLatestFrom, distinctUntilChanged, throttleTime } from "rxjs/operators";
+import { log, warn, split, load, createInputFunction } from "./utils";
 import { cacheHistory, deleteHistory as deleteCachedHistory } from "./CachedData";
 import { CurrentUserId$ } from "components/User/model/CurrentUser$";
 import { history$ } from "../db";
-import { prepareHistory } from "../schema/prepare";
 
 
 // every time the user changes we load new histories
 
 const listingUrl = "/api/histories?view=dev-detailed&keys=visible,contents_active&q=purged&qv=False";
+
 const loadHistories$ = CurrentUserId$.pipe(
     mapTo(listingUrl),
     load(),
@@ -30,18 +31,33 @@ const subtract$ = deleteHistory.$.pipe(
     deleteCachedHistory()
 );
 
+export const HistoryListChange$ = merge(add$, subtract$);
 
-// List of histories available to current user
 
-const dbHistoryList$ = combineLatest(CurrentUserId$, history$).pipe(
+
+// Observable points at database, depends on current user
+
+export const DbHistoryList$ = CurrentUserId$.pipe(
+    withLatestFrom(history$),
     mergeMap(([ id, c ]) => {
         return c.find().where('user_id').eq(id).$;
     }),
     map(docs => docs.map(h => h.toJSON()))
 );
 
-export const HistoryList$ = merge(CurrentUserId$, add$, subtract$).pipe(
-    debounceTime(100),
-    mergeMapTo(dbHistoryList$),
-    share()
+
+// emits a lot because of the change subscription, we
+// don't actually care about the value, only that the
+// subscription is maintained
+
+const trigger$ = HistoryListChange$.pipe(
+    throttleTime(5000)
+);
+
+
+// Observable query that points at db
+
+export const HistoryList$ = trigger$.pipe(
+    mergeMapTo(DbHistoryList$),
+    shareReplay(1)
 );

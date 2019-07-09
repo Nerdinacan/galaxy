@@ -1,38 +1,62 @@
-import { defer, merge } from "rxjs";
-import { map, mergeMap, mergeMapTo, filter, share, pluck } from "rxjs/operators";
+// This logic is super-stupid because of the need to ask
+// the server who the client thinks the current history is.
+
+import { defer, merge, concat } from "rxjs";
+import { tap, map, mergeMap, mergeMapTo, filter, share, 
+    pluck, take, shareReplay, withLatestFrom } from "rxjs/operators";
 import { getCurrentHistory, selectCurrentHistory } from "../queries";
 import { HistoryList$ } from "./HistoryList$";
-import { firstItem, createInputFunction } from "./utils";
+import { log, split, firstItem, createInputFunction } from "./utils";
+import { CurrentUserId$ } from "components/User/model/CurrentUser$";
 
 
-// History validator
+// Initial load during application init, returns a uselessly-formed
+// history object, but we have to look through it for the id
+
 const historyValid = h => !h.deleted;
-
-// Initial load during application init
-const load$ = defer(getCurrentHistory).pipe(
+const validHistories$ = HistoryList$.pipe(
+    split(),
+    filter(historyValid),
     share()
 );
 
-// if that one is ok, use it
-const initLookup$ = load$.pipe(
-    filter(historyValid)
+const firstValidHistory$ = validHistories$.pipe(
+    take(1),
+    tap(history => selectCurrentHistory(history.id))
 );
 
-// Find first in loaded history list
-const first$ = load$.pipe(
-    filter(h => !historyValid(h)),
-    mergeMapTo(HistoryList$),
-    map(list => list.filter(historyValid)),
-    firstItem(),
-    pluck("id"),
-    mergeMap(selectCurrentHistory)
+const ServerCurrentHistoryId$ = CurrentUserId$.pipe(
+    mergeMap(getCurrentHistory),
+    pluck('id')
 );
 
-// Somebody explicitly changed the history
-export const setCurrentHistoryId = createInputFunction();
-const manual$ = setCurrentHistoryId.$.pipe(
-    mergeMap(selectCurrentHistory)
+const loadCurrentHistory$ = validHistories$.pipe(
+    withLatestFrom(ServerCurrentHistoryId$),
+    filter(([ doc, id ]) => doc.id == id),
+    firstItem(), // don't want the id
+    take(1)
 );
 
 // Initial lookup, first in valid list, or manual selection
-export const CurrentHistory$ = merge(initLookup$, first$, manual$);
+const initialValue$ = concat(loadCurrentHistory$, firstValidHistory$).pipe(
+    take(1)
+);
+
+
+// Somebody explicitly changed the history
+
+export const setCurrentHistoryId = createInputFunction();
+
+const manualSelection$ = setCurrentHistoryId.$.pipe(
+    withLatestFrom(HistoryList$),
+    map(([ id, list ]) => {
+        debugger;
+        return list.find(h => h.id == id);
+    }),
+    tap(history => selectCurrentHistory(history.id))
+);
+
+
+export const CurrentHistory$ = merge(initialValue$, manualSelection$);
+
+export const CurrentHistoryId$ = CurrentHistory$.pipe(pluck('id'));

@@ -96,14 +96,9 @@ const strictEquality = (a, b) => (b === undefined) ? false : a === b;
  * @param {function} selector
  * @param {object} opts
  */
-export function watchVuexStore(store, selector, comparator = strictEquality, opts = { immediate: true }) {
+export function watchVuexStore(store, selector, opts = { immediate: true }) {
     return new Observable(subscriber => {
-        const handler = (result, lastResult) => {
-            if (lastResult && comparator(result, lastResult)) {
-                return;
-            }
-            subscriber.next(result);
-        };
+        const handler = result => subscriber.next(result);
         return store.watch(selector, handler, opts);
     });
 }

@@ -42,8 +42,8 @@ function buildManifestUrl([ history, params ]) {
     const limit = `limit=${params.limit}`;
     const orderClause = "order=hid-dsc";
 
-    // deleted purged
-    // TODO: rework ridiculous api boolean filter-failure
+    // deleted/purged
+    // TODO: rework ridiculous api boolean filters
     let deleteFilter = "", purgeFilter = "";
     if (params.showDeleted === false) {
         deleteFilter = "q=deleted&qv=False";
@@ -67,7 +67,7 @@ function buildManifestUrl([ history, params ]) {
     const updateCriteria = lastUpdated ? `q=update_time-gt&qv=${lastUpdated.toISOString()}` : "";
     params.contentLastUpdated = new Date();
 
-    // Url
+    // result
     const parts = [
         base, limit, offset, orderClause, 
         textFilter, deleteFilter, purgeFilter, visibleFilter,

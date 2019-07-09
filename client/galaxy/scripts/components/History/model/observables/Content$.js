@@ -33,6 +33,9 @@ const buildContentObservable = ([ history, params, coll ]) => {
         query = query.where("name").regex(filterRE);
     }
 
+    // We always show everything we have locally
+    // offset/limit are just for limiting the server queries
+    // to the region we're looking at
     // query = query.skip(params.offset)
     //     .limit(params.limit)
     //     .sort("-hid");

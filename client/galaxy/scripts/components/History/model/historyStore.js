@@ -3,7 +3,7 @@ import VuexPersistence from "vuex-persist";
 
 import { ContentLoader } from "./observables/ContentLoader";
 import { HistoryList$, updateHistory, deleteHistory } from "./observables/HistoryList$";
-import { CurrentHistory$, setCurrentHistoryId } from "./observables/CurrentHistory$";
+import { CurrentHistoryId$, setCurrentHistoryId } from "./observables/CurrentHistory$";
 
 import {
     updateHistoryFields, createHistory, cloneHistory, 
@@ -16,6 +16,8 @@ import {
 import { SearchParams } from "./SearchParams";
 import { flushCachedDataset, cacheContentItem } from "./observables/CachedData";
 import { setEquals } from "utils/setFunctions";
+
+import { log } from "./observables/utils";
 
 
 // container for a bunch of observables for querying content
@@ -301,12 +303,16 @@ export const historyPersist = new VuexPersistence({
 
 export const observeHistory = ({ commit }) => {
 
-    CurrentHistory$.subscribe(ch => {
-        commit("history/setCurrentHistoryId", ch.id);
-    });
+    CurrentHistoryId$.pipe(log("CurrentHistoryId$")).subscribe(
+        id => commit("history/setCurrentHistoryId", id),
+        err => console.warn("CurrentHistory$ error", err), 
+        () => console.log("CurrentHistory$ complete")
+    );
 
-    HistoryList$.subscribe(list => {
-        commit("history/setHistories", list);
-    });
+    HistoryList$.pipe(log("HistoryList$")).subscribe(
+        list => commit("history/setHistories", list),
+        err => console.warn("HistoryList$, error", err),
+        () => console.log("HistoryList$ complete")
+    );
 
 }
