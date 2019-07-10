@@ -4,15 +4,22 @@
  * corresponding to the history and parameters passed in.
  */
 
-import { isObservable, of } from "rxjs";
+import { of } from "rxjs";
+import { share, first } from "rxjs/operators";
+import { getCachedHistory } from "./CachedData";
 import { PollUpdate$ } from "./PollUpdate$";
 import { Param$ } from "./Param$";
 import { Content$ } from "./Content$";
 import store from "store";
 
-export function ContentLoader(history) {
+export function ContentLoader(historyId) {
 
-    const history$ = isObservable(history) ? history : of(history);
+    const history$ = of(historyId).pipe(
+        getCachedHistory(),
+        first(),
+        share()
+    );
+    
     const param$ = Param$(store, history$);
 
     // subscribe to content observable
@@ -26,7 +33,7 @@ export function ContentLoader(history) {
     function subscribeToPolling() {
         const update$ = PollUpdate$(history$, param$);
         return update$.subscribe(
-            null, // result => console.log("poll result", result),
+            result => console.log("poll result", result),
             error => console.warn("poll error", error),
             () => console.log("poll complete")
         );

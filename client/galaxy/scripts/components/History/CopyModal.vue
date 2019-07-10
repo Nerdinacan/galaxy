@@ -2,7 +2,7 @@
     <b-modal ref="copyModal" v-model="showModal" :title="title" title-tag="h2">
    
         <transition name="fade">
-            <b-alert :show="isAnon" variant="warning" v-localize-content>
+            <b-alert :show="isAnon" variant="warning" v-localize>
                 As an anonymous user, unless you login or register, 
                 you will lose your current history after copying this 
                 history. You can <a href="/user/login">login here</a> 

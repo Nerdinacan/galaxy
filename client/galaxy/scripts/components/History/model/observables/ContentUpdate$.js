@@ -18,6 +18,7 @@ export function ContentUpdate$(manifest$, history$) {
 
     const staleIds$ = manifest$.pipe(
         collectStaleIds(),
+        tap(ids => console.log("stale ids", ids)),
         filter(ids => ids.length)
     );
 
@@ -59,7 +60,8 @@ function buildBulkContentUrl([ ids, history ]) {
 const collectStaleIds = () => manifest$ => {
 
     const sharedManifest$ = manifest$.pipe(
-        share()
+        tap(manifest => console.log('manifest$', manifest)),
+        share(),
     );
 
     const ds$ = sharedManifest$.pipe(

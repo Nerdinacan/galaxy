@@ -4,7 +4,7 @@
 
 import Vue from "vue";
 import VueRx from "vue-rx";
-import { pluck, debounceTime, distinctUntilChanged} from "rxjs/operators";
+import { pluck, debounceTime, distinctUntilChanged } from "rxjs/operators";
 
 Vue.use(VueRx);
 

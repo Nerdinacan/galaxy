@@ -1,6 +1,7 @@
 <template>
 
-    <nav v-if="historyId" class="history-list-menu d-flex justify-content-between align-items-center">
+    <nav v-if="historyId" class="history-list-menu d-flex
+        justify-content-between align-items-center border-bottom">
         <history-selector v-model="historyId" />
         <icon-menu>
             <icon-menu-item
@@ -101,15 +102,3 @@ export default {
 }
 
 </script>
-
-
-<style lang="scss" scoped>
-
-@import "~scss/theme/blue.scss";
-
-.history-list-menu {
-    background-color: $gray-300;
-}
-
-</style>
-        

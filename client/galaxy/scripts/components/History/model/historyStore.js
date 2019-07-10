@@ -65,7 +65,7 @@ export const getters = {
 
     searchParams: state => id => {
         if (!state.params.has(id)) {
-            state.params.set(id, new SearchParams());
+            state.params.set(id, new SearchParams({ historyId: id }));
         }
         return state.params.get(id);
     },
@@ -170,14 +170,14 @@ export const actions = {
     // Subscribes to an observable that returns content as observed
     // from IndexDB and runs polling updates for the indicated history
     
-    loadContent({ commit }, { history }) {
-        if (!loaderSubscriptions.has(history.id)) {
-            const sub = ContentLoader(history).subscribe(
-                contents => commit("setHistoryContents", { history, contents }),
+    loadContent({ commit }, historyId) {
+        if (!loaderSubscriptions.has(historyId)) {
+            const sub = ContentLoader(historyId).subscribe(
+                contents => commit("setHistoryContents", { historyId, contents }),
                 err => console.warn("ContentLoader err", err),
                 () => console.log("ContentLoader complete")
             );
-            loaderSubscriptions.set(history.id, sub);
+            loaderSubscriptions.set(historyId, sub);
         }
     },
 
@@ -265,9 +265,9 @@ export const mutations = {
         Vue.set(state, "params", newMap);
     },
 
-    setHistoryContents: (state, { history, contents }) => {
+    setHistoryContents: (state, { historyId, contents }) => {
         const newContents = new Map(state.contents);
-        newContents.set(history.id, contents);
+        newContents.set(historyId, contents);
         Vue.set(state, "contents", newContents);
     },
 

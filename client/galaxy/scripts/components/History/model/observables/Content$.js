@@ -1,6 +1,7 @@
 import { combineLatest } from "rxjs";
-import { map, switchMap } from "rxjs/operators";
+import { tap, map, switchMap } from "rxjs/operators";
 import { historyContent$ } from "../db";
+import { withLatestFromDb } from "./CachedData";
 
 
 /**
@@ -10,14 +11,15 @@ import { historyContent$ } from "../db";
  * @param {observable} param$ SearchParam observable
  */
 export const Content$ = (history$, param$) => {
-    return combineLatest(history$, param$, historyContent$).pipe(
+    return combineLatest(history$, param$).pipe(
+        withLatestFromDb(historyContent$), // rxdb objects a little buggy
         switchMap(buildContentObservable),
         map(docs => docs.map(d => d.toJSON()))
     );
 }
 
 
-const buildContentObservable = ([ history, params, coll ]) => {
+const buildContentObservable = ([ [ history, params ], coll ]) => {
 
     let query = coll.find().where("history_id").eq(history.id);
 

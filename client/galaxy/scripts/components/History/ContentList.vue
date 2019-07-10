@@ -1,12 +1,13 @@
 <template>
     <div>
+        {{ loading }}
         <transition name="fade">
             <div v-if="content.length" class="scrollContainer"
                 ref="scrollContainer">
 
                 <ol ref="scrollContent">
                     <li v-for="(c, index) in content" :key="c.type_id"
-                        class="d-flex p-2 mb-1" 
+                        class="d-flex px-3 py-2 mb-1"
                         :data-state="c.state"
                         v-observe-visibility="updatePageRange(c.hid)">
                         <b-form-checkbox v-if="showSelection"
@@ -14,20 +15,19 @@
                         <content-item class="flex-grow-1"
                             :content="c" />
                     </li>
-                    <li v-observe-visibility="updatePageRange(0)">&nbsp;</li>
                 </ol>
 
             </div>
         </transition>
 
         <transition name="fade">
-            <div v-if="!(loading || content.length)">
-                <p>No content, man.</p>
-            </div>
+            <b-alert v-if="!(loading || content.length)" class="m-3" show>
+                <history-empty />
+            </b-alert>
         </transition>
 
         <transition name="fade">
-            <div v-if="loading" class="d-flex justify-content-center mt-3">
+            <div v-if="loading" class="d-flex justify-content-center m-3">
                 <b-spinner label="Loading..."></b-spinner>
             </div>
         </transition>
@@ -42,8 +42,9 @@ import { mapGetters, mapActions } from "vuex";
 import { debounce } from "debounce";
 import { eventHub } from "components/eventHub";
 import { ObserveVisibility } from "vue-observe-visibility";
-import ContentItem from "./ContentItem";
 import { SearchParams } from "./model/SearchParams";
+import ContentItem from "./ContentItem";
+import HistoryEmpty from "./HistoryEmpty";
 
 export default {
 
@@ -51,7 +52,8 @@ export default {
         ObserveVisibility
     },
     components: {
-        ContentItem
+        ContentItem,
+        HistoryEmpty
     },
     props: {
         history: { type: Object, required: true }
@@ -59,9 +61,9 @@ export default {
 
     data() {
         return {
-            loading: false,
+            loading: true,
             showSelection: false,
-            localParams: new SearchParams()
+            localParams: new SearchParams({ historyId: this.history.id })
         }
     },
 
@@ -95,7 +97,6 @@ export default {
                 });
             }, 100, true)
         }
-
     },
 
     methods: {
@@ -123,10 +124,11 @@ export default {
         updateParams(newParams) {
             if (!SearchParams.equals(newParams, this.params)) {
                 newParams.report("sending new params");
-                // this.setSearchParams({
-                //     history: this.history,
-                //     params: newParams
-                // })
+                this.setLoading(true);
+                this.setSearchParams({
+                    history: this.history,
+                    params: newParams
+                });
             }
         },
 
@@ -134,7 +136,7 @@ export default {
         // Scrolling
 
         updatePageRange(hid) {
-            
+
             // have to disable this handler while the page
             // is stil updating, but the beforeUpdate and
             // updated methods are basically no help
@@ -172,26 +174,30 @@ export default {
 
         isBelowWindow({ boundingClientRect }) {
             return boundingClientRect.top > this.getContainerRect().bottom;
-        }
+        },
 
+        setLoading: debounce(function(val) {
+            this.loading = val;
+        }, 400)
     },
 
     watch: {
+        content(newContent) {
+            this.setLoading(false);
+        },
         history:{
             handler(history, oldHistory) {
                 if (oldHistory && (history.id !== oldHistory.id)) {
                     this.unsubLoader(oldHistory.id);
                 }
-                if (history && history.id) {
-                    this.loadContent({ history });
-                }
+                this.loadContent(history.id);
             },
             immediate: true
         },
         params(newParams) {
             if (!SearchParams.equals(newParams, this.localParams)) {
                 // console.log("updating localParams from params", newParams);
-                this.localParams = newParams.clone();               
+                this.localParams = newParams.clone();
             }
         },
         localParams: {
@@ -230,20 +236,6 @@ ol {
     top: 0;
     left: 0;
     right: 0;
-    padding-bottom: 1000px;
-}
-
-li {
-    position: relative;
-}
-
-.sensor {
-    background-color: red;
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: 2px;
 }
 
 </style>

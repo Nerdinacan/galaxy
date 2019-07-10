@@ -1,8 +1,11 @@
-const lastUpdated = new Map();
+import hash from "object-hash";
+import dateStore from "./dateStore";
+
 
 export class SearchParams {
 
     constructor(props = {}) {
+        this.historyId = null;
         this.filterText = "";
         this.showDeleted = false;
         this.showHidden = false;
@@ -16,7 +19,9 @@ export class SearchParams {
     }
 
     set start(val) {
-        this._start = Math.max(0, val);
+        const chunkSize = SearchParams.chunkSize;
+        const newVal = Math.floor(val / chunkSize) * chunkSize;
+        this._start = Math.max(0, newVal);
     }
 
     get end() {
@@ -24,7 +29,9 @@ export class SearchParams {
     }
 
     set end(val) {
-        this._end = Math.max(0, val);
+        const chunkSize = SearchParams.chunkSize;
+        const newVal = Math.ceil(val / chunkSize) * chunkSize;
+        this._end = Math.max(0, newVal);
     }
 
     get visible() {
@@ -32,21 +39,19 @@ export class SearchParams {
     }
 
     get contentLastUpdated() {
-        return lastUpdated.get(this.contentUpdateKey) || null;
-    }
-
-    set contentLastUpdated(newDate) {
-        this.markLastUpdated(newDate);
+        const key = this.contentUpdatedKey();
+        return dateStore.get(key);
     }
     
-    get contentUpdateKey() {
-        return JSON.stringify(this);
+    set contentLastUpdated(d) {
+        return dateStore.set(this.contentUpdatedKey(), d);
     }
-
-    markLastUpdated(nextDate = new Date()) {
-        lastUpdated.set(this.contentUpdateKey, nextDate);
+    
+    contentUpdatedKey() {
+        const noise = hash(this);
+        return `contentUpdated:${noise}`;
     }
-
+    
     // this one came into view
     expand(hid) {
         if (this.start === null) {
@@ -95,13 +100,14 @@ export class SearchParams {
     static equals(a, b) {
         if (!(a instanceof SearchParams)) return false;
         if (!(b instanceof SearchParams)) return false;
-        const same = Object.getOwnPropertyNames(a).reduce((same, prop) => {
+        return Object.getOwnPropertyNames(a).reduce((same, prop) => {
             return same && a[prop] === b[prop];
         }, true);
-        return same;
     }
 
     static different(instance, otherInstance) {
         return !SearchParams.equals(instance, otherInstance);
     }
 }
+
+SearchParams.chunkSize = 20;

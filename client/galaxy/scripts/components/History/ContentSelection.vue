@@ -3,7 +3,7 @@
 
         <header>
             <h6>
-                <span>Contents {{ params.start }}-{{ params.end }}</span>
+                <span>Contents</span>
                 <span>{{ countShown }} shown</span>
                 <span v-if="countHidden">
                     <a v-if="!params.showHidden" href="#"
@@ -39,48 +39,57 @@
         <transition name="shutterfade">
             <content-filters v-if="showFilter"
                 class="content-filters mt-2"
-                v-model="params" />
+                v-model="params" 
+                :history="history" />
         </transition>
 
         <!-- dataset selection -->
         <transition name="shutterfade">
             <b-button-toolbar v-if="showSelection"
                 class="content-selection justify-content-between mt-2">
-                <b-button size="sm" @click="selectAllVisibleContent">
-                    {{ 'Select All' | localize }}
-                </b-button>
-                <b-button size="sm" @click="clearSelection">
-                    {{ 'Unselect All' | localize }}
-                </b-button>
-                <b-dropdown size="sm" text="With Selected..." boundary="viewport">
-                    <b-dropdown-item @click="hideDatasets">
-                        {{ 'Hide Datasets' | localize }}
-                    </b-dropdown-item>
-                    <b-dropdown-item @click="unhideDatasets">
-                        {{ 'Unhide Datasets' | localize }}
-                    </b-dropdown-item>
-                    <b-dropdown-item @click="deleteDatasets">
-                        {{ 'Delete Datasets' | localize }}
-                    </b-dropdown-item>
-                    <b-dropdown-item @click="undeleteDatasets">
-                        {{ 'Undelete Datasets' | localize }}
-                    </b-dropdown-item>
-                    <b-dropdown-item @click="purgeDatasets">
-                        {{ 'Permanently Delete Datasets' | localize }}
-                    </b-dropdown-item>
-                    <b-dropdown-item @click="buildDatasetList">
-                        {{ 'Build Dataset List' | localize }}
-                    </b-dropdown-item>
-                    <b-dropdown-item @click="buildDatasetPair">
-                        {{ 'Build Dataset Pair' | localize }}
-                    </b-dropdown-item>
-                    <b-dropdown-item @click="buildListOfPairs">
-                        {{ 'Build List of Dataset Pairs' | localize }}
-                    </b-dropdown-item>
-                    <b-dropdown-item @click="buildCollectionFromRules">
-                        {{ 'Build Collection from Rules' | localize }}
-                    </b-dropdown-item>
-                </b-dropdown>
+                
+                <b-button-group>
+
+                    <b-button size="sm" @click="selectAllVisibleContent">
+                        {{ 'Select All' | localize }}
+                    </b-button>
+
+                    <b-button size="sm" @click="clearSelection">
+                        {{ 'Unselect All' | localize }}
+                    </b-button>
+        
+                    <b-dropdown size="sm" text="With Selected" boundary="viewport">
+                        <b-dropdown-item @click="hideDatasets">
+                            {{ 'Hide Datasets' | localize }}
+                        </b-dropdown-item>
+                        <b-dropdown-item @click="unhideDatasets">
+                            {{ 'Unhide Datasets' | localize }}
+                        </b-dropdown-item>
+                        <b-dropdown-item @click="deleteDatasets">
+                            {{ 'Delete Datasets' | localize }}
+                        </b-dropdown-item>
+                        <b-dropdown-item @click="undeleteDatasets">
+                            {{ 'Undelete Datasets' | localize }}
+                        </b-dropdown-item>
+                        <b-dropdown-item @click="purgeDatasets">
+                            {{ 'Permanently Delete Datasets' | localize }}
+                        </b-dropdown-item>
+                        <b-dropdown-item @click="buildDatasetList">
+                            {{ 'Build Dataset List' | localize }}
+                        </b-dropdown-item>
+                        <b-dropdown-item @click="buildDatasetPair">
+                            {{ 'Build Dataset Pair' | localize }}
+                        </b-dropdown-item>
+                        <b-dropdown-item @click="buildListOfPairs">
+                            {{ 'Build List of Dataset Pairs' | localize }}
+                        </b-dropdown-item>
+                        <b-dropdown-item @click="buildCollectionFromRules">
+                            {{ 'Build Collection from Rules' | localize }}
+                        </b-dropdown-item>
+                    </b-dropdown>
+
+                </b-button-group>
+
             </b-button-toolbar>
         </transition>
 
@@ -339,43 +348,3 @@ export default {
 }
 
 </script>
-
-<!---
-"<% var shown = Math.max( view.views.length, history.contents_active.active ) %>",
-"<% if( shown ){ %>",
-'<span class="shown-count">',
-"<%- shown %> ",
-_l("shown"),
-"</span>",
-"<% } %>",
-
-"<% if( history.contents_active.deleted ){ %>",
-'<span class="deleted-count">',
-"<% if( view.model.contents.includeDeleted ){ %>",
-'<a class="toggle-deleted-link" href="javascript:void(0);">',
-_l("hide deleted"),
-"</a>",
-"<% } else { %>",
-"<%- history.contents_active.deleted %> ",
-'<a class="toggle-deleted-link" href="javascript:void(0);">',
-_l("deleted"),
-"</a>",
-"<% } %>",
-"</span>",
-"<% } %>",
-
-"<% if( history.contents_active.hidden ){ %>",
-'<span class="hidden-count">',
-"<% if( view.model.contents.includeHidden ){ %>",
-'<a class="toggle-hidden-link" href="javascript:void(0);">',
-_l("hide hidden"),
-"</a>",
-"<% } else { %>",
-"<%- history.contents_active.hidden %> ",
-'<a class="toggle-hidden-link" href="javascript:void(0);">',
-_l("hidden"),
-"</a>",
-"<% } %>",
-"</span>",
-"<% } %>"
--->

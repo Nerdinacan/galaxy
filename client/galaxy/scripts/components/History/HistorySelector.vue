@@ -1,6 +1,5 @@
 <template>
-    <select v-model="selectedHistoryId">
-        <option>Swith to history...</option>
+    <select v-model="selectedHistoryId" v-if="activeHistories.length">
         <option v-for="h in activeHistories" :key="h.id" :value="h.id">
             {{ h.name }}
         </option>

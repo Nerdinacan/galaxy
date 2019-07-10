@@ -1,25 +1,26 @@
 <template>
-    <div v-if="params">
-        <b-input-group>
-            <debounced-input v-model.trim="params.filterText">
-                <b-form-input slot-scope="scope" size="sm"
-                    :value="scope.value" @input="scope.input"
-                    :placeholder="'Search Filter' | localize" />
-            </debounced-input>
-            <b-input-group-append>
-                <b-button size="sm"
-                    :variant="params.showDeleted ? 'info' : 'secondary'"
-                    @click="toggleDeleted">
-                    {{ 'Deleted' | localize }}
-                </b-button>
-                <b-button size="sm"
-                    :variant="params.showHidden ? 'info' : 'secondary'"
-                    @click="toggleHidden">
-                    {{ 'Hidden' | localize }}
-                </b-button>
-            </b-input-group-append>
-        </b-input-group>
-    </div>
+    <b-input-group v-if="params">
+
+        <debounced-input v-model.trim="params.filterText">
+            <b-form-input slot-scope="scope" size="sm"
+                :value="scope.value" @input="scope.input"
+                :placeholder="'Search Filter' | localize" />
+        </debounced-input>
+
+        <b-input-group-append>
+            <b-button size="sm" v-if="history.contents_active.deleted"
+                :variant="params.showDeleted ? 'info' : 'secondary'"
+                @click="toggleDeleted">
+                {{ 'Deleted' | localize }}
+            </b-button>
+            <b-button size="sm" v-if="history.contents_active.hidden"
+                :variant="params.showHidden ? 'info' : 'secondary'"
+                @click="toggleHidden">
+                {{ 'Hidden' | localize }}
+            </b-button>
+        </b-input-group-append>
+
+    </b-input-group>
 </template>
 
 
@@ -33,16 +34,20 @@ export default {
         DebouncedInput
     },
     props: {
+        history: { type: Object, required: true },
         value: { type: SearchParams, required: true }
     },
     data() {
         return {
-            params: this.value.clone()
+            params: new SearchParams()
         }
     },
     watch: {
-        value(newValue) {
-            this.params = this.value.clone();
+        value: {
+            handler(newValue) {
+                this.params = this.value.clone();
+            }, 
+            immediate: true 
         },
         params: {
             handler(newVal) {

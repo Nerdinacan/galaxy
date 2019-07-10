@@ -1,6 +1,7 @@
 <template>
     <section>
 
+
         <header>
             <h6>{{ niceSize | localize }}</h6>
             <slot name="menu">
@@ -27,8 +28,11 @@
             </slot>
         </header>
 
+        <h6>{{ history.update_time }}</h6>
+
+        
         <!-- click to edit name / nameinput -->
-        <div class="history-title mt-3" ref="historyNameInput">
+        <div class="history-title mt-4" ref="historyNameInput">
             <h2 v-if="!editName" @click="toggle('editName', true)">
                 <span class="editable"></span>
                 <span>{{ historyName }}</span>
@@ -79,12 +83,9 @@
                 :history="history" />
         </transition>
 
-
         <pre v-if="showRaw">{{ history }}</pre>
 
-
         <!-- menus and modals -->
-
         <b-popover ref="downloadMenu"
             target="historyDownloadMenu"
             placement="bottomleft"
@@ -320,11 +321,10 @@ export default {
 @import "~bootstrap/scss/variables";
 @import "~bootstrap/scss/mixins";
 @import "~bootstrap/scss/utilities/spacing";
-
 @import "~scss/theme/blue.scss";
 @import "~scss/mixins.scss";
 
-/* enlarge title input match h2 */
+/* enlarge title input text to match h2 */
 .history-title h2 input {
     font-size: 1.4rem;
     font-weight: 400;

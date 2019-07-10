@@ -10,8 +10,8 @@ import { cacheContent } from "./CachedData";
 
 export function Manifest$(history$, param$) {
     return combineLatest(history$, param$).pipe(
-        filter(needsManifest),
-        map(buildManifestUrl),
+        // filter(needsManifest),
+        map(([ history, params ]) => buildManifestUrl(params)),
         ajaxGet(),
         split(),
         cacheContent()
@@ -22,22 +22,22 @@ export function Manifest$(history$, param$) {
 // checks to see if history/params needs a manifest
 
 function needsManifest([ history, params ]) {
-    const contentDate = params.contentLastUpdated;
-    const historyDate = new Date(history.update_time);
-    if (contentDate) {
-        if (contentDate > historyDate) {
-            return false;
-        }
-    }
+    // const contentDate = params.contentLastUpdated;
+    // const historyDate = new Date(history.update_time);
+    // if (contentDate) {
+    //     if (contentDate > historyDate) {
+    //         return false;
+    //     }
+    // }
     return true;
 }
 
 
 // gets content manifest
 
-function buildManifestUrl([ history, params ]) {
+function buildManifestUrl(params) {
 
-    const base = `/api/histories/${history.id}/contents?v=dev&view=summary`;
+    const base = `/api/histories/${params.historyId}/contents?v=dev&view=summary`;
     const start = params.start !== null ? `q=hid-ge&qv=${params.start}` : "";
     const end = params.end !== null ? `q=hid-le&qv=${params.end}` : "";
     const orderClause = "order=hid-dsc";

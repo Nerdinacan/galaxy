@@ -18,8 +18,7 @@ import { CurrentUserId$ } from "components/User/model/CurrentUser$";
 const historyValid = h => !h.deleted;
 const validHistories$ = HistoryList$.pipe(
     split(),
-    filter(historyValid),
-    share()
+    filter(historyValid)
 );
 
 
@@ -51,7 +50,8 @@ const firstValidHistory$ = validHistories$.pipe(
 // This is the history we start with
 
 const initialValue$ = concat(loadCurrentHistory$, firstValidHistory$).pipe(
-    take(1)
+    take(1),
+    share()
 );
 
 
@@ -68,5 +68,8 @@ const manualSelection$ = setCurrentHistoryId.$.pipe(
 
 // Final observables for the current history
 
-export const CurrentHistory$ = merge(initialValue$, manualSelection$);
+export const CurrentHistory$ = merge(initialValue$, manualSelection$).pipe(
+    share()
+);
+
 export const CurrentHistoryId$ = CurrentHistory$.pipe(pluck('id'));

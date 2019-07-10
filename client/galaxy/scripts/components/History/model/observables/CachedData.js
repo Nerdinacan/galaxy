@@ -76,12 +76,12 @@ const cacheItemInDb = (collection$, debug = false) => item$ => {
     return item$.pipe(
         withLatestFromDb(collection$),
         mergeMap(async ([ item, coll ]) => {
+            const result = await coll.upsert(item);
             if (debug) {
-                console.log("caching", item);
-            }
-            const result = await coll.atomicUpsert(item);
-            if (debug) {
+                console.group("CACHING", coll.name);
+                console.log("input", item);
                 console.log("cache result", result);
+                console.groupEnd();
             }
             return result;
         })
@@ -91,21 +91,21 @@ const cacheItemInDb = (collection$, debug = false) => item$ => {
 export const cacheHistory = () => rawHistory$ => {
     return rawHistory$.pipe(
         map(prepareHistory),
-        cacheItemInDb(history$)
+        cacheItemInDb(history$, true)
     );
 }
 
 export const cacheContent = () => rawContent$ => {
     return rawContent$.pipe(
         map(prepareManifestItem),
-        cacheItemInDb(historyContent$)
+        cacheItemInDb(historyContent$, true)
     );
 }
 
 export const cacheDataset = () => rawDS$ => {
     return rawDS$.pipe(
         map(prepareDataset),
-        cacheItemInDb(dataset$)
+        cacheItemInDb(dataset$, true)
     );
 }
 

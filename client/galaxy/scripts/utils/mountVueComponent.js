@@ -15,9 +15,10 @@ Vue.use(VueRx);
 
 // make localization filter available to all components
 Vue.filter("localize", value => _l(value));
+Vue.filter("l", value => _l(value));
 
 // can also localize a block of text
-Vue.directive('localize-content', {
+Vue.directive('localize', {
     bind(el, binding, vnode) {
         el.childNodes.forEach(node => {
             node.textContent = _l(node.textContent);

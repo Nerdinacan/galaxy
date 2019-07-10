@@ -1,48 +1,122 @@
 {
     "accessible": true,
-    "type_id": "dataset-e89067bb68bee7a0",
-    "file_name": "/Users/mason/Projects/ohsu/galaxy/database/files/000/dataset_30.dat",
+    "created_from_basename": null,
+    "type_id": "dataset-e05a70f59b0b4257",
+    "file_name": "/Users/mason/Projects/ohsu/galaxy/database/files/000/dataset_391.dat",
     "resubmitted": false,
-    "create_time": "2019-03-22T05:09:26.004405",
-    "creating_job": null,
-    "dataset_id": "e89067bb68bee7a0",
-    "file_size": 521250583,
-    "file_ext": "fastqsanger",
-    "id": "e89067bb68bee7a0",
+    "create_time": "2019-07-10T17:20:27.977790",
+    "creating_job": "5e5a75c1804e44a2",
+    "dataset_id": "dfa1565938e7b4c3",
+    "file_size": 815738,
+    "metadata_viz_filter_cols": [
+        4
+    ],
+    "file_ext": "bed",
+    "id": "e05a70f59b0b4257",
     "misc_info": "",
     "hda_ldda": "hda",
-    "download_url": "/api/histories/ba751ee0539fff04/contents/e89067bb68bee7a0/display",
+    "download_url": "/api/histories/d3a4d6a5256f2d9a/contents/e05a70f59b0b4257/display",
     "state": "ok",
-    "display_types": [],
-    "display_apps": [],
-    "metadata_dbkey": "?",
+    "metadata_comment_lines": null,
+    "display_types": [
+        {
+            "links": [
+                {
+                    "text": "main",
+                    "href": "/datasets/407/display_at/ucsc_main?redirect_url=http%3A%2F%2Fgenome.ucsc.edu%2Fcgi-bin%2FhgTracks%3Fdb%3Dhg38%26position%3Dchr22%3A11065973-17209677%26hgt.customText%3D%25s&display_url=http%3A%2F%2Flocalhost%3A8080%2Froot%2Fdisplay_as%3Fid%3D407%26display_app%3Ducsc%26authz_method%3Ddisplay_at",
+                    "target": "_blank"
+                },
+                {
+                    "text": "test",
+                    "href": "/datasets/407/display_at/ucsc_test?redirect_url=http%3A%2F%2Fgenome-test.gi.ucsc.edu%2Fcgi-bin%2FhgTracks%3Fdb%3Dhg38%26position%3Dchr22%3A11065973-17209677%26hgt.customText%3D%25s&display_url=http%3A%2F%2Flocalhost%3A8080%2Froot%2Fdisplay_as%3Fid%3D407%26display_app%3Ducsc%26authz_method%3Ddisplay_at",
+                    "target": "_blank"
+                }
+            ],
+            "label": "display at UCSC"
+        }
+    ],
+    "display_apps": [
+        {
+            "links": [
+                {
+                    "text": "View",
+                    "href": "/display_application/e05a70f59b0b4257/igb_bed/View",
+                    "target": "_blank"
+                }
+            ],
+            "label": "display in IGB"
+        },
+        {
+            "links": [
+                {
+                    "text": "local",
+                    "href": "/display_application/e05a70f59b0b4257/igv_interval_as_bed/local_default",
+                    "target": "_blank"
+                },
+                {
+                    "text": "Human hg38",
+                    "href": "/display_application/e05a70f59b0b4257/igv_interval_as_bed/hg38",
+                    "target": "_blank"
+                }
+            ],
+            "label": "display with IGV"
+        }
+    ],
+    "metadata_dbkey": "hg38",
     "type": "file",
-    "misc_blurb": "497.1 MB",
-    "peek": "<table cellspacing=\"0\" cellpadding=\"3\"><tr><td>@M01368:28:000000000-A5KYY:1:1101:10045:12104/1<\/td><\/tr><tr><td>ATATTGAACGTAGGTGCGATAAATAATGGGATGAGGCAGGAATCAAAGACAGATACTGCGACATAGGGTGCTCCGGCTCCAGCGTCTCGCAATGCTATCGCGTGCATACCCCCCAGACGAAAATACCAAATGCATGGAGAGCTCCCGTGAGTGGTTAATAGGGTGATAGACCTGTGATCCATCGTGATGTCTTATTTAAGGGGAACGTGTGGGCTATTTAGGCTTTATGG<\/td><\/tr><tr><td>+<\/td><\/tr><tr><td>?????B/B-&lt;5BBA&lt;B/+,6&gt;@AEHFF&gt;CFBA&gt;EC=C&gt;&gt;CED?CFCEDA-AC/AE=ACE,CCCDHHHH-5C5EG&gt;&gt;&lt;&lt;EHGHCEDE+?7&lt;CCD?D@DF?:DAE=EDEDDDD;@&lt;BBEE@2.?8:::?EEEEEEA::*?A:88//?A20?8A0/8:AEEEEC:A*00?:?E?CE:/:/?::C??AC?**:0:*??CEA?EE?*8?8CE8A*888A*??://?AEEAAACAE<\/td><\/tr><tr><td>@M01368:28:000000000-A5KYY:1:1101:10126:23848/1<\/td><\/tr><\/table>",
-    "update_time": "2019-03-26T05:23:26.889500",
-    "data_type": "galaxy.datatypes.sequence.FastqSanger",
+    "metadata_column_types": [
+        "str",
+        "int",
+        "int",
+        "str",
+        "int",
+        "str"
+    ],
+    "misc_blurb": "11,425 regions",
+    "peek": "<table cellspacing=\"0\" cellpadding=\"3\"><tr><th>1.Chrom</th><th>2.Start</th><th>3.End</th><th>4.Name</th><th>5</th><th>6.Strand</th></tr><tr><td>chr22</td><td>11065973</td><td>11066015</td><td>ENST00000623473.1_cds_0_0_chr22_11065974_r</td><td>0</td><td>-</td></tr><tr><td>chr22</td><td>11067334</td><td>11067346</td><td>ENST00000623473.1_cds_1_0_chr22_11067335_r</td><td>0</td><td>-</td></tr><tr><td>chr22</td><td>11066500</td><td>11066515</td><td>ENST00000624155.1_cds_0_0_chr22_11066501_f</td><td>0</td><td>+</td></tr><tr><td>chr22</td><td>11067984</td><td>11068089</td><td>ENST00000624155.1_cds_1_0_chr22_11067985_f</td><td>0</td><td>+</td></tr><tr><td>chr22</td><td>15528158</td><td>15529139</td><td>ENST00000252835.4_cds_0_0_chr22_15528159_f</td><td>0</td><td>+</td></tr></table>",
+    "update_time": "2019-07-10T10:20:42.358429",
+    "data_type": "galaxy.datatypes.interval.Bed",
     "tags": [],
-    "deleted": true,
-    "history_id": "ba751ee0539fff04",
+    "deleted": false,
+    "history_id": "d3a4d6a5256f2d9a",
+    "metadata_column_names": [
+        "Chrom",
+        "Start",
+        "End",
+        "Name",
+        "Score",
+        "Strand",
+        "ThickStart",
+        "ThickEnd",
+        "ItemRGB",
+        "BlockCount",
+        "BlockSizes",
+        "BlockStarts"
+    ],
     "meta_files": [],
-    "genome_build": "?",
-    "metadata_sequences": null,
+    "genome_build": "hg38",
+    "metadata_chromCol": 1,
     "hid": 1,
-    "model_class": "HistoryDatasetAssociation",
-    "metadata_data_lines": null,
+    "metadata_startCol": 2,
+    "metadata_data_lines": 11425,
     "annotation": null,
     "permissions": {
         "access": [],
         "manage": []
     },
     "history_content_type": "dataset",
-    "name": "M117-bl_1.fq",
-    "extension": "fastqsanger",
+    "name": "UCSC Main on Human: wgEncodeGencodeBasicV24 (chr22:1-50,818,468)",
+    "extension": "bed",
     "visible": true,
-    "url": "/api/histories/ba751ee0539fff04/contents/e89067bb68bee7a0",
-    "uuid": "a2d08e45-64a6-4b9b-8990-a7af91649369",
-    "visualizations": [],
+    "url": "/api/histories/d3a4d6a5256f2d9a/contents/e05a70f59b0b4257",
+    "metadata_endCol": 3,
+    "metadata_columns": 6,
+    "uuid": "fa6f4728-7975-42f9-aa6a-8c568b8a808d",
+    "metadata_nameCol": 4,
+    "metadata_strandCol": 6,
+    "model_class": "HistoryDatasetAssociation",
     "rerunnable": false,
+    "metadata_delimiter": "\t",
     "purged": false,
     "api_type": "file"
 }

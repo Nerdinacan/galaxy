@@ -1,10 +1,9 @@
 <template>
-    <div class="history-wrapper">
+    <div class="history-wrapper ml-1">
         <history-top-nav class="p-2" />
-        <history v-if="currentHistoryId" 
+        <history v-if="currentHistoryId"
             :history-id="currentHistoryId" />
-        <dataset-collection-panel 
-            v-if="currentCollectionId" 
+        <dataset-collection-panel v-if="currentCollectionId" 
             :collection-id="currentCollectionId" />
     </div>
 </template>

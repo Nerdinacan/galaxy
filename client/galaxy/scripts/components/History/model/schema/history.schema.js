@@ -38,6 +38,7 @@ export default {
             item: { type: "string" }
         },
         update_time: { type: "string" },
+        
         url: { type: "string" },
         user_id: { type: ["null", "string"] },
         username_and_slug: nullableString,

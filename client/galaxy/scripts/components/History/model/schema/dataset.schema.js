@@ -9,37 +9,25 @@ const metaFile = {
     }
 }
 
-// const vizEntryPoint = {
-//     type: "object",
-//     properties: {
-//         "type": { type: "string" },
-//         attr: {
-//             type: "object",
-//             properties: {
-//                 load: { type: "string" },
-//                 src: { type: "string" },
-//                 css: { type: "string" }
-//             }
-//         },
-//         file: nullableString
-//     }
-// }
+const displayTypeLink = {
+    type: "object",
+    properties: {
+        text: { type: "string" },
+        href: { type: "string" },
+        target: { type: "string" }
+    }
+}
 
-// const viz = {
-//     title: "viz",
-//     type: "object",
-//     properties: {
-//         description: { type: "string" },
-//         embeddable: { type: "boolean" },
-//         href: { type: "string" },
-//         entry_point: vizEntryPoint,
-//         groups: { 
-//             type: "array", 
-//             items: { type: "string" }
-//         }
-//     }
-// }
-
+const displayType = {
+    type: "object",
+    properties: {
+        links: {
+            type: "array",
+            item: displayTypeLink
+        },
+        label: { type: "string" },
+    }
+}
 
 export default {
     title: "dataset",
@@ -55,7 +43,10 @@ export default {
         dataset_id: { type: "string" },
         isDeleted: { type: "boolean" },
         // display_apps: stringArray,
-        display_types: stringArray,
+        display_types: {
+            type: "array",
+            items: displayType
+        },
         download_url: { type: "string" },
         extension: { type: "string" },
         file_ext: { type: "string" },

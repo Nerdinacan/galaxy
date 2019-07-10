@@ -3,23 +3,28 @@
 
         <header>
             <h5>
-                <a href="#" tabindex="0"
+                <span v-if="!dataset">Loading {{ content.name || '' }}...</span>
+                <a v-if="dataset" href="#" tabindex="0"
                     @keyup.space="toggleDetails" 
                     @click="toggleDetails">
                     {{ title }}
                 </a>
             </h5>
+            <b-spinner v-if="!dataset" small label="Loading..." class="ml-auto"></b-spinner>
             <primary-actions v-if="dataset" :dataset="dataset" />
         </header>
 
-        <transition name="shutterfade">
+        <!-- <transition name="shutterfade">
             <div v-if="dataset && unViewable">
                 unviewable message
             </div>
-        </transition>
+        </transition> -->
 
         <transition name="shutterfade">
-            <div v-if="showDetails">
+            <div v-if="showDetails && dataset">
+
+                <h6>content: {{ content.update_time }}</h6>
+                <h6>dataset: {{ dataset.update_time }}</h6>
 
                 <div>
                     State: {{ dataset.state }},
@@ -103,11 +108,12 @@ import VueRx from "vue-rx";
 import STATES from "mvc/dataset/states";
 
 import { of } from "rxjs";
-import { tap, filter, pluck, startWith, distinctUntilChanged } from "rxjs/operators";
+import { tap, map, filter, pluck, startWith, distinctUntilChanged } from "rxjs/operators";
 import { getCachedDataset } from "../model/observables/CachedData";
 import { prependPath, redirectToSiteUrl, backboneRedirect, iframeRedirect } from "utils/redirect";
 import { loadToolFromDataset } from "../model/queries";
 import { eventHub } from "components/eventHub";
+import { debounce } from "debounce";
 
 import PrimaryActions from "./PrimaryActions";
 import SecondaryActions from "./SecondaryActions";
@@ -139,14 +145,22 @@ export default {
             toolHelp: null
         }
     },
+    subscriptions() {
+
+        const dataset = this.$watchAsObservable("content", { immediate: true }).pipe(
+            pluck("newValue", "id"),
+            distinctUntilChanged(),
+            getCachedDataset(),
+            startWith(null)
+        );
+
+        return { dataset };
+    },
     computed: {
-    
+
         title() {
-            if (!this.dataset) {
-                return "Loading";   
-            }
             const { hid, name, isDeleted, visible, purged } = this.content;
-            let result = name;
+            let result = `${hid}: ${name}`;
             const itemStates = [];
             if (isDeleted) {
                 itemStates.push("Deleted");
@@ -201,19 +215,6 @@ export default {
             }
             return this.toolHelp;
         }
-    },
-    subscriptions() {
-
-        const dataset$ = this.$watchAsObservable("content", { immediate: true }).pipe(
-            pluck("newValue", "id"),
-            distinctUntilChanged(),
-            getCachedDataset(),
-            startWith(null)
-        );
-
-        return { 
-            dataset: dataset$
-        };
     },
     created() {
         eventHub.$on('collapse-content', this.collapse);

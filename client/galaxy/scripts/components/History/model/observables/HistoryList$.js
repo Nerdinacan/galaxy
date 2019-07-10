@@ -1,19 +1,20 @@
 import { merge } from "rxjs";
-import { map, mapTo, mergeMap, mergeMapTo, shareReplay, withLatestFrom,
+import { tap, map, mapTo, mergeMap, mergeMapTo, share, withLatestFrom,
     throttleTime } from "rxjs/operators";
 import { split, ajaxGet, createInputFunction } from "./utils";
-import { cacheHistory, deleteHistory as deleteCachedHistory } from "./CachedData";
+import { cacheHistory, deleteHistory as deleteCachedHistory, withLatestFromDb} from "./CachedData";
 import { CurrentUserId$ } from "components/User/model/CurrentUser$";
 import { history$ } from "../db";
 
 
 // every time the user changes we load new histories
 
-const listingUrl = "/api/histories?view=dev-detailed&keys=visible,contents_active&q=purged&qv=False";
+const listingUrl = "/api/histories?view=detailed&keys=contents_active,hid_counter&q=purged&qv=False";
 
 const loadHistories$ = CurrentUserId$.pipe(
     mapTo(listingUrl),
     ajaxGet(),
+    tap(() => console.log("Loading initial histories from server...")),
     split()
 );
 
@@ -38,7 +39,7 @@ export const HistoryListChange$ = merge(add$, subtract$);
 // Observable points at database, depends on current user
 
 export const DbHistoryList$ = CurrentUserId$.pipe(
-    withLatestFrom(history$),
+    withLatestFromDb(history$),
     mergeMap(([ id, c ]) => {
         return c.find().where('user_id').eq(id).$;
     }),
@@ -59,5 +60,9 @@ const trigger$ = HistoryListChange$.pipe(
 
 export const HistoryList$ = trigger$.pipe(
     mergeMapTo(DbHistoryList$),
-    shareReplay(1)
+    share()
 );
+
+// export const HistoryList$ = DbHistoryList$.pipe(
+//     share()
+// );
