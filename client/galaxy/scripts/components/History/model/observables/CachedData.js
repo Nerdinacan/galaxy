@@ -78,9 +78,13 @@ const cacheItemInDb = (collection$, debug = false) => item$ => {
         mergeMap(async ([ item, coll ]) => {
             const result = await coll.upsert(item);
             if (debug) {
-                console.group("CACHING", coll.name);
+                console.groupCollapsed("CACHING", coll.name, item.hid, item.name);
+                console.log("collection", coll.name);
                 console.log("input", item);
-                console.log("cache result", result);
+                console.log("output", result);
+                console.log("update_time", result.update_time);
+                console.log("stamp", result.getStamp());
+                console.log("serverStamp", result.getServerStamp());
                 console.groupEnd();
             }
             return result;
@@ -91,7 +95,7 @@ const cacheItemInDb = (collection$, debug = false) => item$ => {
 export const cacheHistory = () => rawHistory$ => {
     return rawHistory$.pipe(
         map(prepareHistory),
-        cacheItemInDb(history$, true)
+        cacheItemInDb(history$)
     );
 }
 
@@ -105,7 +109,7 @@ export const cacheContent = () => rawContent$ => {
 export const cacheDataset = () => rawDS$ => {
     return rawDS$.pipe(
         map(prepareDataset),
-        cacheItemInDb(dataset$, true)
+        cacheItemInDb(dataset$)
     );
 }
 

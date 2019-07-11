@@ -3,11 +3,11 @@
 
         <header>
             <h5>
-                <span v-if="!dataset">Loading {{ content.name || '' }}...</span>
+                <span v-if="!dataset">Loading {{ title || '' }}...</span>
                 <a v-if="dataset" href="#" tabindex="0"
                     @keyup.space="toggleDetails" 
                     @click="toggleDetails">
-                    {{ title }}
+                    {{ content.hid }}: {{ title }}
                 </a>
             </h5>
             <b-spinner v-if="!dataset" small label="Loading..." class="ml-auto"></b-spinner>
@@ -22,9 +22,6 @@
 
         <transition name="shutterfade">
             <div v-if="showDetails && dataset">
-
-                <h6>content: {{ content.update_time }}</h6>
-                <h6>dataset: {{ dataset.update_time }}</h6>
 
                 <div>
                     State: {{ dataset.state }},
@@ -159,8 +156,10 @@ export default {
     computed: {
 
         title() {
+
             const { hid, name, isDeleted, visible, purged } = this.content;
-            let result = `${hid}: ${name}`;
+            let result = name;
+
             const itemStates = [];
             if (isDeleted) {
                 itemStates.push("Deleted");
@@ -174,9 +173,10 @@ export default {
             if (itemStates.length) {
                 result += ` (${itemStates.join(", ")})`;
             }
+
             return result;
         },
-
+        
         unViewable() {
             return !this.dataset || this.dataset.state === STATES.NOT_VIEWABLE;
         },

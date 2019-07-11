@@ -1,6 +1,5 @@
 <template>
     <div>
-        {{ loading }}
         <transition name="fade">
             <div v-if="content.length" class="scrollContainer"
                 ref="scrollContainer">

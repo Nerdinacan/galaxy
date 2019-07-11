@@ -28,7 +28,7 @@
             </slot>
         </header>
 
-        <h6>{{ history.update_time }}</h6>
+        <!-- <h6>{{ history.update_time }}</h6> -->
 
         
         <!-- click to edit name / nameinput -->

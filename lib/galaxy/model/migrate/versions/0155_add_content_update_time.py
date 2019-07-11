@@ -16,7 +16,6 @@ def upgrade(migrate_engine):
     print(__doc__)
     metadata.bind = migrate_engine
     metadata.reflect()
-    # drop_update_trigger(migrate_engine)
     install_update_trigger(migrate_engine)
 
 
@@ -41,7 +40,7 @@ def install_update_trigger(migrate_engine):
             AS $BODY$
             BEGIN
                 UPDATE history_dataset_association hda
-                SET update_time = current_timestamp
+                SET update_time = (now() at time zone 'utc')
                 WHERE hda.dataset_id = NEW.id;
                 RETURN NEW;
             END;
@@ -53,7 +52,7 @@ def install_update_trigger(migrate_engine):
             AS $BODY$
             BEGIN
                 UPDATE history h
-                SET update_time = current_timestamp
+                SET update_time = (now() at time zone 'utc')
                 WHERE h.id = NEW.history_id;
                 RETURN NEW;
             END;

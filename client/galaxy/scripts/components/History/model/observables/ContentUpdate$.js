@@ -1,105 +1,114 @@
-/**
- * Given a list of fresh server content (manifest$) corresponding to the current
- * history/params, this observable splits up the returned content into dataset
- * and datasetCollection segments and requests and caches a detailed view locally.
- */
-import { merge } from "rxjs";
-import { tap, pluck, reduce, filter, mergeMap, withLatestFrom, map, share } from "rxjs/operators";
+import { combineLatest, merge } from "rxjs";
+import { tap, map, filter, first, reduce, share, distinctUntilChanged } from "rxjs/operators";
 import { ajaxGet, split } from "./utils";
-import { cacheDataset, cacheDatasetCollection, withLatestFromDb } from "./CachedData";
-import { dataset$, datasetCollection$ } from "../db";
+import { cacheContent, cacheDataset, cacheDatasetCollection } from "./CachedData";
+import { localContentQuery } from "./Content$";
+import { SearchParams } from "../SearchParams";
 
+// Content Manifest
+// do a contents request, this is a list of all the content matching
+// the indicated parameters
 
-export function ContentUpdate$(manifest$, history$) {
+export function ContentUpdate$(history$, param$) {
 
-    // Determine which of the content items need to be updated
-    // only keep the ids for the stale content entries, do
-    // a bulk content request for those ids.
-
-    const staleIds$ = manifest$.pipe(
-        collectStaleIds(),
-        tap(ids => console.log("stale ids", ids)),
-        filter(ids => ids.length)
+    // generate a new params object that selects
+    // stuff the user may have temporarily turned off
+    
+    const localContent$ = param$.pipe(
+        map(p => {
+            const serverParams = new SearchParams(p);
+            serverParams.showDeleted = true;
+            serverParams.showHidden = true;
+            return serverParams;
+        }),
+        distinctUntilChanged(SearchParams.equal),
+        localContentQuery()
     );
 
 
-    // Retrieved detailed lookups for stale cotent
+    // use that query to find the latest date of the history content
+    
+    const latestContentDate$ = localContent$.pipe(
+        first(),
+        split(),
+        map(item => item.getServerStamp()),
+        reduce(Math.max, 0)
+    );
 
-    const details$ = staleIds$.pipe(
-        withLatestFrom(history$),
-        map(buildBulkContentUrl),
+
+    // get the manifest, which is a summary of everything
+    
+    const manifest$ = combineLatest(history$, param$, latestContentDate$).pipe(
+        first(),
+        map(buildManifestUrl),
         ajaxGet(),
         split(),
-        share()
-    );
-
-    const cacheDS$ = details$.pipe(
-        filter(o => o.history_content_type == "dataset"),
-        cacheDataset()
-    );
-
-    const cacheDSC$ = details$.pipe(
-        filter(o => o.history_content_type == "dataset_collection"),
-        cacheDatasetCollection()
-    );
-
-    return merge(cacheDS$, cacheDSC$);
-}
-
-
-// retrieve details by an explicit list of ids
-
-function buildBulkContentUrl([ ids, history ]) {
-    const idList = ids.join(",");
-    return `/api/histories/${history.id}/contents?ids=${idList}`;
-}
-
-
-// collect stale ids from manifest query
-
-const collectStaleIds = () => manifest$ => {
-
-    const sharedManifest$ = manifest$.pipe(
-        tap(manifest => console.log('manifest$', manifest)),
         share(),
+        cacheContent()
     );
 
-    const ds$ = sharedManifest$.pipe(
-        filter(o => o.history_content_type == "dataset"),
-        withLatestFromDb(dataset$),
-        mergeMap(filterStaleContent)
-    );
+    return manifest$;
 
-    const dsc$ = sharedManifest$.pipe(
-        filter(o => o.history_content_type == "dataset_collection"),
-        withLatestFromDb(datasetCollection$),
-        mergeMap(filterStaleContent)
-    );
 
-    // if this never completes, reduce won't work
-    return merge(ds$, dsc$).pipe(
-        filter(Boolean),
-        pluck('id'),
-        reduce((list, id) => ([ ...list, id ]), [])
-    );
+    // now get a list of content
+
+
+    // // Store all that stuff.
+    
+    // const cachedDatasets$ = manifest$.pipe(
+    //     filter(o => o.history_content_type == "dataset"),
+    //     cacheDataset()
+    // );
+
+    // const cachedCollections$ = manifest$.pipe(
+    //     filter(o => o.history_content_type == "dataset_collection"),
+    //     cacheDatasetCollection()
+    // );
+
+    // return merge(cacheContent$, cachedDatasets$, cachedCollections$);
 }
 
 
-// Compare returned content object to version stored in the local database. If
-// the update_time is newer, then store this ID for a later bulk detail update.
 
-async function filterStaleContent([ item, collection ]) {
+// gets content manifest
 
-    const newVersionDate = Date.parse(item.update_time);
+function buildManifestUrl([ history, params, lastUpdate ]) {
 
-    const existing = await collection.findOne(item.id).exec();
-    if (existing) {
-        const existingDate = Date.parse(existing.update_time);
-        if (existingDate >= newVersionDate) {
-            return null;
-        }
-    }
+    const base = `/api/histories/${params.historyId}/contents?v=dev&view=summary`;
+    const updateCriteria = lastUpdate ? `q=update_time-gt&qv=${lastUpdate}` : "";
+    
+    const end = params.end ? params.end : history.hid_counter;
+    const start = params.start ? params.start : end - SearchParams.chunkSize;
+    const startClause = `q=hid-ge&qv=${start}`;
+    const endClause = `q=hid-le&qv=${end}`;
 
-    // returning an item means this item is stale and needs a server update
-    return item;
+    const order = "order=hid-dsc";
+
+    // deleted/purged
+    // TODO: rework ridiculous api boolean filters
+    let deleteFilter = "", purgeFilter = "";
+    // if (params.showDeleted === false) {
+    //     deleteFilter = "q=deleted&qv=False";
+    //     purgeFilter = "q=purged&qv=False";
+    // }
+
+    // hide/show
+    let visibleFilter = "";
+    // if (params.showHidden) {
+    //     visibleFilter = "q=visible&qv=True";
+    // }
+
+    // text filter
+    let textFilter = "";
+    // if (params.filterText.length) {
+    //     textFilter = `q=name-contains&qv=${params.filterText}`;
+    // }
+
+    // result
+    const parts = [
+        base, startClause, endClause, updateCriteria, order,
+        textFilter, deleteFilter, purgeFilter, visibleFilter
+    ];
+
+    return parts.filter(o => o.length).join("&");
 }

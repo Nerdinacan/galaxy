@@ -4,24 +4,17 @@ import { historyContent$ } from "../db";
 import { withLatestFromDb } from "./CachedData";
 
 
-/**
- * Returns an observable content query that emits content whenever
- * indexDb is updated, or the searchParams or history changes.
- * @param {observable} history$ History observable
- * @param {observable} param$ SearchParam observable
- */
-export const Content$ = (history$, param$) => {
-    return combineLatest(history$, param$).pipe(
-        withLatestFromDb(historyContent$), // rxdb objects a little buggy
-        switchMap(buildContentObservable),
-        map(docs => docs.map(d => d.toJSON()))
+export const localContentQuery = () => param$ => {
+    return param$.pipe(
+        withLatestFromDb(historyContent$),
+        switchMap(buildContentQuery)
     );
 }
 
 
-const buildContentObservable = ([ [ history, params ], coll ]) => {
+const buildContentQuery = ([ params, coll ]) => {
 
-    let query = coll.find().where("history_id").eq(history.id);
+    let query = coll.find().where("history_id").eq(params.historyId);
 
     if (params.showDeleted === false) {
         query = query.where("isDeleted").eq(false);

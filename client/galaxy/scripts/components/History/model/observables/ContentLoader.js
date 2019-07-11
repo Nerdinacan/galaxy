@@ -5,26 +5,29 @@
  */
 
 import { of } from "rxjs";
-import { share, first } from "rxjs/operators";
+import { tap, share, first } from "rxjs/operators";
 import { getCachedHistory } from "./CachedData";
 import { PollUpdate$ } from "./PollUpdate$";
 import { Param$ } from "./Param$";
-import { Content$ } from "./Content$";
+import { localContentQuery } from "./Content$";
 import store from "store";
+
 
 export function ContentLoader(historyId) {
 
+    // just one history
     const history$ = of(historyId).pipe(
         getCachedHistory(),
         first(),
         share()
     );
     
+    // watch vuex store for changes in params
     const param$ = Param$(store, history$);
 
     // subscribe to content observable
     function subscribe(/* success, error, complete */) {
-        const content$ = Content$(history$, param$);
+        const content$ = param$.pipe(localContentQuery());
         const sub = content$.subscribe.apply(content$, arguments);
         return sub.add(subscribeToPolling());
     }
@@ -33,7 +36,7 @@ export function ContentLoader(historyId) {
     function subscribeToPolling() {
         const update$ = PollUpdate$(history$, param$);
         return update$.subscribe(
-            result => console.log("poll result", result),
+            null, // result => console.log("poll result", result),
             error => console.warn("poll error", error),
             () => console.log("poll complete")
         );

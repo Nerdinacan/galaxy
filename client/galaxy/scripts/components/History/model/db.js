@@ -8,6 +8,17 @@ import { dbConfig, historySchema, historyContentSchema,
 
 RxDB.plugin(idb);
 
+// common date utilities
+const methods = {
+    getStamp() {
+        let d = new Date(this.update_time);
+        let jsStamp = d.getTime();
+        return jsStamp;
+    },
+    getServerStamp() {
+        return (this.getStamp() + 1) / 1000.0;
+    }
+}
 
 export const db$ = defer(getDB).pipe(
     catchError(err => wipeDB()),
@@ -16,22 +27,26 @@ export const db$ = defer(getDB).pipe(
 
 export const history$ = initCollection({
     name: "history",
-    schema: historySchema
+    schema: historySchema,
+    methods
 });
 
 export const historyContent$ = initCollection({
     name: "historycontent",
-    schema: historyContentSchema
+    schema: historyContentSchema,
+    methods
 });
 
 export const dataset$ = initCollection({
     name: "dataset",
-    schema: datasetSchema
+    schema: datasetSchema,
+    methods
 });
 
 export const datasetCollection$ = initCollection({
     name: "datasetcollection",
-    schema: datasetCollectionSchema
+    schema: datasetCollectionSchema,
+    methods
 });
 
 

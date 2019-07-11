@@ -3,7 +3,6 @@ import { tap, first, map } from "rxjs/operators";
 import { cacheHistory } from "./CachedData";
 import { ajaxGet, firstItem } from "./utils";
 
-
 /**
  * Compares local database history to version on server,
  * updates local db version if server was fresher

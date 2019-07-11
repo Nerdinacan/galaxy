@@ -38,19 +38,25 @@ export class SearchParams {
         return (this.hidden !== null) ? !this.hidden : null;
     }
 
-    get contentLastUpdated() {
-        const key = this.contentUpdatedKey();
-        return dateStore.get(key);
-    }
+    // get contentLastUpdated() {
+    //     const key = this.contentUpdatedKey();
+    //     return dateStore.get(key);
+    // }
     
-    set contentLastUpdated(d) {
-        return dateStore.set(this.contentUpdatedKey(), d);
-    }
+    // set contentLastUpdated(d) {
+    //     const key = this.contentUpdatedKey();
+    //     return dateStore.set(key, d);
+    // }
+
+    // incrementLastUpdated(rawDate) {
+    //     const key = this.contentUpdatedKey();
+    //     return dateStore.setIfHigher(key, rawDate);
+    // }
     
-    contentUpdatedKey() {
-        const noise = hash(this);
-        return `contentUpdated:${noise}`;
-    }
+    // contentUpdatedKey() {
+    //     const noise = hash(this);
+    //     return `contentUpdated:${noise}`;
+    // }
     
     // this one came into view
     expand(hid) {
@@ -86,7 +92,7 @@ export class SearchParams {
     // debugging
     report(label = "params") {
         const { start, end, showDeleted, showHidden } = this;
-        console.group(label, `${start}-${end}`);
+        console.groupCollapsed(label, `${start}-${end}`);
         console.log("showDeleted", showDeleted);
         console.log("showHidden", showHidden);
         console.dir(this);

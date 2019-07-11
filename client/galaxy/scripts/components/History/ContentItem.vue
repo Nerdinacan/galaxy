@@ -33,9 +33,7 @@ export default {
 </script>
 
 
-<!-- General styling common to all content items (if you use
-scoped here this won't work, illustrating the inherent flaw
-with the concept of scoped styles) -->
+<!-- General styling common to all content items -->
 
 <style lang="scss">
 
@@ -44,6 +42,7 @@ with the concept of scoped styles) -->
 .history-content-item header {
     /* stretchy headers */
     @include flexRowHeader();
+    align-items: baseline;
     /* roughly same height as checkbox */
     min-height: 20px;
 }

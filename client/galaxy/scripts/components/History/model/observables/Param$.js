@@ -13,8 +13,7 @@ export const Param$ = (store, history$) => {
         // build selector fn
         map(id => (_, getters) => getters["history/searchParams"](id)),
         mergeMap(selector => watchVuexStore(store, selector)),
-        distinctUntilChanged(SearchParams.equals),
+        distinctUntilChanged(SearchParams.equals)
         // tap(p => p.report("Param$ changed")),
-        shareReplay(1)
     );
 }
