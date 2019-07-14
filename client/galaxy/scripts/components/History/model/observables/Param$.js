@@ -3,7 +3,7 @@
  * at vuex store for changes. Updates self as history$ stream changes.
  */
 
-import { tap, pluck, map, mergeMap, distinctUntilChanged, shareReplay } from "rxjs/operators";
+import { tap, pluck, map, mergeMap, distinctUntilChanged, shareReplay, scan } from "rxjs/operators";
 import { SearchParams } from "../SearchParams";
 import { watchVuexStore } from "./utils";
 
@@ -13,7 +13,12 @@ export const Param$ = (store, history$) => {
         // build selector fn
         map(id => (_, getters) => getters["history/searchParams"](id)),
         mergeMap(selector => watchVuexStore(store, selector)),
-        distinctUntilChanged(SearchParams.equals)
-        // tap(p => p.report("Param$ changed")),
+        distinctUntilChanged(SearchParams.equals),
+        // scan((lastParams, thisParams) => {
+        //     debugger;
+        //     return thisParams;
+        // }, null),
+        tap(p => p.report("Param$ changed")),
+        shareReplay(1)
     );
 }

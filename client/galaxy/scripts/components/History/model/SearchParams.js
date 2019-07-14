@@ -1,7 +1,3 @@
-import hash from "object-hash";
-import dateStore from "./dateStore";
-
-
 export class SearchParams {
 
     constructor(props = {}) {
@@ -38,25 +34,6 @@ export class SearchParams {
         return (this.hidden !== null) ? !this.hidden : null;
     }
 
-    // get contentLastUpdated() {
-    //     const key = this.contentUpdatedKey();
-    //     return dateStore.get(key);
-    // }
-    
-    // set contentLastUpdated(d) {
-    //     const key = this.contentUpdatedKey();
-    //     return dateStore.set(key, d);
-    // }
-
-    // incrementLastUpdated(rawDate) {
-    //     const key = this.contentUpdatedKey();
-    //     return dateStore.setIfHigher(key, rawDate);
-    // }
-    
-    // contentUpdatedKey() {
-    //     const noise = hash(this);
-    //     return `contentUpdated:${noise}`;
-    // }
     
     // this one came into view
     expand(hid) {
@@ -91,10 +68,14 @@ export class SearchParams {
 
     // debugging
     report(label = "params") {
-        const { start, end, showDeleted, showHidden } = this;
+        const { start, end, showDeleted, showHidden, filterText, historyId  } = this;
         console.groupCollapsed(label, `${start}-${end}`);
+        console.log("start", start);
+        console.log("end", end);
         console.log("showDeleted", showDeleted);
         console.log("showHidden", showHidden);
+        console.log("filterText", filterText);
+        console.log("historyId", historyId);
         console.dir(this);
         console.groupEnd();
     }
@@ -104,16 +85,21 @@ export class SearchParams {
     }
 
     static equals(a, b) {
-        if (!(a instanceof SearchParams)) return false;
-        if (!(b instanceof SearchParams)) return false;
-        return Object.getOwnPropertyNames(a).reduce((same, prop) => {
-            return same && a[prop] === b[prop];
-        }, true);
+        const result = JSON.stringify(a) == JSON.stringify(b);
+        return result;
     }
 
     static different(instance, otherInstance) {
         return !SearchParams.equals(instance, otherInstance);
     }
+
+    static createForHistory(history) {
+        return new SearchParams({ 
+            historyId: history.id, 
+            end: history.hid_counter, start: 
+            history.hid_counter - SearchParams.chunkSize
+        });
+    }
 }
 
-SearchParams.chunkSize = 20;
+SearchParams.chunkSize = 50;

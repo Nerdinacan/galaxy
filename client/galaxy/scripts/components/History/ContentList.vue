@@ -2,7 +2,7 @@
     <div>
         <transition name="fade">
             <div v-if="content.length" class="scrollContainer"
-                ref="scrollContainer">
+            ref="scrollContainer">
 
                 <ol ref="scrollContent">
                     <li v-for="(c, index) in content" :key="c.type_id"
@@ -62,7 +62,7 @@ export default {
         return {
             loading: true,
             showSelection: false,
-            localParams: new SearchParams({ historyId: this.history.id })
+            localParams: SearchParams.createForHistory(this.history)
         }
     },
 
@@ -80,6 +80,22 @@ export default {
 
         content() {
             return this.historyContent(this.history.id);
+        },
+
+        hids() {
+            return this.content.map(c => c.hid);
+        },
+
+        minHid() {
+            return this.hids.reduce((result, hid) => {
+                return Math.min(result, hid);
+            }, this.history.hid_counter);
+        },
+
+        maxHid() {
+            return this.hids.reduce((result, hid) => {
+                return Math.max(result, hid);
+            }, 0);
         },
 
         selection: {
@@ -134,18 +150,19 @@ export default {
 
         // Scrolling
 
+        showSensor(hid) {
+            const edging = 5;
+            if (Math.abs(this.maxHid - hid) <= edging) {
+                return true;
+            }
+            if (Math.abs(this.minHid - hid) <= edging) {
+                return true;
+            }
+            return false;
+        },
+
         updatePageRange(hid) {
-
-            // have to disable this handler while the page
-            // is stil updating, but the beforeUpdate and
-            // updated methods are basically no help
-            // let active = false;
-            // setTimeout(() => active = true, 500);
-
             function handler(isVisible, entry) {
-                // if (!active) {
-                //     return;
-                // }
                 if (isVisible) {
                     this.localParams.expand(hid);
                 } else {
@@ -235,6 +252,26 @@ ol {
     top: 0;
     left: 0;
     right: 0;
+    padding-bottom: 100px;
+}
+
+li {
+    position: relative;
+}
+
+li > .history-content  {
+    position: relative;
+    z-index: 0;
+}
+
+.sensor {
+    position: abolute;
+    top: 0px;
+    left: 0px;
+    height: 40px;
+    width: 1px;
+    background-color: red;
+    z-index: 1;
 }
 
 </style>

@@ -10144,7 +10144,7 @@ node-libs-browser@^2.0.0:
     util "^0.10.3"
     vm-browserify "0.0.4"
 
-node-notifier@^5.2.1:
+node-notifier@5.4.0, node-notifier@^5.2.1:
   version "5.4.0"
   resolved "https://registry.yarnpkg.com/node-notifier/-/node-notifier-5.4.0.tgz#7b455fdce9f7de0c63538297354f3db468426e6a"
   integrity sha512-SUDEb+o71XR5lXSTyivXd9J7fCloE3SyP4lSgt3lU2oSANiox+SxlNRGPjDKrwU1YN3ix2KN/VGGCg0t01rttQ==
@@ -15988,6 +15988,15 @@ webidl-conversions@^4.0.2:
   version "4.0.2"
   resolved "https://registry.yarnpkg.com/webidl-conversions/-/webidl-conversions-4.0.2.tgz#a855980b1f0b6b359ba1d5d9fb39ae941faa63ad"
   integrity sha512-YQ+BmxuTgd6UXZW3+ICGfyqRyHXVlD5GtQr5+qjiNW7bF0cqrzX500HVXPBOvgXb5YnzDd+h0zqyv61KUD7+Sg==
+
+webpack-build-notifier@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/webpack-build-notifier/-/webpack-build-notifier-1.0.3.tgz#67edd9089dfbbb8caef2aa5a4c12b690d4a606d6"
+  integrity sha512-q+9rnuhXkKQlPNJ9lyED8e4+91Wl1YyD88dnp+Hk9yHJzr8ydAjO8gqXHGPNjEKQIOjq+7m8FoAD5H+KtAG1lA==
+  dependencies:
+    ansi-regex "^2.0.0"
+    node-notifier "5.4.0"
+    strip-ansi "^3.0.1"
 
 webpack-cli@^3.3.0:
   version "3.3.0"

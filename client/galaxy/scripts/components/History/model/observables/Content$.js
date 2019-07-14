@@ -1,21 +1,26 @@
-import { combineLatest } from "rxjs";
-import { tap, map, switchMap } from "rxjs/operators";
+import { map, switchMap } from "rxjs/operators";
 import { historyContent$ } from "../db";
 import { withLatestFromDb } from "./CachedData";
 
 
-export const localContentQuery = () => param$ => {
+export const localContentObservable = (label, debug = false) => param$ => {
     return param$.pipe(
-        withLatestFromDb(historyContent$),
-        switchMap(buildContentQuery)
+        localContentQuery(label, debug),
+        switchMap(query => query.$)
     );
 }
 
+export const localContentQuery = (label, debug) => param$ => {
+    return param$.pipe(
+        withLatestFromDb(historyContent$),
+        map(buildContentQuery(label, debug))
+    );
+}
 
-const buildContentQuery = ([ params, coll ]) => {
+const buildContentQuery = (label, debug = false) => ([ params, coll ]) => {
 
     let query = coll.find().where("history_id").eq(params.historyId);
-
+    
     if (params.showDeleted === false) {
         query = query.where("isDeleted").eq(false);
         query = query.where("purged").eq(false);
@@ -32,5 +37,13 @@ const buildContentQuery = ([ params, coll ]) => {
 
     query = query.sort("-hid");
 
-    return query.$;
+    if (debug) {
+        console.groupCollapsed("buildContentQuery", label);
+        params.report(label);
+        console.log("query", query.mquery);
+        console.log(query.stringRep);
+        console.groupEnd();
+    }
+
+    return query;
 }

@@ -3,7 +3,7 @@
 
         <header>
             <h5>
-                <span v-if="!dataset">Loading {{ title || '' }}...</span>
+                <span v-if="!dataset">{{ content.hid }}: {{ title || '' }}...</span>
                 <a v-if="dataset" href="#" tabindex="0"
                     @keyup.space="toggleDetails" 
                     @click="toggleDetails">

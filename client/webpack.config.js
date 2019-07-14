@@ -5,6 +5,7 @@ const VueLoaderPlugin = require("vue-loader/lib/plugin");
 const OptimizeCssAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const DuplicatePackageCheckerPlugin = require("duplicate-package-checker-webpack-plugin");
+const WebpackBuildNotifierPlugin = require('webpack-build-notifier');
 
 const scriptsBase = path.join(__dirname, "galaxy/scripts");
 const libsBase = path.join(scriptsBase, "libs");
@@ -210,7 +211,18 @@ let buildconfig = {
                 }
             }
         }),
-        new DuplicatePackageCheckerPlugin()
+        new DuplicatePackageCheckerPlugin(),
+        new WebpackBuildNotifierPlugin({
+            title: "Galaxy Webpack Build",
+            // Basso, Blow, Bottle, Frog, Funk, Glass, 
+            // Hero, Morse, Ping, Pop, Purr, Sosumi, Submarine, Tink.
+            compilationSound: "Ping",
+            successSound: "Submarine",
+            warningSound: "Basso",
+            failureSound: "Frog",
+            suppressSuccess: false,
+            suppressWarning: true
+        })
     ]
 };
 

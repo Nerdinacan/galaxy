@@ -39,24 +39,19 @@ export default {
     },
     data() {
         return {
-            params: new SearchParams()
+            params: this.value.clone()
         }
     },
     watch: {
-        value: {
-            handler(newValue) {
+        value(newValue, oldValue) {
+            if (!SearchParams.equals(newValue, oldValue)) {
                 this.params = this.value.clone();
-            }, 
-            immediate: true 
+            }
         },
-        params: {
-            handler(newVal) {
-                const newParams = new SearchParams(newVal);
-                if (!SearchParams.equals(newParams, this.value)) {
-                    this.$emit('input', newParams);
-                }
-            },
-            deep: true
+        params(newVal) {
+            if (!SearchParams.equals(newVal, this.value)) {
+                this.$emit('input', newVal);
+            }
         }
     },
     methods: {

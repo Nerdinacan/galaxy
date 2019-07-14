@@ -9,7 +9,7 @@ import { tap, share, first } from "rxjs/operators";
 import { getCachedHistory } from "./CachedData";
 import { PollUpdate$ } from "./PollUpdate$";
 import { Param$ } from "./Param$";
-import { localContentQuery } from "./Content$";
+import { localContentObservable } from "./Content$";
 import store from "store";
 
 
@@ -27,7 +27,9 @@ export function ContentLoader(historyId) {
 
     // subscribe to content observable
     function subscribe(/* success, error, complete */) {
-        const content$ = param$.pipe(localContentQuery());
+        const content$ = param$.pipe(
+            localContentObservable("visible content", false)
+        );
         const sub = content$.subscribe.apply(content$, arguments);
         return sub.add(subscribeToPolling());
     }

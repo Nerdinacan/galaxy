@@ -63,9 +63,10 @@ export const getters = {
             : null;
     },
 
-    searchParams: state => id => {
+    searchParams: (state, getters) => id => {
         if (!state.params.has(id)) {
-            state.params.set(id, new SearchParams({ historyId: id }));
+            const history = getters.getHistory(id);
+            state.params.set(id, SearchParams.createForHistory(history));
         }
         return state.params.get(id);
     },

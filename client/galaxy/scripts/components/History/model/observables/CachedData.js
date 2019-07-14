@@ -76,47 +76,53 @@ const cacheItemInDb = (collection$, debug = false) => item$ => {
     return item$.pipe(
         withLatestFromDb(collection$),
         mergeMap(async ([ item, coll ]) => {
-            const result = await coll.upsert(item);
-            if (debug) {
-                console.groupCollapsed("CACHING", coll.name, item.hid, item.name);
-                console.log("collection", coll.name);
-                console.log("input", item);
-                console.log("output", result);
-                console.log("update_time", result.update_time);
-                console.log("stamp", result.getStamp());
-                console.log("serverStamp", result.getServerStamp());
-                console.groupEnd();
+            let result = null;
+            try {
+                result = await coll.upsert(item);
+            } catch(err) {
+                console.warn("err", err);
+            } finally {
+                if (debug) {
+                    console.groupCollapsed("CACHING", coll.name, item.hid, item.name);
+                    console.log("collection", coll.name);
+                    console.log("input", item);
+                    console.log("output", result);
+                    console.log("update_time", result.update_time);
+                    console.log("stamp", result.getStamp());
+                    console.log("serverStamp", result.getServerStamp());
+                    console.groupEnd();
+                }
             }
             return result;
         })
     )
 }
 
-export const cacheHistory = () => rawHistory$ => {
+export const cacheHistory = (debug) => rawHistory$ => {
     return rawHistory$.pipe(
         map(prepareHistory),
-        cacheItemInDb(history$)
+        cacheItemInDb(history$, debug)
     );
 }
 
-export const cacheContent = () => rawContent$ => {
+export const cacheContent = (debug) => rawContent$ => {
     return rawContent$.pipe(
         map(prepareManifestItem),
-        cacheItemInDb(historyContent$, true)
+        cacheItemInDb(historyContent$, debug)
     );
 }
 
-export const cacheDataset = () => rawDS$ => {
+export const cacheDataset = (debug) => rawDS$ => {
     return rawDS$.pipe(
         map(prepareDataset),
-        cacheItemInDb(dataset$)
+        cacheItemInDb(dataset$, debug)
     );
 }
 
-export const cacheDatasetCollection = () => rawDSC$ => {
+export const cacheDatasetCollection = (debug) => rawDSC$ => {
     return rawDSC$.pipe(
         map(prepareDatasetCollection),
-        cacheItemInDb(datasetCollection$)
+        cacheItemInDb(datasetCollection$, debug)
     );
 }
 

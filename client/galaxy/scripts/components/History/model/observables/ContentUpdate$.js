@@ -1,114 +1,125 @@
-import { combineLatest, merge } from "rxjs";
-import { tap, map, filter, first, reduce, share, distinctUntilChanged } from "rxjs/operators";
+import { of, combineLatest, merge } from "rxjs";
+import { tap, map, filter, first, reduce, share, switchMap, mergeMap } from "rxjs/operators";
 import { ajaxGet, split } from "./utils";
 import { cacheContent, cacheDataset, cacheDatasetCollection } from "./CachedData";
 import { localContentQuery } from "./Content$";
 import { SearchParams } from "../SearchParams";
 
-// Content Manifest
-// do a contents request, this is a list of all the content matching
-// the indicated parameters
 
-export function ContentUpdate$(history$, param$) {
+export function ContentUpdate$(p$, counter) {
 
-    // generate a new params object that selects
-    // stuff the user may have temporarily turned off
-    
-    const localContent$ = param$.pipe(
-        map(p => {
-            const serverParams = new SearchParams(p);
-            serverParams.showDeleted = true;
-            serverParams.showHidden = true;
-            return serverParams;
-        }),
-        distinctUntilChanged(SearchParams.equal),
-        localContentQuery()
+    const param$ = p$.pipe(
+        map(prefetchParams)
     );
 
+    // Only take the content last date if the params haven't changed
+    const lastDate$ = param$.pipe(
+        switchMap(p => counter ? of(p).pipe(latestContentDate()) : of(null))
+    );
 
-    // use that query to find the latest date of the history content
-    
-    const latestContentDate$ = localContent$.pipe(
+    const manifest$ = combineLatest(param$, lastDate$).pipe(
+        first(),
+        map(buildManifestUrl("manifest$", true)),
+        ajaxGet(),
+        split(),
+        share()
+    );
+
+    const cacheContent$ = manifest$.pipe(
+        cacheContent()
+    );
+
+    const cachedDatasets$ = manifest$.pipe(
+        filter(o => o.history_content_type == "dataset"),
+        cacheDataset()
+    );
+
+    const cachedCollections$ = manifest$.pipe(
+        filter(o => o.history_content_type == "dataset_collection"),
+        cacheDatasetCollection()
+    );
+
+    return merge(cacheContent$, cachedCollections$, cachedDatasets$);
+}
+
+
+
+// Finds the latest update_time in the indicated start/end range
+
+const latestContentDate = () => param$ => {
+    return param$.pipe(
+        switchMap(p => {
+            return of(p).pipe(
+                localContentQuery(),
+                map(query => query.where('hid').gte(p.start).where('hid').lte(p.end)),
+                mergeMap(query => query.$)
+            );
+        }),
         first(),
         split(),
         map(item => item.getServerStamp()),
         reduce(Math.max, 0)
     );
-
-
-    // get the manifest, which is a summary of everything
-    
-    const manifest$ = combineLatest(history$, param$, latestContentDate$).pipe(
-        first(),
-        map(buildManifestUrl),
-        ajaxGet(),
-        split(),
-        share(),
-        cacheContent()
-    );
-
-    return manifest$;
-
-
-    // now get a list of content
-
-
-    // // Store all that stuff.
-    
-    // const cachedDatasets$ = manifest$.pipe(
-    //     filter(o => o.history_content_type == "dataset"),
-    //     cacheDataset()
-    // );
-
-    // const cachedCollections$ = manifest$.pipe(
-    //     filter(o => o.history_content_type == "dataset_collection"),
-    //     cacheDatasetCollection()
-    // );
-
-    // return merge(cacheContent$, cachedDatasets$, cachedCollections$);
 }
 
 
 
+
+// Eager load a few of the results when the params change
+
+const prefetchParams = p => {
+    const newParams = p.clone();
+    // newParams.end = p.end + SearchParams.chunkSize;
+    newParams.start = p.start - SearchParams.chunkSize;
+    return newParams;
+}
+
+
 // gets content manifest
 
-function buildManifestUrl([ history, params, lastUpdate ]) {
+const buildManifestUrl = (label, debug) => ([ params, lastUpdate ]) => {
 
-    const base = `/api/histories/${params.historyId}/contents?v=dev&view=summary`;
+    const { start, end, historyId } = params;
+
+    const base = `/api/histories/${historyId}/contents?v=dev&view=detailed`;
     const updateCriteria = lastUpdate ? `q=update_time-gt&qv=${lastUpdate}` : "";
-    
-    const end = params.end ? params.end : history.hid_counter;
-    const start = params.start ? params.start : end - SearchParams.chunkSize;
     const startClause = `q=hid-ge&qv=${start}`;
     const endClause = `q=hid-le&qv=${end}`;
-
     const order = "order=hid-dsc";
 
     // deleted/purged
     // TODO: rework ridiculous api boolean filters
     let deleteFilter = "", purgeFilter = "";
-    // if (params.showDeleted === false) {
-    //     deleteFilter = "q=deleted&qv=False";
-    //     purgeFilter = "q=purged&qv=False";
-    // }
+    if (params.showDeleted === false) {
+        deleteFilter = "q=deleted&qv=False";
+        purgeFilter = "q=purged&qv=False";
+    }
 
     // hide/show
     let visibleFilter = "";
-    // if (params.showHidden) {
-    //     visibleFilter = "q=visible&qv=True";
-    // }
+    if (params.showHidden) {
+        visibleFilter = "q=visible&qv=True";
+    }
 
     // text filter
     let textFilter = "";
-    // if (params.filterText.length) {
-    //     textFilter = `q=name-contains&qv=${params.filterText}`;
-    // }
+    if (params.filterText.length) {
+        textFilter = `q=name-contains&qv=${params.filterText}`;
+    }
 
-    // result
-    const parts = [
-        base, startClause, endClause, updateCriteria, order,
-        textFilter, deleteFilter, purgeFilter, visibleFilter
-    ];
+    const parts = [ base, updateCriteria, startClause, endClause, order, 
+        deleteFilter, purgeFilter, visibleFilter, textFilter ];
 
-    return parts.filter(o => o.length).join("&");
+    const url = parts.filter(o => o.length).join("&");
+
+    if (debug) {
+        console.groupCollapsed("buildManifestUrl", label, lastUpdate);
+        console.log("start", start);
+        console.log("end", end);
+        console.log("lastUpdate", lastUpdate);
+        console.log("url", url);
+        console.groupEnd();
+    }
+
+    return url;
 }
