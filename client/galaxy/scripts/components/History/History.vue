@@ -4,7 +4,7 @@
             <slot name="history-top-nav" :history="history"></slot>
             <history-messages class="history-messages p-3" :history="history" />
             <history-details class="history-details p-3" :history="history" />
-            <content-selection class="history-content-selection p-3 pt-0" :history="history" />
+            <content-selection class="history-content-selection px-3 pb-3" :history="history" />
         </header>
         <content-list :history="history" class="history-contents flex-grow-1" />
     </section>

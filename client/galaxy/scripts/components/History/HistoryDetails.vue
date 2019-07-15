@@ -1,7 +1,6 @@
 <template>
     <section>
 
-
         <header>
             <h6>{{ niceSize | localize }}</h6>
             <slot name="menu">
@@ -14,23 +13,20 @@
                     <icon-menu-item id="historyDownloadMenu"
                         title="Downloads"
                         icon="download"
-                        :useTooltip="false" />
+                        tooltip-placement="topleft" />
                     <icon-menu-item
-                        title="Raw History Data"
+                        title="Raw History Data (Debugging)"
                         icon="eye"
                         @click="showRaw = !showRaw"
-                        :useTooltip="false" />
+                        tooltip-placement="topleft" />
                     <icon-menu-item id="historyOperationsIcon"
                         title="Current History Operations"
                         icon="cog"
-                        :useTooltip="false" />
+                        tooltip-placement="topleft" />
                 </icon-menu>
             </slot>
         </header>
 
-        <!-- <h6>{{ history.update_time }}</h6> -->
-
-        
         <!-- click to edit name / nameinput -->
         <div class="history-title mt-4" ref="historyNameInput">
             <h2 v-if="!editName" @click="toggle('editName', true)">
@@ -54,28 +50,7 @@
         </div>
 
         <!-- annotation -->
-        <div class="history-annotation mt-1" ref="annotationInput">
-            <p v-if="!editAnnotation" class="p-0 m-0"
-                @click="toggle('editAnnotation', true)">
-                <span class="editable"></span>
-                <span v-if="annotation">{{ annotation }}</span>
-                <span v-if="!annotation">{{ 'Click to edit annotation' | localize }}</span>
-                <b-tooltip ref="annotationTooltip" placement="left"
-                    :target="() => $refs['annotationInput']" 
-                    :title="'Click to edit annotation' | localize" />
-            </p>
-            <debounced-input v-if="editAnnotation" v-model="annotation" :delay="1000">
-                <b-form-textarea size="sm"
-                    slot-scope="scope" 
-                    :value="scope.value"
-                    @input="scope.input"
-                    @blur="toggle('editAnnotation', false)" 
-                    :placeholder="'Click to edit annotation' | localize"
-                    :state="inputLengthCheck(scope.value, annotation)"
-                    rows="1" max-rows="5"
-                ></b-form-textarea>
-            </debounced-input>
-        </div>
+        <annotation class="history-annotation mt-1" v-model="annotation" />
 
         <!-- tags -->
         <transition name="shutterfade">
@@ -177,6 +152,7 @@ import DebouncedInput from "components/Form/DebouncedInput";
 import GearMenu from "./GearMenu";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
 import { bytesToString } from "utils/utils"
+import Annotation from "components/Form/Annotation";
 
 const messages = {
     "deleteHistoryPrompt": "Really delete the current history?",
@@ -191,7 +167,8 @@ export default {
         IconMenuItem,
         DebouncedInput,
         CopyModal,
-        GearMenu
+        GearMenu,
+        Annotation
     },
     props: {
         history: { type: Object, required: true }
@@ -317,11 +294,6 @@ export default {
 
 <style lang="scss" scoped>
 
-@import "~bootstrap/scss/functions";
-@import "~bootstrap/scss/variables";
-@import "~bootstrap/scss/mixins";
-@import "~bootstrap/scss/utilities/spacing";
-@import "~scss/theme/blue.scss";
 @import "~scss/mixins.scss";
 
 /* enlarge title input text to match h2 */
@@ -333,23 +305,7 @@ export default {
 /* click-to-edit icons */
 .history-title h2,
 .history-annotation p {
-    position: relative;
-    &:hover .editable {
-        @include fontawesome($fa-var-edit);
-        position: absolute;
-        top: 0;
-        right: 0;
-        color: $brand-info;
-        font-size: 0.8rem;
-    }
-}
-
-/* annotation paragraph */
-.history-annotation p {
-    font-style: italic;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
+    @include clickToEdit();
 }
 
 </style>

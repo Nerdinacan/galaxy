@@ -1,3 +1,3 @@
 <template>
-    <div>Dataset Peek</div>
+    <pre>Dataset Peek</pre>
 </template>

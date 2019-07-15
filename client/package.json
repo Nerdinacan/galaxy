@@ -53,6 +53,7 @@
     "underscore": "^1.9.1",
     "underscore.string": "^3.3.5",
     "vue": "^2.6.10",
+    "vue-bootstrap-typeahead": "^0.2.6",
     "vue-router": "^3.0.2",
     "vue-rx": "^6.1.0",
     "vue-scroll": "^2.1.9",

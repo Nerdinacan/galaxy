@@ -1,10 +1,10 @@
 <template>
-    <a ref="link" class="fa" :class="iconClass"
-        @click="$emit('click')"
+    <a ref="link" class="fa" :class="iconClass" @click="onClick"
         :title="title | localize"
         tabindex="0">
         <span>{{ title }}</span>
         <b-tooltip v-if="useTooltip"
+            ref="tooltip"
             :target="() => $refs['link']"
             :title="title"
             :placement="tooltipPlacement"
@@ -26,6 +26,12 @@ export default {
     computed: {
         iconClass() {
             return this.icon ? `fa-${this.icon}` : "";
+        }
+    },
+    methods: {
+        onClick(evt) {
+            this.$refs.tooltip.$emit('close');
+            this.$emit('click')
         }
     }
 }

@@ -20,7 +20,7 @@ export function PollUpdate$(existingHistory$, param$) {
     const poll$ = update$.pipe(
         takeUntil(stopPolling.$),
         repeatWhen(done => done.pipe(delay(2000)))
-    )
+    );
 
     return param$.pipe(
         tap(() => counter = 0),

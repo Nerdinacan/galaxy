@@ -69,7 +69,7 @@ const latestContentDate = () => param$ => {
 
 const prefetchParams = p => {
     const newParams = p.clone();
-    // newParams.end = p.end + SearchParams.chunkSize;
+    newParams.end = p.end + SearchParams.chunkSize;
     newParams.start = p.start - SearchParams.chunkSize;
     return newParams;
 }

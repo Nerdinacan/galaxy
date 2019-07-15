@@ -1,9 +1,9 @@
 <template>
-    <select v-model="selectedHistoryId" v-if="activeHistories.length">
-        <option v-for="h in activeHistories" :key="h.id" :value="h.id">
-            {{ h.name }}
-        </option>
-    </select>
+    <b-form-select v-if="activeHistories.length" 
+        size="sm" v-model="selectedId">
+        <option v-for="h in activeHistories" :key="h.id" 
+            :value="h.id">{{ h.name }}</option>
+    </b-form-select>
 </template>
     
 <script>
@@ -21,7 +21,7 @@ export default {
                 return !(h.isDeleted || h.purged);
             })
         },
-        selectedHistoryId: {
+        selectedId: {
             get() {
                 return this.value;
             },
@@ -35,3 +35,9 @@ export default {
 }
 
 </script>
+
+<style scoped>
+select {
+    background: none;
+}
+</style>

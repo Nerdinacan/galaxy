@@ -1,51 +1,53 @@
 <template>
-    <div>
+    <div class="dataset">
 
-        <header>
-            <h5>
-                <span v-if="!dataset">{{ content.hid }}: {{ title || '' }}...</span>
+        <header class="title-bar">
+            <h5 class="title">
+                <span v-if="!dataset">
+                    {{ content.hid }}: {{ title || '' }}...
+                </span>
                 <a v-if="dataset" href="#" tabindex="0"
                     @keyup.space="toggleDetails" 
                     @click="toggleDetails">
                     {{ content.hid }}: {{ title }}
                 </a>
             </h5>
-            <b-spinner v-if="!dataset" small label="Loading..." class="ml-auto"></b-spinner>
+            <b-spinner v-if="!dataset" small label="Loading..." 
+                class="ml-auto"></b-spinner>
             <primary-actions v-if="dataset" :dataset="dataset" />
         </header>
 
-        <!-- <transition name="shutterfade">
+        <!--
+        <transition name="shutterfade">
             <div v-if="dataset && unViewable">
                 unviewable message
             </div>
-        </transition> -->
+        </transition>
+        -->
 
         <transition name="shutterfade">
-            <div v-if="showDetails && dataset">
+            <div v-if="showDetails && dataset" class="details p-0 mt-3">
 
-                <div>
-                    State: {{ dataset.state }},
-                    accessible: {{ dataset.accessible }}
-                </div>
+                <annotation class="dataset-annotation mt-1" 
+                    tooltip-placement="left"
+                    v-model="annotation" />
 
-                <div>
-                    <p>0 lines</p>
-                    <p>format: tabular, database: ?</p>
-                </div>
-
-                <div v-if="dataset.misc_blurb">
-                    <span>{{ dataset.misc_blurb }}</span>
-                </div>
-                <div v-if="dataset.file_ext">
-                    <label>{{ 'format' | localize }}</label>
-                    <span>{{ dataset.file_ext }}</span>
-                </div>
-                <div v-if="dataset.metadata_dbkey">
-                    <label>{{ 'database' | localize }}</label>
-                    <span>{{ dataset.metadata_dbkey }}</span>
-                </div>
-                <div v-if="dataset.misc_info">
-                    <span>{{ dataset.misc_info }}</span>
+                <div class="summary">
+                    <!-- detail messages -->
+                    <div v-if="dataset.misc_blurb" class="blurb">
+                        <span class="value">{{ dataset.misc_blurb }}</span>
+                    </div>
+                    <div v-if="dataset.file_ext" class="datatype">
+                        <label class="prompt">{{ 'format' | localize }}</label>
+                        <span class="value">{{ dataset.file_ext }}</span>
+                    </div>
+                    <div v-if="dataset.metadata_dbkey" class="dbkey">
+                        <label class="prompt">{{ 'database' | localize }}</label>
+                        <span class="value">{{ dataset.metadata_dbkey }}</span>
+                    </div>
+                    <div v-if="dataset.misc_info">
+                        <span>{{ dataset.misc_info }}</span>
+                    </div>
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center">
@@ -55,14 +57,14 @@
 
                     <icon-menu>
                         <icon-menu-item
+                            title="Show Raw Data (Debug)"
+                            icon="eye"
+                            @click="toggleRaw"
+                            tooltip-placement="topleft" />
+                        <icon-menu-item
                             title="Edit Dataset Tags"
                             icon="tags"
                             @click="toggleTags"
-                            tooltip-placement="topleft" />
-                        <icon-menu-item
-                            title="Edit Dataset Annotation"
-                            icon="comment"
-                            @click="toggleAnnotation"
                             tooltip-placement="topleft" />
                     </icon-menu>
                 </div>
@@ -71,23 +73,29 @@
                     <dataset-tags v-if="showTags" />
                 </transition>
 
-                <transition name="shutterfade">
-                    <div v-if="showAnnotation">
-                        Annotation!
+                <div class="display-applications">
+                    <div class="display-application" v-for="app in displayLinks">
+                        <span class="display-application-location">
+                            {{ app.label }}
+                        </span>
+                        <span class="display-application-links">
+                            <a v-for="l in app.links" :href="l.href" :target="l.target">
+                                {{ l.text }}
+                            </a>
+                        </span>
                     </div>
-                </transition>
-
-                <div>
-                    Display in IGB, View<br/>
-                    Display with IGV, local<br/>
                 </div>
 
                 <transition name="shutterfade">
-                    <dataset-peek v-if="showPeek" />
+                    <dataset-peek v-if="showPeek" class="dataset-peek" />
                 </transition>
          
                 <transition name="shutterfade">
                     <div v-if="showToolHelp && toolHelp" v-html="toolHelp"></div>
+                </transition>
+
+                <transition name="shutterfade">
+                    <textarea v-if="showRaw">{{ dataset }}</textarea>
                 </transition>
 
             </div>
@@ -117,6 +125,7 @@ import SecondaryActions from "./SecondaryActions";
 import DatasetTags from "./Tags";
 import DatasetPeek from "./Peek";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
+import Annotation from "components/Form/Annotation";
 
 Vue.use(VueRx);
 
@@ -127,7 +136,8 @@ export default {
         DatasetTags,
         DatasetPeek,
         IconMenu,
-        IconMenuItem
+        IconMenuItem,
+        Annotation
     },
     props: {
         content: { type: Object, required: true }
@@ -136,9 +146,9 @@ export default {
         return {
             showDetailsToggle: false,
             showTags: false,
-            showAnnotation: false,
             showPeek: false,
             showToolHelp: false,
+            showRaw: false,
             toolHelp: null
         }
     },
@@ -154,6 +164,15 @@ export default {
         return { dataset };
     },
     computed: {
+
+        annotation: {
+            get() {
+                return this.dataset ? this.dataset.annotation : "";
+            },
+            set(annotation) {
+                console.log("set annotation", annotation);
+            }
+        },
 
         title() {
 
@@ -183,7 +202,15 @@ export default {
 
         showDetails() {
             return this.dataset && this.showDetailsToggle && !this.unViewable;
-        }
+        },
+
+        displayLinks() {
+            let result = [];
+            if (this.dataset) {
+                result = [ ...this.dataset.display_apps, ...this.dataset.display_types ];
+            }
+            return result;
+        },
     },
     methods: {
         
@@ -191,23 +218,44 @@ export default {
         iframeGo: iframeRedirect, 
         backboneGo: backboneRedirect,
         
+        toggle(paramName, forceVal) {
+            if (!(paramName in this)) {
+                console.warn("Missing toggle parameter", paramName);
+                return;
+            }
+            if (forceVal === undefined) {
+                this[paramName] = !this[paramName];
+            } else {
+                this[paramName] = forceVal;
+            }
+        },
+
         toggleDetails() {
-            this.showDetailsToggle = !this.showDetailsToggle;
+            this.toggle('showDetailsToggle');
         },
+
         collapse() {
-            this.showDetailsToggle = false;
+            this.toggle('showDetailsToggle', false);
         },
+
         toggleTags() {
-            this.showTags = !this.showTags;
+            this.toggle('showTags');
         },
-        toggleAnnotation() {
-            this.showAnnotation = !this.showAnnotation;
+
+        toggleAnnotation(bForce) {
+            this.toggle('editAnnotation', bForce);
         },
+
+        toggleRaw() {
+            this.toggle('showRaw');
+        },
+
         toggleToolHelp() {
             this.loadTool()
                 .catch(err => console.warn("err loading help", err))
                 .finally(() => this.showToolHelp = !this.showToolHelp);
         },
+
         async loadTool() {
             if (!this.toolHelp) {
                 const tool = await loadToolFromDataset(this.dataset);
@@ -225,3 +273,15 @@ export default {
 }
 
 </script>
+
+
+<style lang="scss" scoped>
+
+/* TODO: murder to all frameworks which use !important */
+
+.list-item .details {
+    display: block;
+    padding: 0 !important; 
+}
+
+</style>

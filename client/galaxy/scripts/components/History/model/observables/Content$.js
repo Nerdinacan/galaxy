@@ -1,10 +1,13 @@
-import { map, switchMap } from "rxjs/operators";
+import { tap, map, switchMap } from "rxjs/operators";
 import { historyContent$ } from "../db";
 import { withLatestFromDb } from "./CachedData";
 
 
 export const localContentObservable = (label, debug = false) => param$ => {
     return param$.pipe(
+        tap(params => {
+            console.log("viewable params changed", params);
+        }),
         localContentQuery(label, debug),
         switchMap(query => query.$)
     );

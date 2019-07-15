@@ -1,3 +1,9 @@
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables";
+@import "~bootstrap/scss/mixins";
+@import "~bootstrap/scss/utilities/spacing";
+@import "~scss/theme/blue.scss";
+
 $fa-font-path: "~font-awesome/fonts/";
 @import "~font-awesome/scss/font-awesome.scss";
 @import "~font-awesome/scss/_mixins";
@@ -107,5 +113,18 @@ $fa-font-path: "~font-awesome/fonts/";
 @mixin resetHeaders() {
     h1, h2, h3, h4, h5, h6 {
         margin: 0;
+    }
+}
+
+/* annotation and title editor fields */
+@mixin clickToEdit() {
+    position: relative;
+    &:hover .editable {
+        @include fontawesome($fa-var-edit);
+        position: absolute;
+        top: 0;
+        right: 0;
+        color: $brand-info;
+        font-size: 0.8rem;
     }
 }

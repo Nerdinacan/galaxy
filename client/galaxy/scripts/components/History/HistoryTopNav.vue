@@ -1,8 +1,8 @@
 <template>
-
-    <nav v-if="historyId" class="history-list-menu d-flex
-        justify-content-between align-items-center border-bottom">
-        <history-selector v-model="historyId" />
+    <nav v-if="historyId" class="history-list-menu d-flex align-items-center">
+        
+        <history-selector class="mr-3" v-model="historyId" />
+        
         <icon-menu>
             <icon-menu-item
                 title="Create New History" 
@@ -10,19 +10,19 @@
                 @click="createNewHistory" 
                 tooltip-placement="bottom" />
             <icon-menu-item
-                title="Delete Local Database"
+                title="Delete Local Database (Debugging)"
                 icon="bolt"
                 @click="deleteLocalDatabase"
                 tooltip-placement="bottom" />
             <icon-menu-item
-                title="Stop Polling"
+                title="Stop Polling (Debugging)"
                 icon="clock-o"
                 @click="stopPolling"
                 tooltip-placement="bottom" />
             <icon-menu-item id="endlessMenuGear"
                 title="History Options"
                 icon="cog"
-                :useTooltip="false" />
+                tooltip-placement="bottom" />
         </icon-menu>
 
         <b-popover ref="endlessMenu"
@@ -47,11 +47,14 @@
                         @click="go('/histories/list_shared')">
                         {{ 'Histories Shared with Me' | localize }}
                     </a>
+                    <a class="dropdown-item" href="#"
+                        @click="useLegacyHistoryPanel">
+                        {{ 'Use legacy history panel' | localize }}
+                    </a>
                 </div>
             </gear-menu>
         </b-popover>
     </nav>
-
 </template>
 
 
@@ -97,7 +100,12 @@ export default {
         deleteLocalDatabase() {
             wipeDB().subscribe(db => console.log("Local database deleted"));
         },
-        stopPolling
+        stopPolling,
+        useLegacyHistoryPanel() {
+            sessionStorage.removeItem('useBetaHistory');
+            location.reload();
+        }
+
     }
 }
 

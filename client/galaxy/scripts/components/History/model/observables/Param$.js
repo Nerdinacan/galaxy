@@ -14,10 +14,6 @@ export const Param$ = (store, history$) => {
         map(id => (_, getters) => getters["history/searchParams"](id)),
         mergeMap(selector => watchVuexStore(store, selector)),
         distinctUntilChanged(SearchParams.equals),
-        // scan((lastParams, thisParams) => {
-        //     debugger;
-        //     return thisParams;
-        // }, null),
         tap(p => p.report("Param$ changed")),
         shareReplay(1)
     );

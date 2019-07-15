@@ -1,7 +1,7 @@
 import { nullableString, nullableInteger, stringArray } 
     from "./types.schema";
 
-const metaFile = {
+const MetaFile = {
     type: "object",
     properties: {
         file_type: { type: "string" },
@@ -9,7 +9,7 @@ const metaFile = {
     }
 }
 
-const displayTypeLink = {
+const DisplayLink = {
     type: "object",
     properties: {
         text: { type: "string" },
@@ -18,12 +18,12 @@ const displayTypeLink = {
     }
 }
 
-const displayType = {
+const DisplayLinkList = {
     type: "object",
     properties: {
         links: {
             type: "array",
-            item: displayTypeLink
+            item: DisplayLink
         },
         label: { type: "string" },
     }
@@ -45,7 +45,11 @@ export default {
         // display_apps: stringArray,
         display_types: {
             type: "array",
-            items: displayType
+            items: DisplayLinkList
+        },
+        display_apps: {
+            type: "array",
+            items: DisplayLinkList
         },
         download_url: { type: "string" },
         extension: { type: "string" },
@@ -60,7 +64,7 @@ export default {
         id: { type: "string", primary: true },
         meta_files: {
             type: "array",
-            items: metaFile
+            items: MetaFile
         },
         metadata_column_types: {
             type: ["null", "array"],

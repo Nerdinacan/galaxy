@@ -1,11 +1,16 @@
 import { standardInit, addInitialization } from "onload";
 import { getAnalysisRouter } from "./AnalysisRouter";
 import ToolPanel from "entry/panels/tool-panel";
-import { HistoryPanelProxy as HistoryPanel } from "components/History";
+import { HistoryPanelProxy } from "components/History";
+import HistoryPanel from "entry/panels/history-panel";
 import Page from "layout/page";
 
 addInitialization((Galaxy, { options = {} }) => {
+
     console.log("Analysis custom page setup");
+
+    const useBeta = sessionStorage.getItem("useBetaHistory");
+    const RightPanel = Boolean(useBeta) ? HistoryPanelProxy : HistoryPanel;
 
     const pageOptions = Object.assign({}, options, {
         config: Object.assign({}, options.config, {
@@ -13,7 +18,7 @@ addInitialization((Galaxy, { options = {} }) => {
             hide_masthead: Galaxy.params.hide_masthead
         }),
         Left: ToolPanel,
-        Right: HistoryPanel,
+        Right: RightPanel,
         Router: getAnalysisRouter(Galaxy)
     });
 

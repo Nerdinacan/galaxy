@@ -150,6 +150,18 @@ var menu = [
         html: _l("Export History to File"),
         href: "history/export_archive?preview=True",
         anon: true
+    },
+
+    {
+        html: _l("Beta History"),
+        header: true
+    },
+    {
+        html: _l("Use beta history panel"),
+        func: function() {
+            sessionStorage.setItem("useBetaHistory", 1);
+            location.reload();
+        }
     }
 ];
 
