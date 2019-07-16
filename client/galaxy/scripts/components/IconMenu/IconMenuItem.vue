@@ -31,7 +31,7 @@ export default {
     methods: {
         onClick(evt) {
             this.$refs.tooltip.$emit('close');
-            this.$emit('click')
+            this.$emit('click', evt)
         }
     }
 }

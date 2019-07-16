@@ -19,7 +19,7 @@ export function ContentUpdate$(p$, counter) {
 
     const manifest$ = combineLatest(param$, lastDate$).pipe(
         first(),
-        map(buildManifestUrl("manifest$", true)),
+        map(buildManifestUrl("manifest$", false)),
         ajaxGet(),
         split(),
         share()
@@ -68,9 +68,11 @@ const latestContentDate = () => param$ => {
 // Eager load a few of the results when the params change
 
 const prefetchParams = p => {
+    // const padding = SearchParams.pageSize;
+    const padding = 5;
     const newParams = p.clone();
-    newParams.end = p.end + SearchParams.chunkSize;
-    newParams.start = p.start - SearchParams.chunkSize;
+    newParams.end = p.end + padding;
+    newParams.start = p.start - padding;
     return newParams;
 }
 

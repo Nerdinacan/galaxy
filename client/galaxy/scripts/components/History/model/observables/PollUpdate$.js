@@ -10,16 +10,23 @@ export const stopPolling = createInputFunction();
 export function PollUpdate$(existingHistory$, param$) {
 
     let counter = 0;
+    const pollDelay = 5000;
 
     const update$ = defer(() => {
-        const contentUpdate$ = ContentUpdate$(param$, counter++);
         const freshHistory$ = CheckHistory$(existingHistory$);
+        const contentUpdate$ = ContentUpdate$(param$, counter++);
         return concat(contentUpdate$, freshHistory$);
     });
 
+    const stop$ = stopPolling.$.pipe(
+        tap(() => console.log("stop polling"))
+    );
+
     const poll$ = update$.pipe(
-        takeUntil(stopPolling.$),
-        repeatWhen(done => done.pipe(delay(2000)))
+        repeatWhen(done => done.pipe(
+            takeUntil(stop$),
+            delay(pollDelay)
+        ))
     );
 
     return param$.pipe(

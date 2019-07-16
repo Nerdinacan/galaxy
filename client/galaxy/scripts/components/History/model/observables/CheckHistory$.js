@@ -1,5 +1,5 @@
 import { concat } from "rxjs";
-import { tap, first, map } from "rxjs/operators";
+import { tap, first, map, distinctUntilChanged } from "rxjs/operators";
 import { cacheHistory } from "./CachedData";
 import { ajaxGet, firstItem } from "./utils";
 
@@ -23,15 +23,21 @@ export function CheckHistory$(oldHistory$) {
 
     // if server result, take that otherwise db version good enough
     return concat(serverHistory$, oldHistory$).pipe(
-        first()
+        first(),
+        // distinctUntilChanged(compareStateLists)
     );
 }
 
-
 function buildHistoryUrl(oldHistory) {
-    const base = "/api/histories?view=detailed&keys=contents_active,hid_counter";
+    const base = "/api/histories?view=detailed&keys=size,non_ready_jobs,contents_active,hid_counter";
     const idCriteria = `q=encoded_id-in&qv=${oldHistory.id}`;
     const updateCriteria = (oldHistory.update_time) ? `q=update_time-gt&qv=${oldHistory.update_time}` : "";
     const parts = [ base, updateCriteria, idCriteria ];
     return parts.filter(o => o.length).join("&");
+}
+
+
+// compare state lists for 2 histories
+function compareStateLists(a,b) {
+    return true;
 }

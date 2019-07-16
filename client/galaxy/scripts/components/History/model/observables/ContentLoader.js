@@ -31,7 +31,8 @@ export function ContentLoader(historyId) {
             localContentObservable("visible content", false)
         );
         const sub = content$.subscribe.apply(content$, arguments);
-        return sub.add(subscribeToPolling());
+        // return sub.add(subscribeToPolling());
+        return sub;
     }
 
     // piggy-back subscription to polling

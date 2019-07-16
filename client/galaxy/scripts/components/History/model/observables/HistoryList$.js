@@ -9,7 +9,7 @@ import { history$ } from "../db";
 
 // every time the user changes we load new histories
 
-const listingUrl = "/api/histories?view=detailed&keys=contents_active,hid_counter&q=purged&qv=False";
+const listingUrl = "/api/histories?view=detailed&keys=contents_active,hid_counter,non_ready_jobs&q=purged&qv=False";
 
 const loadHistories$ = CurrentUserId$.pipe(
     mapTo(listingUrl),

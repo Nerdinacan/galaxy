@@ -98,33 +98,41 @@ const cacheItemInDb = (collection$, debug = false) => item$ => {
     )
 }
 
-export const cacheHistory = (debug) => rawHistory$ => {
-    return rawHistory$.pipe(
+export const cacheHistory = debug => item$ => {
+    return item$.pipe(
         map(prepareHistory),
         cacheItemInDb(history$, debug)
     );
 }
 
-export const cacheContent = (debug) => rawContent$ => {
-    return rawContent$.pipe(
+export const cacheContent = debug => item$ => {
+    return item$.pipe(
         map(prepareManifestItem),
         cacheItemInDb(historyContent$, debug)
     );
 }
 
-export const cacheDataset = (debug) => rawDS$ => {
-    return rawDS$.pipe(
+export const cacheDataset = debug => item$ => {
+    return item$.pipe(
         map(prepareDataset),
         cacheItemInDb(dataset$, debug)
     );
 }
 
-export const cacheDatasetCollection = (debug) => rawDSC$ => {
-    return rawDSC$.pipe(
+export const cacheDatasetCollection = debug => item$ => {
+    return item$.pipe(
         map(prepareDatasetCollection),
         cacheItemInDb(datasetCollection$, debug)
     );
 }
+
+// Creates a promise-based function for interacting with non-observable code
+export const createCacheFunction = (cacheOperator, debug) => item => {
+    const obs = of(item).pipe(cacheOperator(debug));
+    return obs.toPromise();
+}
+
+
 
 
 /**
@@ -196,18 +204,18 @@ export function flushCachedDataset(ds) {
 }
 
 
-export async function cacheContentItem(item) {
+// export async function cacheContentItem(item) {
     
-    const props = prepareManifestItem(item);
-    delete props.type_id;
-    delete props._rev;
-    props.update_time = (new Date(0)).toISOString();
+//     const props = prepareManifestItem(item);
+//     delete props.type_id;
+//     delete props._rev;
+//     props.update_time = (new Date(0)).toISOString();
 
-    const coll = await historyContent$.toPromise();
-    const existing = await coll.findOne(item.type_id).exec();
-    if (!existing) {
-        return await coll.newDocument(props).save();
-    }
+//     const coll = await historyContent$.toPromise();
+//     const existing = await coll.findOne(item.type_id).exec();
+//     if (!existing) {
+//         return await coll.newDocument(props).save();
+//     }
     
-    return await existing.atomicUpdate(doc => safeAssign(doc, props));
-}
+//     return await existing.atomicUpdate(doc => safeAssign(doc, props));
+// }

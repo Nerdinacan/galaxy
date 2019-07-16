@@ -1,39 +1,37 @@
 <template>
     <div class="dataset">
 
-        <header class="title-bar">
+        <header class="title-bar" :class="{ expanded: showDetails }">
+            <span class="state-icon"></span>
             <h5 class="title">
-                <span v-if="!dataset">
-                    {{ content.hid }}: {{ title || '' }}...
-                </span>
-                <a v-if="dataset" href="#" tabindex="0"
-                    @keyup.space="toggleDetails" 
-                    @click="toggleDetails">
+                <a href="#" tabindex="0" @click="toggleDetails"
+                    @keyup.space="toggleDetails">
                     {{ content.hid }}: {{ title }}
                 </a>
             </h5>
-            <b-spinner v-if="!dataset" small label="Loading..." 
-                class="ml-auto"></b-spinner>
-            <primary-actions v-if="dataset" :dataset="dataset" />
+            <dataset-menu v-if="dataset"
+                class="flex-wrap justify-content-end"
+                :dataset="dataset"
+                :expanded="showDetails" />
         </header>
 
-        <!--
-        <transition name="shutterfade">
-            <div v-if="dataset && unViewable">
-                unviewable message
-            </div>
-        </transition>
-        -->
+        <annotation v-if="showDetails" class="dataset-annotation"
+            tooltip-placement="left" v-model="annotation" />
+
+        <div v-if="tagStoreName && dataset">
+            <nametags v-if="!showDetails"
+                :tags="dataset.tags"
+                :storeKey="tagStoreName" />
+            <dataset-tags v-if="showDetails"
+                :dataset="dataset"
+                :historyId="content.history_id" />
+        </div>
 
         <transition name="shutterfade">
-            <div v-if="showDetails && dataset" class="details p-0 mt-3">
-
-                <annotation class="dataset-annotation mt-1" 
-                    tooltip-placement="left"
-                    v-model="annotation" />
+            <div v-if="showDetails && dataset" class="details p-0 mt-1"
+            style="{ min-width: 0 }">
 
                 <div class="summary">
-                    <!-- detail messages -->
                     <div v-if="dataset.misc_blurb" class="blurb">
                         <span class="value">{{ dataset.misc_blurb }}</span>
                     </div>
@@ -50,29 +48,6 @@
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center">
-
-                    <secondary-actions :dataset="dataset" 
-                        @toggleToolHelp="toggleToolHelp" />
-
-                    <icon-menu>
-                        <icon-menu-item
-                            title="Show Raw Data (Debug)"
-                            icon="eye"
-                            @click="toggleRaw"
-                            tooltip-placement="topleft" />
-                        <icon-menu-item
-                            title="Edit Dataset Tags"
-                            icon="tags"
-                            @click="toggleTags"
-                            tooltip-placement="topleft" />
-                    </icon-menu>
-                </div>
-
-                <transition name="shutterfade">
-                    <dataset-tags v-if="showTags" />
-                </transition>
-
                 <div class="display-applications">
                     <div class="display-application" v-for="app in displayLinks">
                         <span class="display-application-location">
@@ -86,20 +61,20 @@
                     </div>
                 </div>
 
-                <transition name="shutterfade">
-                    <dataset-peek v-if="showPeek" class="dataset-peek" />
-                </transition>
-         
-                <transition name="shutterfade">
-                    <div v-if="showToolHelp && toolHelp" v-html="toolHelp"></div>
-                </transition>
+                <pre v-if="dataset.peek" class="dataset-peek"
+                    v-html="dataset.peek"></pre>
 
-                <transition name="shutterfade">
-                    <textarea v-if="showRaw">{{ dataset }}</textarea>
-                </transition>
-
+                <!-- tool help -->
+                <div v-if="showToolHelp && toolHelp" v-html="toolHelp" class="toolhelp"></div>
+                <div v-if="showToolHelp && !toolHelp" class="toolhelp">
+                    <strong>Tool help is unavailable for this dataset.</strong>
+                </div>
+                
+                <textarea v-if="showRaw">{{ dataset }}</textarea>
+                
             </div>
         </transition>
+
 
     </div>
 </template>
@@ -112,32 +87,32 @@ import VueRx from "vue-rx";
 
 import STATES from "mvc/dataset/states";
 
+import { mapActions } from "vuex";
+
 import { of } from "rxjs";
 import { tap, map, filter, pluck, startWith, distinctUntilChanged } from "rxjs/operators";
 import { getCachedDataset } from "../model/observables/CachedData";
 import { prependPath, redirectToSiteUrl, backboneRedirect, iframeRedirect } from "utils/redirect";
-import { loadToolFromDataset } from "../model/queries";
+import { loadToolFromDataset } from "./queries";
 import { eventHub } from "components/eventHub";
-import { debounce } from "debounce";
 
-import PrimaryActions from "./PrimaryActions";
-import SecondaryActions from "./SecondaryActions";
-import DatasetTags from "./Tags";
-import DatasetPeek from "./Peek";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
 import Annotation from "components/Form/Annotation";
+import { Nametags } from "components/Nametags";
+import DatasetTags from "./DatasetTags";
+import DatasetMenu from "./DatasetMenu";
 
 Vue.use(VueRx);
 
+
 export default {
     components: {
-        PrimaryActions,
-        SecondaryActions,
+        DatasetMenu,
         DatasetTags,
-        DatasetPeek,
         IconMenu,
         IconMenuItem,
-        Annotation
+        Annotation,
+        Nametags
     },
     props: {
         content: { type: Object, required: true }
@@ -146,21 +121,18 @@ export default {
         return {
             showDetailsToggle: false,
             showTags: false,
-            showPeek: false,
             showToolHelp: false,
             showRaw: false,
             toolHelp: null
         }
     },
     subscriptions() {
-
         const dataset = this.$watchAsObservable("content", { immediate: true }).pipe(
             pluck("newValue", "id"),
             distinctUntilChanged(),
             getCachedDataset(),
             startWith(null)
         );
-
         return { dataset };
     },
     computed: {
@@ -170,13 +142,21 @@ export default {
                 return this.dataset ? this.dataset.annotation : "";
             },
             set(annotation) {
-                console.log("set annotation", annotation);
+                const { history_id, id: dataset_id } = this.content;
+
+                this.updateDatasetFields({
+                    history_id,
+                    dataset_id,
+                    fields: {
+                        annotation
+                    }
+                });
             }
         },
 
         title() {
-
             const { hid, name, isDeleted, visible, purged } = this.content;
+
             let result = name;
 
             const itemStates = [];
@@ -195,7 +175,7 @@ export default {
 
             return result;
         },
-        
+
         unViewable() {
             return !this.dataset || this.dataset.state === STATES.NOT_VIEWABLE;
         },
@@ -207,17 +187,27 @@ export default {
         displayLinks() {
             let result = [];
             if (this.dataset) {
-                result = [ ...this.dataset.display_apps, ...this.dataset.display_types ];
+                result = [
+                    ...this.dataset.display_apps,
+                    ...this.dataset.display_types
+                ];
             }
             return result;
         },
+
+        tagStoreName() {
+            return this.dataset ? `Dataset-${this.dataset.id}` : null;
+        },
+
+        loading() {
+            return !Boolean(this.dataset);
+        }
+
     },
     methods: {
-        
-        go: redirectToSiteUrl,
-        iframeGo: iframeRedirect, 
-        backboneGo: backboneRedirect,
-        
+
+        ...mapActions("dataset", ["updateDatasetFields"]),
+
         toggle(paramName, forceVal) {
             if (!(paramName in this)) {
                 console.warn("Missing toggle parameter", paramName);
@@ -231,11 +221,15 @@ export default {
         },
 
         toggleDetails() {
-            this.toggle('showDetailsToggle');
+            if (!this.loading) {
+                this.toggle('showDetailsToggle');
+            }
         },
 
         collapse() {
-            this.toggle('showDetailsToggle', false);
+            if (!this.loading) {
+                this.toggle('showDetailsToggle', false);
+            }
         },
 
         toggleTags() {
@@ -250,25 +244,28 @@ export default {
             this.toggle('showRaw');
         },
 
-        toggleToolHelp() {
-            this.loadTool()
-                .catch(err => console.warn("err loading help", err))
-                .finally(() => this.showToolHelp = !this.showToolHelp);
-        },
-
-        async loadTool() {
-            if (!this.toolHelp) {
-                const tool = await loadToolFromDataset(this.dataset);
-                this.toolHelp = tool.help;
+        async toggleToolHelp(ds) {
+            if (ds.id != this.dataset.id) {
+                return;
             }
-            return this.toolHelp;
+            try {
+                if (this.toolHelp == null) {
+                    const { help } = await loadToolFromDataset(this.dataset);
+                    this.toolHelp = help || "";
+                }
+                this.showToolHelp = !this.showToolHelp;
+            } catch(err) {
+                console.warn("Error loading tool help", err);
+            }
         }
     },
     created() {
         eventHub.$on('collapse-content', this.collapse);
+        eventHub.$on('toggleToolHelp', this.toggleToolHelp);
     },
     beforeDestroy() {
         eventHub.$off('collapse-content', this.collapse);
+        eventHub.$off('toggleToolHelp', this.toggleToolHelp);
     }
 }
 
@@ -277,11 +274,53 @@ export default {
 
 <style lang="scss" scoped>
 
-/* TODO: murder to all frameworks which use !important */
+@import "~scss/mixins.scss";
 
 .list-item .details {
     display: block;
+    /* need to do this to override boostrap's free-wheeling use of !important */
     padding: 0 !important; 
+}
+
+.state-icon {
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    width: 16px;
+    height: 16px;
+    z-index: 10;
+}
+
+/* there's a bug in flexbox containers, we need the strange
+min-width setting to make the peek overflow propertly */
+.dataset {
+    min-width: 0;
+    .details .dataset-peek {
+        width: auto;
+        max-width: 100%;
+        margin-bottom: 0;
+        display: inline-block;
+    }
+}
+
+
+/* Common CSS for all items
+Most of this is attempting to override the horrible
+bootstrap css which inserts !important making it irritating
+to customize. */
+
+.history-content-item.list-item {
+    border: 0;
+    header {
+        @include flexRowHeader();
+        align-items: baseline;
+        min-height: 20px;
+        padding: 0 0 0 0 !important;
+        a {
+            display: block;
+            outline: none;
+        }
+    }
 }
 
 </style>

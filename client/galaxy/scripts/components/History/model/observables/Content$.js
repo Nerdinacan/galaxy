@@ -6,7 +6,9 @@ import { withLatestFromDb } from "./CachedData";
 export const localContentObservable = (label, debug = false) => param$ => {
     return param$.pipe(
         tap(params => {
-            console.log("viewable params changed", params);
+            if (debug) {
+                console.log("viewable params changed", params);
+            }
         }),
         localContentQuery(label, debug),
         switchMap(query => query.$)

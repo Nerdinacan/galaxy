@@ -6,7 +6,7 @@
 
                 <ol ref="scrollContent">
                     <li v-for="(c, index) in content" :key="c.type_id"
-                        class="d-flex px-3 py-2 mb-1"
+                        class="d-flex p-2 mb-1"
                         :data-state="c.state"
                         v-observe-visibility="updatePageRange(c.hid)">
                         <b-form-checkbox v-if="showSelection"
@@ -194,7 +194,7 @@ export default {
 
         setLoading: debounce(function(val) {
             this.loading = val;
-        }, 400)
+        }, 100, true)
     },
 
     watch: {
@@ -219,7 +219,7 @@ export default {
         localParams: {
             handler: debounce(function(newParams) {
                 this.updateParams(newParams);
-            }, 500),
+            }, 100, true),
             deep: true
         }
     },
@@ -234,6 +234,7 @@ export default {
 }
 
 </script>
+
 
 <style lang="scss" scoped>
 
@@ -257,11 +258,10 @@ ol {
 
 li {
     position: relative;
-}
-
-li > .history-content  {
-    position: relative;
-    z-index: 0;
+    > .history-content  {
+        position: relative;
+        z-index: 0;
+    }
 }
 
 .sensor {

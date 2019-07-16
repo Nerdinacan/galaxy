@@ -7,14 +7,16 @@ import { tap, pluck, map, mergeMap, distinctUntilChanged, shareReplay, scan } fr
 import { SearchParams } from "../SearchParams";
 import { watchVuexStore } from "./utils";
 
-export const Param$ = (store, history$) => {
+export const Param$ = (store, history$, debug) => {
     return history$.pipe(
         pluck('id'),
         // build selector fn
         map(id => (_, getters) => getters["history/searchParams"](id)),
         mergeMap(selector => watchVuexStore(store, selector)),
         distinctUntilChanged(SearchParams.equals),
-        tap(p => p.report("Param$ changed")),
+        tap(p => {
+            if (debug) p.report("Param$ changed");
+        }),
         shareReplay(1)
     );
 }

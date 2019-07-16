@@ -1,6 +1,7 @@
 import axios from "axios";
 import { prependPath } from "utils/redirect";
 
+const stdParams = "view=detailed&keys=contents_active,hid_counter,non_ready_jobs"
 
 export async function getCurrentHistory() {
     const url = prependPath("/history/current_history_json");
@@ -14,7 +15,7 @@ export async function getCurrentHistory() {
 
 
 export async function getHistoryById(id) {
-    const url = prependPath(`/api/histories/${id}?view=dev-detailed&keys=visible,contents_active`);
+    const url = prependPath(`/api/histories/${id}?${stdParams}`);
     const response = await axios.get(url);
     return response.data; // history object
 }
@@ -22,7 +23,7 @@ export async function getHistoryById(id) {
 
 // pass in a dictionary of fields to update
 export async function updateHistoryFields(history, payload) {
-    const url = prependPath(`/api/histories/${history.id}?view=dev-detailed&keys=visible,contents_active`);
+    const url = prependPath(`/api/histories/${history.id}?${stdParams}`);
     const response = await axios.put(url, payload);
     if (response.status != 200) {
         throw new Error(response);
@@ -32,7 +33,7 @@ export async function updateHistoryFields(history, payload) {
 
 
 export async function createHistory() {
-    const url = prependPath("/api/histories?view=dev-detailed&keys=contents_active");
+    const url = prependPath("/api/histories?${stdParams}");
     const response = await axios.post(url, { name: "New History" });
     if (response.status != 200) {
         throw new Error(response);
@@ -47,8 +48,8 @@ export async function cloneHistory(history, name, copyAll) {
         history_id: history.id,
         name,
         all_datasets: copyAll,
-        view: "dev-detailed",
-        keys: "contents_active",
+        view: "detailed",
+        keys: "contents_active,hid_counter,non_ready_jobs",
         current: true
     });
     if (response.status != 200) {
@@ -164,17 +165,6 @@ export async function bulkUpdate({ id }, payload) {
     const url = prependPath(`/api/histories/${id}/contents`);
     const response = await axios.put(url, payload);
     return response.data;
-}
-
-export async function loadToolFromDataset(dataset) {
-    const { creating_job } = dataset;
-    const jobUrl = prependPath(`/api/jobs/${creating_job}?full=false`);
-    const jobResponse = await axios.get(jobUrl);
-    const { tool_id } = jobResponse.data;
-    const toolUrl = prependPath(`/api/tools/${tool_id}/build`);
-    const toolResponse = await axios.get(toolUrl);
-    const tool = toolResponse.data;
-    return tool;
 }
 
 

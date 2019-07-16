@@ -15,8 +15,8 @@ export class SearchParams {
     }
 
     set start(val) {
-        const chunkSize = SearchParams.chunkSize;
-        const newVal = Math.floor(val / chunkSize) * chunkSize;
+        const pageSize = SearchParams.pageSize;
+        const newVal = Math.floor(val / pageSize) * pageSize;
         this._start = Math.max(0, newVal);
     }
 
@@ -25,8 +25,8 @@ export class SearchParams {
     }
 
     set end(val) {
-        const chunkSize = SearchParams.chunkSize;
-        const newVal = Math.ceil(val / chunkSize) * chunkSize;
+        const pageSize = SearchParams.pageSize;
+        const newVal = Math.ceil(val / pageSize) * pageSize;
         this._end = Math.max(0, newVal);
     }
 
@@ -97,9 +97,9 @@ export class SearchParams {
         return new SearchParams({ 
             historyId: history.id, 
             end: history.hid_counter, start: 
-            history.hid_counter - SearchParams.chunkSize
+            history.hid_counter - SearchParams.pageSize
         });
     }
 }
 
-SearchParams.chunkSize = 50;
+SearchParams.pageSize = 20;

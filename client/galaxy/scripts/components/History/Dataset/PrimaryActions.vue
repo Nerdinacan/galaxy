@@ -23,6 +23,7 @@
             icon="bolt"
             @click="undeleteDataset"
             tooltip-placement="topleft" />
+        <slot></slot>
     </icon-menu>
 </template>
 
@@ -39,7 +40,7 @@ const messages = {
     // display button
     displayPurged: "Cannot display datasets removed from disk",
     displayUploading: "This dataset must finish uploading before it can be viewed",
-    displayToonew: "This dataset is not yet viewable",
+    displayTooNew: "This dataset is not yet viewable",
     displayDefault: "View data",
 
     // edit attributes button
@@ -97,7 +98,7 @@ export default {
                 return messages.displayUploading;
             }
             if (this.state == STATES.NEW) {
-                return messages.displayToonew;
+                return messages.displayTooNew;
             }
             return messages.displayDefault;
         },
@@ -156,6 +157,7 @@ export default {
             // if (Galaxy && Galaxy.frame && Galaxy.frame.active) {
             //     Galaxy.frame.addDataset(this.dataset.id);
             // }
+
             const url = `/datasets/${this.dataset.id}/display/?preview=True`;
             iframeRedirect(url);
         },

@@ -14,7 +14,7 @@ import {
 } from "./queries";
 
 import { SearchParams } from "./SearchParams";
-import { flushCachedDataset, cacheContentItem } from "./observables/CachedData";
+import { flushCachedDataset, cacheContent, createCacheFunction } from "./observables/CachedData";
 import { setEquals } from "utils/setFunctions";
 
 import { log } from "./observables/utils";
@@ -240,10 +240,11 @@ export const actions = {
                 id: c.id, 
                 history_content_type: c.history_content_type
             }));
-        const payload = { items, [field]: value }; // this is not awesome
+        const payload = { items, [field]: value };
         const updates = await bulkUpdate(history, payload);
+        const cacheFn = createCacheFunction(cacheContent);
         for (const item of updates) {
-            await cacheContentItem(item);
+            await cacheFn(item);
         }
     }
 

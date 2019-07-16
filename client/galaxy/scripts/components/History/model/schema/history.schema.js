@@ -46,38 +46,37 @@ export default {
         state_details: {
             type: "object",
             properties: {
-                paused: { type: "integer", default: 0 },
-                ok: { type: "integer", default: 0 },
-                failed_metadata: { type: "integer", default: 0 },
-                upload: { type: "integer", default: 0 },
                 discarded: { type: "integer", default: 0 },
+                empty: { type: "integer", default: 0 },
+                error: { type: "integer", default: 0 },
+                failed_metadata: { type: "integer", default: 0 },
+                new: { type: "integer", default: 0 },
+                ok: { type: "integer", default: 0 },
+                paused: { type: "integer", default: 0 },
+                queued: { type: "integer", default: 0 },
                 running: { type: "integer", default: 0 },
                 setting_metadata: { type: "integer", default: 0 },
-                error: { type: "integer", default: 0 },
-                new: { type: "integer", default: 0 },
-                queued: { type: "integer", default: 0 },
-                empty: { type: "integer", default: 0 }
+                upload: { type: "integer", default: 0 }
             }
         },
-
-        state: { type: "string" },
-        empty: { type: "boolean" },
-
         state_ids: { 
             type: "object", 
             properties: {
-                state: stringArray,
-                ok: stringArray,
-                failed_metadata: stringArray,
-                upload: stringArray,
                 discarded: stringArray,
+                empty: stringArray,
+                error: stringArray,
+                failed_metadata: stringArray,
+                new: stringArray,
+                ok: stringArray,
+                paused: stringArray,
+                queued: stringArray,
                 running: stringArray,
                 setting_metadata: stringArray,
-                error: stringArray,
-                new: stringArray,
-                queued: stringArray,
-                empty: stringArray
+                upload: stringArray
             }
-        }
+        },
+        state: { type: "string" },
+        empty: { type: "boolean" },
+        non_ready_jobs: stringArray
     }
 }

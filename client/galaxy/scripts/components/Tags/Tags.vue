@@ -3,6 +3,7 @@
         v-model="observedTags"
         :disabled="disabled"
         :autocomplete-items="autocompleteItems"
+        :useToggleLink="useToggleLink"
         @tag-click="onClick"
         @tag-input-changed="updateTagSearch"
         @before-adding-tag="beforeAddingTag"
@@ -37,7 +38,10 @@ export default {
         storeKey: { type: String, required: true },
 
         // allows user to edit tag list
-        disabled: { type: Boolean, required: false, default: false }
+        disabled: { type: Boolean, required: false, default: false },
+
+        // uses toggle link when lots of tags
+        useToggleLink: { type: Boolean, required: false, default: true }
     },
 
     computed: {
