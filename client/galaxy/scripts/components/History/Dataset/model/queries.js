@@ -2,15 +2,15 @@ import axios from "axios";
 import { prependPath } from "utils/redirect";
 
 
-export async function updateDataset(history_id, dataset_id, payload) {
-    const path = `/api/histories/${history_id}/contents/datasets/${dataset_id}`;
-    const url = prependPath(path);
-    const response = await axios.put(url, payload);
-    if (response.status != 200) {
-        throw new Error(response);
-    }
-    return response.data;
-}
+// export async function updateDataset(history_id, dataset_id, payload) {
+//     const path = `/api/histories/${history_id}/contents/datasets/${dataset_id}`;
+//     const url = prependPath(path);
+//     const response = await axios.put(url, payload);
+//     if (response.status != 200) {
+//         throw new Error(response);
+//     }
+//     return response.data;
+// }
 
 
 export async function loadToolFromDataset(dataset) {

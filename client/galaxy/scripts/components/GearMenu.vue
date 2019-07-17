@@ -1,27 +1,28 @@
 <template>
+    <!-- need to emit a clicked event because Bootstrap's
+        popover doesn't work as advertised -->
     <div class="gear-menu" ref="menu" @click="$emit('clicked', $event)">
         <slot :go="go" :iframeGo="iframeGo"
-            :backboneGo="backboneGo" 
+            :backboneGo="backboneGo"
             :eventHub="eventHub"></slot>
     </div>
 </template>
 
+
 <script>
 
 import { redirectToSiteUrl, backboneRedirect, iframeRedirect } from "utils/redirect";
-import { eventHub } from "components/eventHub";
+import { eventHub } from "./eventHub";
 
 export default {
     data() {
-        return { 
+        return {
             eventHub
         };
     },
     methods: {
         go: redirectToSiteUrl,
-        iframeGo(url) {
-            iframeRedirect(url);
-        },
+        iframeGo: iframeRedirect,
         backboneGo: backboneRedirect
     }
 }

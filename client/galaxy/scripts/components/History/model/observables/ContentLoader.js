@@ -1,51 +1,89 @@
 /**
  * Subscribes to a live content query observable (Content$) and a pollling
- * update (PollUpdate$) that updates the local database with changed data
+ * update  that updates the local database with changed data
  * corresponding to the history and parameters passed in.
  */
 
 import { of } from "rxjs";
-import { tap, share, first } from "rxjs/operators";
-import { getCachedHistory } from "./CachedData";
-import { PollUpdate$ } from "./PollUpdate$";
+import { map, share, takeUntil } from "rxjs/operators";
+import { createInputFunction, poll } from "utils/observable";
+import { getCachedHistory } from "caching";
+import { SearchParams } from "../SearchParams";
 import { Param$ } from "./Param$";
-import { localContentObservable } from "./Content$";
-import store from "store";
+import { getContentObservable, loadAndCacheContentForParams } from "./Content";
+import { historyUpdate } from "./historyUpdate";
+
+
+export const stopPolling = createInputFunction();
 
 
 export function ContentLoader(historyId) {
 
     // just one history
     const history$ = of(historyId).pipe(
-        getCachedHistory(),
-        first(),
+        getCachedHistory()
+    );
+
+    // watch vuex store for changes in params. Not sure we should
+    // be storing params in store at all since they're really local
+    // state to the history component
+    const param$ = Param$(history$, 200, true).pipe(
         share()
     );
-    
-    // watch vuex store for changes in params
-    const param$ = Param$(store, history$);
+
+    // content visible on the screen looks straight at the database
+    // and returns anything matching the params, throw away start/end
+    const content$ = param$.pipe(
+        map(p => p.clone().removeLimits()),
+        getContentObservable()
+    )
+
+
+    // Explicitly load requested content based on changing params
+
+    const manual$ = param$.pipe(
+        loadAndCacheContentForParams(false),
+        share()
+    )
+
+
+    // Poll for any recent changes to the history or its contents
+
+    const buildRequest = history => of(history).pipe(
+        historyUpdate(),
+        map(h => SearchParams.entireHistory(h)),
+        loadAndCacheContentForParams()
+    )
+
+    const polling$ = history$.pipe(
+        takeUntil(stopPolling.$),
+        poll({ buildRequest, reTriggers: manual$ })
+    )
+
 
     // subscribe to content observable
     function subscribe(/* success, error, complete */) {
-        const content$ = param$.pipe(
-            localContentObservable("visible content", false)
-        );
-        const sub = content$.subscribe.apply(content$, arguments);
-        // return sub.add(subscribeToPolling());
-        return sub;
-    }
 
-    // piggy-back subscription to polling
-    function subscribeToPolling() {
-        const update$ = PollUpdate$(history$, param$);
-        return update$.subscribe(
-            null, // result => console.log("poll result", result),
-            error => console.warn("poll error", error),
-            () => console.log("poll complete")
-        );
+        // direct observable, delivers what should be on the screen
+        const contentSub = content$.subscribe.apply(content$, arguments);
+
+        const manualSub = manual$.subscribe({
+            // next: result => console.log("manual result", result),
+            complete: () => console.log("manual complete"),
+            error: err => console.warn("manual err", err)
+        });
+
+        const pollSub = polling$.subscribe({
+            // next: result => console.log("polling result", result),
+            complete: () => console.log("polling complete"),
+            error: err => console.warn("polling err", err)
+        });
+
+        return contentSub.add(manualSub).add(pollSub);
     }
 
     return {
         subscribe
     };
 }
+

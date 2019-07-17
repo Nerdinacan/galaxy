@@ -1,24 +1,31 @@
 <template>
-    <component v-if="content"
-        class="history-content-item list-item"
+    <component v-if="content" 
         :class="contentClassName"
-        :is="contentItemComponent"
+        :is="contentItemComponent" 
         :content="content" />
 </template>
 
+
 <script>
 
+import { of } from "rxjs";
 import { DatasetItem } from "./Dataset";
 import { DatasetCollectionItem } from "./DatasetCollection";
 import dasherize from "underscore.string/dasherize";
+import { getCachedContent } from "caching";
 
 export default {
     props: {
-        content: { type: Object, required: true },
+        typeId: { type: String, required: true }
     },
     components: {
         "dataset": DatasetItem,
         "dataset_collection": DatasetCollectionItem
+    },
+    subscriptions() {
+        return {
+            content: of(this.typeId).pipe(getCachedContent())
+        }
     },
     computed: {
         contentItemComponent() {
@@ -31,3 +38,13 @@ export default {
 }
 
 </script>
+
+
+<style>
+
+.dataset, .dataset-collection {
+    outline: none;
+    border: none;
+}
+
+</style>

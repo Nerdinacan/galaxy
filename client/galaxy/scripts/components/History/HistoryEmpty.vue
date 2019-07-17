@@ -23,11 +23,13 @@ export default {
     methods: {
         openUploader(evt) {
             const Galaxy = getGalaxyInstance();
-            Galaxy.upload.show(evt);
+            if (Galaxy) {
+                Galaxy.upload.show(evt);
+            }
         },
         getDataLink(evt) {
             // TODO: remove this jquery when the toolmenu container is a component
-            let $toolMenu = $(".toolMenuContainer");
+            const $toolMenu = $(".toolMenuContainer");
             $toolMenu.parent().scrollTop(0);
             $toolMenu.find('span:contains("Get Data")').click();
         }

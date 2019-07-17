@@ -10,7 +10,7 @@ addInitialization((Galaxy, { options = {} }) => {
     console.log("Analysis custom page setup");
 
     const useBeta = sessionStorage.getItem("useBetaHistory");
-    const RightPanel = Boolean(useBeta) ? HistoryPanelProxy : HistoryPanel;
+    const RightPanel = useBeta ? HistoryPanelProxy : HistoryPanel;
 
     const pageOptions = Object.assign({}, options, {
         config: Object.assign({}, options.config, {

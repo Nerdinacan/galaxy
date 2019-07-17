@@ -3,34 +3,32 @@
 
         <!-- _renderDisplayButton -->
         <icon-menu-item v-if="showDisplayButton"
-            :title="displayButtonTitle" 
+            :title="displayButtonTitle"
             :disabled="displayButtonDisabled"
             class="display-btn"
             icon="eye"
-            @click="viewData"
+            @click.stop="viewData"
             tooltip-placement="topleft" />
 
         <!-- _renderEditButton -->
         <icon-menu-item v-if="showEditButton"
-            :title="editButtonTitle" 
+            :title="editButtonTitle"
             :disabled="editButtonDisabled"
             icon="pencil"
-            @click="editAttributes"
+            @click.stop="editAttributes"
             tooltip-placement="topleft" />
 
-        
-       
         <!-- _renderErrButton
         Render icon-button to report an error on this
         dataset to the galaxy admin. -->
         <icon-menu-item v-if="showErrorButton"
             title="View or report this error"
             icon="bug"
-            @click="reportError"
-            tooltip-placement="topright" /> 
+            @click.stop="reportError"
+            tooltip-placement="topright" />
 
         <!-- _renderDownloadButton -->
-        <icon-menu-item v-if="showDownloads && !hasMetaData"
+        <icon-menu-item v-if="showDownloads && hasMetaData"
             title="Download"
             icon="floppy-o"
             :href="getUrl('download')"
@@ -40,21 +38,21 @@
             title="Download"
             icon="floppy-o"
             tooltip-placement="topright" />
-        
+
         <!-- _renderShowParamsButton -->
         <!-- Render icon-button to show the input and output (stdout/err) for
         the job that created this. -->
         <icon-menu-item v-if="showJobParamsButton"
             title="View Details"
             icon="info-circle"
-            @click="displayJobParams"
+            @click.stop="displayJobParams"
             tooltip-placement="topright" />
 
         <!-- _renderRerunButton -->
         <icon-menu-item v-if="showRerunButton"
             title="Run this job again"
             icon="refresh"
-            @click="rerun"
+            @click.stop="rerun"
             :href="dataset.urls.rerun"
             tooltip-placement="topright" />
 
@@ -64,24 +62,24 @@
             title="Visualize this data"
             icon="bar-chart"
             :href="visualizeUrl"
-            @click="visualize"
+            @click.stop="visualize"
             tooltip-placement="topright" />
-
-        <!-- _renderDeleteButton  -->
-        <icon-menu-item v-if="showDeleteButton"
-            :title="deleteButtonTitle" 
-            :disabled="deleteButtonDisabled"
-            icon="times"
-            @click="deleteDataset"
-            tooltip-placement="topleft" />
 
         <!-- _renderToolHelpButton -->
         <icon-menu-item v-if="showToolHelpButton"
             title="Tool Help"
             icon="question"
             href="#"
-            @click="eventHub.$emit('toggleToolHelp', dataset)"
+            @click.stop="toggleToolHelp"
             tooltip-placement="topright" />
+
+        <!-- _renderDeleteButton  -->
+        <icon-menu-item v-if="showDeleteButton"
+            :title="deleteButtonTitle"
+            :disabled="deleteButtonDisabled"
+            icon="times"
+            @click.stop="deleteDataset"
+            tooltip-placement="topleft" />
 
         <b-popover v-if="showDownloads && hasMetaData"
             ref="downloadMenu"
@@ -89,7 +87,7 @@
             placement="bottomleft"
             triggers="focus">
             <gear-menu #default="{ go }">
-                <div @click="$refs.downloadMenu.$emit('close')">
+                <div @click.stop="$refs.downloadMenu.$emit('close')">
                     <a class="dropdown-item" :href="getUrl('download')">
                         {{ 'Download Dataset' | localize }}
                     </a>
@@ -107,7 +105,7 @@
             placement="bottomleft"
             triggers="focus">
             <gear-menu #default="{ go }">
-                <div @click="$refs.vizMenu.$emit('close')">
+                <div @click.stop="$refs.vizMenu.$emit('close')">
                     Visualizations
                 </div>
             </gear-menu>
@@ -118,14 +116,13 @@
 
 <script>
 
-import { mapActions, mapGetters } from "vuex";
-import { prependPath, redirectToSiteUrl, backboneRedirect, iframeRedirect } from "utils/redirect";
 import { getGalaxyInstance } from "app";
+import { mapActions } from "vuex";
+import { prependPath, iframeRedirect } from "utils/redirect";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
-import GearMenu from "../GearMenu";
-import STATES from "mvc/dataset/states";
-import { getToolHelpHtml } from "./queries";
+import GearMenu from "components/GearMenu";
 import { eventHub } from "components/eventHub";
+import STATES from "mvc/dataset/states";
 
 const messages = {
 
@@ -149,36 +146,25 @@ const messages = {
 
 export default {
     components: {
-        IconMenu, 
-        IconMenuItem, 
+        IconMenu,
+        IconMenuItem,
         GearMenu
     },
     props: {
-        dataset: { type: Object, required: true },
-        expanded: { type: Boolean, required: false, default: false }
+        content: { type: Object, required: true },
+        dataset: { required: false, default: null }
     },
     data() {
-        return { 
-            messages,
-            eventHub
+        return {
+            messages
         }
     },
     computed: {
 
         state() {
-            return this.dataset.state;
+            return this.content.state;
         },
-        // handle our absurd delete-state flagging
-        // because apparently you can be purged without being deleted
-        isDeletedOrPurged() {
-            return this.dataset.isDeleted || this.dataset.purged;
-        },
-        hasData() {
-            return this.dataset.file_size > 0;
-        },
-        hasMetaData() {
-            return this.dataset.meta_files.length > 0;
-        },
+
 
         // Display button
 
@@ -187,7 +173,7 @@ export default {
                 STATES.NOT_VIEWABLE,
                 STATES.DISCARDED
             ]);
-            return this.dataset.accessible 
+            return this.content.accessible
                 && !badStates.has(this.state);
         },
         displayButtonDisabled() {
@@ -195,11 +181,11 @@ export default {
                 STATES.UPLOAD,
                 STATES.NEW
             ]);
-            return this.dataset.purged
+            return this.content.purged
                 || badStates.has(this.state);
         },
         displayButtonTitle() {
-            if (this.dataset.purged) {
+            if (this.content.purged) {
                 return messages.displayPurged;
             }
             if (this.state == STATES.UPLOAD) {
@@ -219,17 +205,17 @@ export default {
                 STATES.NOT_VIEWABLE,
                 STATES.DISCARDED
             ]);
-            return this.dataset.accessible 
+            return this.content.accessible
                 && !badStates.has(this.state);
         },
         editButtonDisabled() {
             // disable if purged or deleted and explain why in the tooltip
             // disable if still uploading or new
             const disabledStates = new Set([
-                STATES.UPLOAD, 
+                STATES.UPLOAD,
                 STATES.NEW
             ]);
-            return this.isDeletedOrPurged 
+            return this.isDeletedOrPurged
                 || disabledStates.has(this.state);
         },
         editButtonTitle() {
@@ -250,16 +236,16 @@ export default {
 
 
         // Delete button
-        
+
         showDeleteButton() {
-            return this.dataset.accessible;
+            return this.content.accessible;
         },
         deleteButtonDisabled() {
             return this.isDeletedOrPurged;
         },
         deleteButtonTitle() {
-            return this.isDeletedOrPurged 
-                ? messages.deleteAlreadyDeleted 
+            return this.isDeletedOrPurged
+                ? messages.deleteAlreadyDeleted
                 : messages.deleteDefault;
         },
 
@@ -267,82 +253,79 @@ export default {
         // report error button
 
         showErrorButton() {
-            return this.state == STATES.ERROR;
+            return this.dataset && this.state == STATES.ERROR;
         },
 
 
         // downloads
 
         showDownloads() {
-            if (this.dataset.purged || !this.hasData) return false;
-            const okStates = new Set([ 
-                STATES.OK, 
-                STATES.FAILED_METADATA, 
+            if (!this.dataset || this.content.purged || !this.dataset.hasData()) {
+                return false;
+            }
+            const okStates = new Set([
+                STATES.OK,
+                STATES.FAILED_METADATA,
                 STATES.ERROR
             ]);
             return okStates.has(this.state);
+        },
+
+        hasMetaData() {
+            return this.dataset && this.dataset.hasMetaData();
         },
 
 
         // Params Button
 
         showJobParamsButton() {
-            return this.state !== STATES.NOT_VIEWABLE;
+            return this.dataset && this.state !== STATES.NOT_VIEWABLE;
         },
+
 
         // rerun
 
         showRerunButton() {
-            const badStates = new Set([ 
-                STATES.UPLOAD, 
-                STATES.NOT_VIEWABLE 
+            const badStates = new Set([
+                STATES.UPLOAD,
+                STATES.NOT_VIEWABLE
             ]);
-            return (!badStates.has(this.state)
+            return this.dataset
+                && !badStates.has(this.state)
                 && this.dataset.rerunnable
-                && Boolean(this.dataset.creating_job));
+                && Boolean(this.dataset.creating_job);
         },
 
 
         // visualize
+        // TODO: make "hasVisualizations" flag in the dataset response
 
         showVisualizeButton() {
-            const goodStates = new Set([ 
-                STATES.OK, STATES.FAILED_METADATA 
+            const goodStates = new Set([
+                STATES.OK,
+                STATES.FAILED_METADATA
             ]);
-            if (!goodStates.has(this.state)
-                || this.isDeletedOrPurged
-                || !this.hasUser
-                || !this.hasData) {
-                return false;
-            }
-
-            // TODO: make "hasVisualizations" flag in the dataset response
-            // var visualizations = this.dataset.visualizations;
-            // if (!_.isObject(visualizations[0])) {
-            //     this.warn("Visualizations have been switched off");
-            //     return null;
-            // }
-            // return this.dataset.visualizations.length > 0;
-
-            return true;
+            return this.dataset
+                && goodStates.has(this.state)
+                && !this.isDeletedOrPurged
+                && this.hasUser
+                && this.dataset.hasData();
         },
 
         visualizeUrl() {
-            const id = this.dataset.id;
-            return `${getAppRoot()}visualizations?dataset_id=${id}`;
+            return prependPath(`visualizations?dataset_id=${this.dataset.id}`);
         },
 
         // tool help button
 
         showToolHelpButton() {
             const Galaxy = getGalaxyInstance();
-            return Galaxy && Galaxy.user && Galaxy.user.id;
+            return this.dataset && Galaxy && Galaxy.user && Galaxy.user.id;
         }
-
 
     },
     methods: {
-        
+
         ...mapActions("history", [
             "deleteContent",
             "undeleteContent"
@@ -383,7 +366,7 @@ export default {
                 dataset_id: this.dataset.id
             });
         },
-        
+
         deleteDataset() {
             this.deleteContent({ content: this.dataset });
         },
@@ -414,21 +397,26 @@ export default {
         },
 
         visualize() {
-            const Galaxy = getGalaxyInstance();
-            const id = this.dataset.id;
-            if (Galaxy) {
-                if (Galaxy.frame && Galaxy.frame.active) {
-                    Galaxy.frame.add({ 
-                        url, 
-                        title: "Visualization"
-                    });
-                } else if (Galaxy.router) {
-                    this.bbRoute("visualizations", {
-                        dataset_id: id
-                    });
-                    Galaxy.trigger("activate-hda", id);
-                }
-            }
+            console.log("visualize");
+            // const Galaxy = getGalaxyInstance();
+            // const id = this.dataset.id;
+            // if (Galaxy) {
+            //     if (Galaxy.frame && Galaxy.frame.active) {
+            //         Galaxy.frame.add({
+            //             url,
+            //             title: "Visualization"
+            //         });
+            //     } else if (Galaxy.router) {
+            //         this.bbRoute("visualizations", {
+            //             dataset_id: id
+            //         });
+            //         Galaxy.trigger("activate-hda", id);
+            //     }
+            // }
+        },
+
+        toggleToolHelp() {
+            eventHub.$emit('toggleToolHelp', this.dataset)
         }
 
     }

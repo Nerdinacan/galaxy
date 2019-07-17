@@ -1,12 +1,12 @@
 <template>
     <section>
 
-        <header>
+        <header class="d-flex justify-content-between">
             <h6>{{ niceSize | localize }}</h6>
             <slot name="menu">
-                <icon-menu>
+                <icon-menu class="no-border">
                     <icon-menu-item
-                        title="Edit History Tags" 
+                        title="Edit History Tags"
                         icon="tags"
                         @click="toggle('showTags')"
                         tooltip-placement="topleft" />
@@ -27,34 +27,23 @@
             </slot>
         </header>
 
-        <!-- click to edit name / nameinput -->
-        <div class="history-title mt-4" ref="historyNameInput">
-            <h2 v-if="!editName" @click="toggle('editName', true)">
-                <span class="editable"></span>
-                <span>{{ historyName }}</span>
-                <b-tooltip ref="nameTooltip" placement="left"
-                    :target="() => $refs['historyNameInput']" 
+        <!-- click to edit name -->
+        <click-to-edit v-model="historyName"
+            tag-name="h2" class="history-title mt-4"
+            :state-validator="nameInputState"
+            ref="historyNameInput">
+            <template v-slot:tooltip>
+                <b-tooltip placement="left" :target="() => $refs.historyNameInput"
                     :title="'Click to rename history' | localize" />
-            </h2>
-            <h2 v-if="editName">
-                <debounced-input v-model="historyName" :delay="1000">
-                    <b-form-input slot-scope="scope" 
-                        :value="scope.value" 
-                        @input="scope.input"
-                        @blur="toggle('editName', false)" 
-                        :autofocus="true"
-                        :placeholder="'History Name' | localize"
-                        :state="inputLengthCheck(scope.value, historyName)" />
-                </debounced-input>
-            </h2>
-        </div>
+            </template>
+        </click-to-edit>
 
         <!-- annotation -->
         <annotation class="history-annotation mt-1" v-model="annotation" />
 
         <!-- tags -->
         <transition name="shutterfade">
-            <history-tags v-if="showTags" class="history-tags mt-2" 
+            <history-tags v-if="showTags" class="history-tags mt-2"
                 :history="history" />
         </transition>
 
@@ -68,7 +57,7 @@
 
             <gear-menu #default="{ go }">
                 <div @click="$refs.downloadMenu.$emit('close')">
-                    <a class="dropdown-item" href="#" 
+                    <a class="dropdown-item" href="#"
                         @click="go('/histories/citations')">
                         {{ 'Export Tool Citations' | localize }}
                     </a>
@@ -99,7 +88,7 @@
                         @click="backboneGo('/histories/show_structure')">
                         {{ 'Show Structure' | localize }}
                     </a>
-                    <a class="dropdown-item" href="#" 
+                    <a class="dropdown-item" href="#"
                         @click="iframeGo('/workflow/build_from_current_history')">
                         {{ 'Extract Workflow' | localize }}
                     </a>
@@ -121,19 +110,19 @@
 
         <copy-modal v-model="showCopyModal" :history="history" />
 
-        <b-modal id="delete-history-modal" 
+        <b-modal id="delete-history-modal"
             title="Delete History?" title-tag="h2"
             @ok="deleteHistory">
             <p>{{ messages.deleteHistoryPrompt | localize }}</p>
         </b-modal>
 
-        <b-modal id="purge-history-modal" 
+        <b-modal id="purge-history-modal"
             title="Permanently Delete History?" title-tag="h2"
             @ok="purgeHistory">
             <p>{{ messages.purgeHistoryPrompt | localize }}</p>
         </b-modal>
 
-        <b-modal id="make-private-modal" 
+        <b-modal id="make-private-modal"
             title="Make History Private" title-tag="h2"
             @ok="makePrivate">
             <p>{{ messages.makePrivatePrompt | localize }}</p>
@@ -148,8 +137,8 @@
 import { mapActions } from "vuex";
 import HistoryTags from "./HistoryTags";
 import CopyModal from "./CopyModal";
-import DebouncedInput from "components/Form/DebouncedInput";
-import GearMenu from "./GearMenu";
+import ClickToEdit from "components/Form/ClickToEdit";
+import GearMenu from "components/GearMenu";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
 import { bytesToString } from "utils/utils"
 import Annotation from "components/Form/Annotation";
@@ -165,10 +154,10 @@ export default {
         HistoryTags,
         IconMenu,
         IconMenuItem,
-        DebouncedInput,
         CopyModal,
         GearMenu,
-        Annotation
+        Annotation,
+        ClickToEdit
     },
     props: {
         history: { type: Object, required: true }
@@ -177,7 +166,6 @@ export default {
         return {
             showTags: false,
             showCopyModal: false,
-            editName: false,
             editAnnotation: false,
             messages,
             showRaw: false
@@ -218,7 +206,7 @@ export default {
             "deleteCurrentHistory",
             "makeHistoryPrivate"
         ]),
-        
+
         updateFields(fields = {}) {
             this.updateHistoryFields({
                 history: this.history,
@@ -239,9 +227,10 @@ export default {
         },
 
 
-        // Validation
+        // History name validation
+        // controls good/bad appearance of the input
 
-        inputLengthCheck(val, origVal) {
+        nameInputState(val, origVal) {
             if (val === origVal) {
                 return null;
             }
@@ -292,20 +281,15 @@ export default {
 
 </script>
 
+
 <style lang="scss" scoped>
 
-@import "~scss/mixins.scss";
+@import "theme/blue.scss";
 
 /* enlarge title input text to match h2 */
-.history-title h2 input {
-    font-size: 1.4rem;
-    font-weight: 400;
-}
-
-/* click-to-edit icons */
-.history-title h2,
-.history-annotation p {
-    @include clickToEdit();
+.history-title /deep/ h2 input {
+    font-size: $h2-font-size;
+    font-weight: 500;
 }
 
 </style>

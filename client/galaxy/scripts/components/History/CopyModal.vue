@@ -109,7 +109,9 @@ export default {
     },
     methods: {
         
-        ...mapActions("history", ["copyHistory"]),
+        ...mapActions("history", [
+            "copyHistory"
+        ]),
         
         copyHistory(close) {
             const { history, name, copyAll } = this;
@@ -130,3 +132,8 @@ export default {
 }
 
 </script>
+
+
+<style lang="scss">
+@import "~scss/transitions.scss";
+</style>

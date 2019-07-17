@@ -8,6 +8,7 @@ $fa-font-path: "~font-awesome/fonts/";
 @import "~font-awesome/scss/font-awesome.scss";
 @import "~font-awesome/scss/_mixins";
 
+
 // Utility mixin expands to container edges
 @mixin fill() {
     position: relative;
@@ -23,6 +24,16 @@ $fa-font-path: "~font-awesome/fonts/";
     left: 0;
     right: 0;
     bottom: 0;
+}
+
+// Centers object inside parent
+// position parent container relative or absolute
+@mixin absCenter() {
+    position: absolute;
+    display: block;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%)
 }
 
 
@@ -49,10 +60,6 @@ $fa-font-path: "~font-awesome/fonts/";
     }
 }
 
-@mixin scrollMe() {
-    overflow-x: hidden;
-    overflow-y: auto;
-}
 
 // top selector fixed, bottom list scrolls
 @mixin scrollingListLayout($fixedTop, $listRegion) {
@@ -65,21 +72,14 @@ $fa-font-path: "~font-awesome/fonts/";
 
     & #{$listRegion} {
         flex-grow: 1;
-        @include scrollMe();
+        overflow-x: hidden;
+        overflow-y: auto;
     }
 }
 
-// Removes browser formatting of lists
-
-@mixin list_reset() {
-    list-style: none;
-    padding: 0 0 0 0;
-    margin: 0 0 0 0;
-}
 
 // font awesome as a mixin
 // icon variables come from ~font-awesome/scss/_variables.scss
-
 @mixin fontawesome($icon) {
     @include fa-icon();
     &:before {
@@ -93,6 +93,8 @@ $fa-font-path: "~font-awesome/fonts/";
 }
 
 
+// Makes content available to screen readers even 
+// though it's not visible on the page
 @mixin forScreenReader() {
     position: absolute;
     top: auto;
@@ -102,6 +104,7 @@ $fa-font-path: "~font-awesome/fonts/";
     overflow: hidden;
 }
 
+
 @mixin flexRowHeader() {
     display: flex;
     flex-direction: row;
@@ -109,22 +112,16 @@ $fa-font-path: "~font-awesome/fonts/";
     align-items: center;
 }
 
-// Do we not have a general css reset?
+
+// Do we not use a css reset?
 @mixin resetHeaders() {
     h1, h2, h3, h4, h5, h6 {
         margin: 0;
     }
 }
 
-/* annotation and title editor fields */
-@mixin clickToEdit() {
-    position: relative;
-    &:hover .editable {
-        @include fontawesome($fa-var-edit);
-        position: absolute;
-        top: 0;
-        right: 0;
-        color: $brand-info;
-        font-size: 0.8rem;
-    }
+@mixin list_reset() {
+    list-style: none;
+    padding: 0 0 0 0;
+    margin: 0 0 0 0;
 }

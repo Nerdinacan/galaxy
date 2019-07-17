@@ -5,11 +5,10 @@
  */
 
 import { merge, concat } from "rxjs";
-import { tap, map, mergeMap, filter, share, 
-    pluck, take, withLatestFrom } from "rxjs/operators";
+import { tap, map, mergeMap, filter, share, pluck, take, withLatestFrom } from "rxjs/operators";
 import { getCurrentHistory, selectCurrentHistory } from "../queries";
 import { HistoryList$ } from "./HistoryList$";
-import { split, firstItem, createInputFunction } from "./utils";
+import { split, firstItem, createInputFunction } from "utils/observable";
 import { CurrentUserId$ } from "components/User/model/CurrentUser$";
 
 

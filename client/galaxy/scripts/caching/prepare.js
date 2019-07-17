@@ -3,11 +3,12 @@
  * indicated schema. I tried implementing this with collection hooks, but had
  * erratic results.
  */
-import historySchema from "./history.schema";
-import historyContentSchema from "./historyContent.schema";
-import datasetSchema from "./dataset.schema";
-import datasetCollectionSchema from "./datasetCollection.schema";
-import { conformToSchema } from "./schemaUtils";
+
+import historySchema from "./schema/history.schema";
+import historyContentSchema from "./schema/historyContent.schema";
+import datasetSchema from "./schema/dataset.schema";
+import datasetCollectionSchema from "./schema/datasetCollection.schema";
+import conformToSchema from "./conformToSchema";
 
 
 
@@ -26,7 +27,7 @@ export function prepareHistory(raw) {
 
 const conformManifest = conformToSchema(historyContentSchema);
 
-export function prepareManifestItem(raw) {
+export function prepareContentSummary(raw) {
     const item = conformManifest(raw);
     item.isDeleted = raw.deleted;
     return item;
@@ -50,7 +51,7 @@ const conformDsc = conformToSchema(datasetCollectionSchema);
 
 export function prepareDatasetCollection(raw) {
     const dsc = conformDsc(raw);
-    if (!dsc.update_time) {
+    if (!raw.update_time) {
         dsc.update_time = (new Date()).toISOString();
     }
     return dsc;

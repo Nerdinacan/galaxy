@@ -1,8 +1,9 @@
 import { TagService } from "components/Tags/tagService";
 import { createTag } from "components/Tags/model";
-import store from "store";
+import { updateDatasetFields } from "./Dataset$";
 
-// TODO: refactor Tags. Not liking this service injection
+
+// TODO: refactor Tags (again). Not liking this service injection
 
 export class DatasetTagService extends TagService {
 
@@ -20,7 +21,7 @@ export class DatasetTagService extends TagService {
         const tag = createTag(rawTag);
         const tagSet = new Set(this.dataset.tags);
         tagSet.add(tag.text);
-        const cachedDataset = await this.saveDatasetTags(tagSet);
+        await this.saveDatasetTags(tagSet);
         return tag;
     }
 
@@ -28,18 +29,15 @@ export class DatasetTagService extends TagService {
         const tag = createTag(rawTag);
         const tagSet = new Set(this.dataset.tags);
         tagSet.delete(tag.text);
-        const cachedDataset = await this.saveDatasetTags(tagSet);
+        await this.saveDatasetTags(tagSet);
         return tag;
     }
 
     async saveDatasetTags(rawTags) {
-        return await store.dispatch("dataset/updateDatasetFields", {
-            history_id: this.history_id,
-            dataset_id: this.dataset.id,
-            fields: { 
-                tags: Array.from(rawTags)
-            }
-        });
+        const body = {
+            tags: JSON.stringify(Array.from(rawTags))
+        };
+        return await updateDatasetFields(this.dataset, body).toPromise();
     }
 
 }

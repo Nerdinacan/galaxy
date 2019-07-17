@@ -1,18 +1,13 @@
 <template>
     <nav v-if="historyId" class="history-list-menu d-flex align-items-center">
-        
+
         <history-selector class="mr-3" v-model="historyId" />
-        
-        <icon-menu>
+
+        <icon-menu class="no-border">
             <icon-menu-item
-                title="Create New History" 
+                title="Create New History"
                 icon="plus"
-                @click="createNewHistory" 
-                tooltip-placement="bottom" />
-            <icon-menu-item
-                title="Delete Local Database (Debugging)"
-                icon="bolt"
-                @click="deleteLocalDatabase"
+                @click="createNewHistory"
                 tooltip-placement="bottom" />
             <icon-menu-item
                 title="Stop Polling (Debugging)"
@@ -29,6 +24,7 @@
             target="endlessMenuGear"
             placement="bottomleft"
             triggers="focus">
+
             <gear-menu #default="{ go, backboneGo, iframeGo }">
                 <div @clicked="$refs.endlessMenu.$emit('close')">
                     <a class="dropdown-item" href="#"
@@ -53,6 +49,7 @@
                     </a>
                 </div>
             </gear-menu>
+
         </b-popover>
     </nav>
 </template>
@@ -61,15 +58,10 @@
 <script>
 
 import { mapState, mapActions } from "vuex";
-
 import HistorySelector from "./HistorySelector";
-import GearMenu from "./GearMenu";
+import GearMenu from "components/GearMenu";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
-import { HistoryTopNav } from "./HistoryTopNav";
-
-import { eventHub } from "components/eventHub";
-import { wipeDB } from "./model/db";
-import { stopPolling } from "./model/observables/PollUpdate$";
+import { stopPolling } from "./model/observables/ContentLoader";
 
 export default {
     components: {
@@ -80,7 +72,9 @@ export default {
     },
     computed: {
 
-        ...mapState("history", [ "currentHistoryId" ]),
+        ...mapState("history", [
+            "currentHistoryId"
+        ]),
 
         historyId: {
             get() {
@@ -92,20 +86,19 @@ export default {
         }
     },
     methods: {
+
         ...mapActions("history", [
             "selectCurrentHistory",
             "createNewHistory",
             "deleteCurrentHistory",
         ]),
-        deleteLocalDatabase() {
-            wipeDB().subscribe(db => console.log("Local database deleted"));
-        },
+
         stopPolling,
+
         useLegacyHistoryPanel() {
             sessionStorage.removeItem('useBetaHistory');
             location.reload();
         }
-
     }
 }
 

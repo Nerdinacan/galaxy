@@ -5,7 +5,7 @@
             <a @click="close">Close</a>
         </header>
         <div>
-            <textarea>{{ dscDoc.toJSON() }}</textarea>
+            <textarea :value="dscDoc.toJSON()"></textarea>
         </div>
     </section>
 </template>
@@ -13,8 +13,8 @@
 <script>
 
 import { mapMutations } from "vuex";
-import { filter, pluck, startWith } from "rxjs/operators";
-import { getCachedDatasetCollection } from "../model/observables/CachedData";
+import { pluck, startWith } from "rxjs/operators";
+import { getCachedDatasetCollection } from "caching";
 
 export default {
     props: {

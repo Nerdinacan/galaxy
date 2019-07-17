@@ -7,12 +7,11 @@
 nav {
     display: flex;
     justify-content: space-between;
-    & > * {
-        margin-left: 0.5rem;    
-        & :first-child {
-            margin-left: 0;
-        }
-    }
+}
+
+nav.no-border /deep/ .fa.icon-btn {
+    background: transparent;
+    border: none;
 }
 
 </style>

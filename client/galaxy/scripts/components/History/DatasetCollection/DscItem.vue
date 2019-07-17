@@ -1,16 +1,16 @@
 <template>
-    <div v-if="content">
+    <div>
         <header>
             <h5 class="m-0">
-                <a href="#" @click="toggleDetails">{{ title }}</a>
+                <a href="#" @click="toggleDetails">{{ content.hid }}: {{ title }}</a>
             </h5>
-            <icon-menu>
+            <!-- <icon-menu>
                 <icon-menu-item 
                     title="Delete" 
                     icon="times"
                     @click="deleteCollection"
                     tooltip-placement="topleft" />
-            </icon-menu>
+            </icon-menu> -->
         </header>
     </div>
 </template>
@@ -20,7 +20,7 @@
 
 import { filter, pluck, startWith } from "rxjs/operators";
 import { mapState, mapMutations } from "vuex";
-import { getCachedDatasetCollection } from "../model/observables/CachedData";
+import { getCachedDatasetCollection } from "caching";
 import { eventHub } from "components/eventHub";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
 
@@ -34,7 +34,8 @@ export default {
     },
     data() {
         return {
-            showDetails: false
+            showDetails: false,
+            dsc: null
         }
     },
     computed: {
@@ -52,27 +53,32 @@ export default {
             const id = this.showDetails ? this.content.id : null;
             this.setCurrentCollectionId(id)
         },
+
         collapse() {
             this.showDetails = false;
         },
+        
         deleteCollection() {
             console.log("deleteCollection");
             console.dir(this.dsc);
         }
+
     },
-    subscriptions() {
-        const dsc = this.$watchAsObservable("content", { immediate: true }).pipe(
-            pluck("newValue", "id"),
-            getCachedDatasetCollection(),
-            startWith(null)
-        );
-        return { dsc };
-    },
+    // subscriptions() {
+    //     const dsc = this.$watchAsObservable("content", { immediate: true }).pipe(
+    //         pluck("newValue", "id"),
+    //         getCachedDatasetCollection(),
+    //         startWith(null)
+    //     );
+    //     return { dsc };
+    // },
     created() {
-        eventHub.$on('collapse-content', this.collapse);
+        eventHub.$on('collapseAllContent', this.collapse);
+        eventHub.$on('toggleContent', this.toggleDetails);
     },
     beforeDestroy() {
-        eventHub.$off('collapse-content', this.collapse);
+        eventHub.$off('collapseAllContent', this.collapse);
+        eventHub.$off('toggleContent', this.toggleDetails);
     }
 }
 

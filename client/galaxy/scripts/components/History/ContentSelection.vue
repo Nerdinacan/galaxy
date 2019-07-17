@@ -16,8 +16,8 @@
                     </a>
                 </span>
             </h6>
-            
-            <icon-menu>
+
+            <icon-menu class="no-border">
                 <icon-menu-item
                     title="Filter History Content"
                     icon="filter"
@@ -38,16 +38,16 @@
         <!-- search parameters -->
         <transition name="shutterfade">
             <content-filters v-if="showFilter"
-                class="content-filters mt-2"
-                v-model="params" 
+                class="content-filters mt-1"
+                v-model="params"
                 :history="history" />
         </transition>
 
         <!-- dataset selection -->
         <transition name="shutterfade">
             <b-button-toolbar v-if="showSelection"
-                class="content-selection justify-content-between mt-2">
-                
+                class="content-selection justify-content-between mt-1">
+
                 <b-button-group>
 
                     <b-button size="sm" @click="selectAllVisibleContent">
@@ -57,8 +57,11 @@
                     <b-button size="sm" @click="clearSelection">
                         {{ 'Unselect All' | localize }}
                     </b-button>
-        
-                    <b-dropdown size="sm" text="With Selected" boundary="viewport">
+
+                    <b-dropdown size="sm" text="With Selected"
+                        :disabled="!hasSelection"
+                        boundary="viewport">
+
                         <b-dropdown-item @click="hideDatasets">
                             {{ 'Hide Datasets' | localize }}
                         </b-dropdown-item>
@@ -86,6 +89,7 @@
                         <b-dropdown-item @click="buildCollectionFromRules">
                             {{ 'Build Collection from Rules' | localize }}
                         </b-dropdown-item>
+
                     </b-dropdown>
 
                 </b-button-group>
@@ -97,7 +101,7 @@
             placement="bottomleft" triggers="focus">
 
             <gear-menu #default="{ go, backboneGo, iframeGo, eventHub }"
-                @clicked="$refs.datasetMenu.$emit('close')">
+                @clicked="closeMenu('datasetMenu')">
                 <div>
                     <a class="dropdown-item" @click="iframeGo('/dataset/copy_datasets')">
                         {{ 'Copy Datasets' | localize }}
@@ -111,7 +115,7 @@
                         {{ 'Resume Paused Jobs' | localize }}
                     </a>
                     <a class="dropdown-item" href="#"
-                        @click="eventHub.$emit('collapse-content')">
+                        @click="eventHub.$emit('collapseAllContent')">
                         {{ 'Collapse Expanded Datasets' | localize }}
                     </a>
                     <a class="dropdown-item" href="#" v-b-modal.show-hidden-content>
@@ -155,9 +159,10 @@
 
 import { mapGetters, mapActions } from "vuex";
 import ContentFilters from "./ContentFilters";
-import GearMenu from "./GearMenu";
+import GearMenu from "components/GearMenu";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
 import { eventHub } from "components/eventHub";
+import { SearchParams } from "./model/SearchParams";
 
 const messages = {
     unhideContent: "Really unhide all hidden datasets?",
@@ -184,28 +189,48 @@ export default {
     },
     computed: {
 
-        ...mapGetters("history", ["historyContent", "searchParams"]),
+        ...mapGetters("history", [
+            "historyContent",
+            "searchParams",
+            "contentSelection"
+        ]),
+
+        currentSelection() {
+            return this.contentSelection(this.history);
+        },
+
+        hasSelection() {
+            return this.currentSelection.size;
+        },
 
         historyId() {
             return this.history.id;
         },
+
         content() {
             return this.historyContent(this.historyId);
         },
+
+        // create a local copy
         params: {
             get() {
-                return this.searchParams(this.historyId);
+                const newParams = this.searchParams(this.historyId);
+                return newParams.clone();
             },
             set(newParams) {
-                this.setSearchParams({
-                    history: this.history,
-                    params: newParams
-                });
+                if (!SearchParams.equals(newParams, this.params)) {
+                    this.setSearchParams({
+                        history: this.history,
+                        params: newParams
+                    });
+                }
             }
         },
+
         countShown() {
             return this.history.contents_active.active;
         },
+        
         countHidden() {
             return this.history.contents_active.hidden;
         }
@@ -334,6 +359,19 @@ export default {
 
         buildCollectionFromRules() {
             console.log("buildCollectionFromRules");
+        },
+
+
+        // need to do this because bootstrap's components never close
+        // as advertised
+        closeMenu(refName) {
+            if (refName in this.$refs) {
+                this.$refs[refName].$emit('close');
+            }
+        },
+
+        withSelectedMenuClick() {
+            console.log("withSelectedMenuClick");
         }
 
     },
@@ -348,3 +386,14 @@ export default {
 }
 
 </script>
+
+<style lang="scss" scoped>
+
+@import "~scss/mixins.scss";
+@import "~scss/transitions.scss";
+
+section > header {
+    @include flexRowHeader();
+}
+
+</style>

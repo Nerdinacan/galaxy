@@ -6,19 +6,22 @@ import { HistoryList$, updateHistory, deleteHistory } from "./observables/Histor
 import { CurrentHistoryId$, setCurrentHistoryId } from "./observables/CurrentHistory$";
 
 import {
-    updateHistoryFields, createHistory, cloneHistory, 
-    deleteHistoryById, makePrivate, 
-    showAllHiddenContent, deleteAllHiddenContent,
-    purgeDeletedContent, deleteContent,
+    updateHistoryFields,
+    createHistory,
+    cloneHistory,
+    deleteHistoryById,
+    makePrivate,
+    showAllHiddenContent,
+    deleteAllHiddenContent,
+    purgeDeletedContent,
+    deleteContent,
     bulkUpdate
 } from "./queries";
 
 import { SearchParams } from "./SearchParams";
-import { flushCachedDataset, cacheContent, createCacheFunction } from "./observables/CachedData";
+import { flushCachedDataset, cacheContent, createPromiseFromOperator } from "caching";
+
 import { setEquals } from "utils/setFunctions";
-
-import { log } from "./observables/utils";
-
 
 // container for a bunch of observables for querying content
 // for individual histories, doesn't seem appropriate to put
@@ -28,27 +31,23 @@ import { log } from "./observables/utils";
 // Holds subscriptions to ContentLoaders
 const loaderSubscriptions = new Map();
 
-
 export const state = {
-    
     currentHistoryId: null,
-    
+
     // history.id -> history object
     histories: new Map(),
-    
+
     // history.id -> SearchParams object
-    params: new Map(), 
-    
+    params: new Map(),
+
     // history.id -> array of contentItems (datasets/collections)
     contents: new Map(),
-    
+
     // history.id -> Set of contentItem
     contentSelection: new Map()
-}
-
+};
 
 export const getters = {
-
     currentHistory: (state, getters) => {
         return getters.getHistory(state.currentHistoryId);
     },
@@ -58,9 +57,7 @@ export const getters = {
     },
 
     getHistory: state => id => {
-        return state.histories.has(id) 
-            ? state.histories.get(id) 
-            : null;
+        return state.histories.has(id) ? state.histories.get(id) : null;
     },
 
     searchParams: (state, getters) => id => {
@@ -86,12 +83,9 @@ export const getters = {
         }
         return storage.get(key);
     }
-}
-
+};
 
 export const actions = {
-
-
     // Select a new current history from the available options, must
     // alert server because it is monitoring this for no clear reason
 
@@ -100,7 +94,6 @@ export const actions = {
             setCurrentHistoryId(id);
         }
     },
-
 
     // History objects
 
@@ -154,30 +147,27 @@ export const actions = {
         return nextHistory;
     },
 
-
     // Search parameters for a given history
     // Controls output and query contents
 
     setSearchParams({ commit }, { history, params }) {
-        // if we don't do a comparison check here, the components
-        // will update over and over
+        // console.log("setSearchParams", params.start, params.end, params.showHidden, params.showDeleted, params.textFilter);
         commit("setSearchParams", {
             history,
             params: params.clone()
         });
     },
 
-
     // Subscribes to an observable that returns content as observed
     // from IndexDB and runs polling updates for the indicated history
-    
+
     loadContent({ commit }, historyId) {
         if (!loaderSubscriptions.has(historyId)) {
-            const sub = ContentLoader(historyId).subscribe(
-                contents => commit("setHistoryContents", { historyId, contents }),
-                err => console.warn("ContentLoader err", err),
-                () => console.log("ContentLoader complete")
-            );
+            const sub = ContentLoader(historyId).subscribe({
+                next: contents => commit("setHistoryContents", { historyId, contents }),
+                error: err => console.warn("ContentLoader err", err),
+                complete: () => console.log("ContentLoader complete")
+            });
             loaderSubscriptions.set(historyId, sub);
         }
     },
@@ -189,20 +179,18 @@ export const actions = {
         }
     },
 
-
     // Current dataset/dataset collection selection from the history content
 
     setContentSelection({ commit, getters }, { history, selection }) {
         const existingSelection = getters.contentSelection(history);
         if (!setEquals(existingSelection, selection)) {
-            commit("setContentSelection", { history, selection })
+            commit("setContentSelection", { history, selection });
         }
     },
 
     clearContentSelection({ commit }, { history }) {
         commit("setContentSelection", { history });
     },
-
 
     // Show/hide all content independent of selection polling should handle the
     // updates if the update-time is properly udpated
@@ -218,7 +206,6 @@ export const actions = {
     purgeDeletedContent({ getters }) {
         return purgeDeletedContent(getters.currentHistory);
     },
-
 
     // Content
 
@@ -236,22 +223,21 @@ export const actions = {
         const contentSet = getters.contentSelection(history);
         const items = Array.from(contentSet)
             .filter(c => c[field] != value)
-            .map(c => ({ 
-                id: c.id, 
+            .map(c => ({
+                id: c.id,
                 history_content_type: c.history_content_type
             }));
         const payload = { items, [field]: value };
         const updates = await bulkUpdate(history, payload);
-        const cacheFn = createCacheFunction(cacheContent);
+
+        const cacheFn = createPromiseFromOperator(cacheContent);
         for (const item of updates) {
             await cacheFn(item);
         }
     }
-
-}
+};
 
 export const mutations = {
-
     setCurrentHistoryId: (state, id) => {
         state.currentHistoryId = id;
     },
@@ -278,7 +264,7 @@ export const mutations = {
         newMap.set(history.id, selection);
         Vue.set(state, "contentSelection", newMap);
     }
-}
+};
 
 export default {
     namespaced: true,
@@ -286,14 +272,13 @@ export default {
     getters,
     actions,
     mutations
-}
+};
 
 export const historyPersist = new VuexPersistence({
     key: "state-history",
-    storage: sessionStorage, 
+    storage: sessionStorage,
     modules: ["history"]
-})
-
+});
 
 // Plugin to subscribe to global observables for initial loading
 // and real-time updates. The actions in the history store don't
@@ -302,17 +287,15 @@ export const historyPersist = new VuexPersistence({
 // subscribe to the end result.
 
 export const observeHistory = ({ commit }) => {
+    CurrentHistoryId$.subscribe({
+        next: id => commit("history/setCurrentHistoryId", id),
+        error: err => console.warn("CurrentHistory$ error", err),
+        complete: () => console.log("CurrentHistory$ complete")
+    });
 
-    CurrentHistoryId$.pipe(log("CurrentHistoryId$")).subscribe(
-        id => commit("history/setCurrentHistoryId", id),
-        err => console.warn("CurrentHistory$ error", err), 
-        () => console.log("CurrentHistory$ complete")
-    );
-
-    HistoryList$.pipe(log("HistoryList$")).subscribe(
-        list => commit("history/setHistories", list),
-        err => console.warn("HistoryList$, error", err),
-        () => console.log("HistoryList$ complete")
-    );
-
-}
+    HistoryList$.subscribe({
+        next: list => commit("history/setHistories", list),
+        error: err => console.warn("HistoryList$, error", err),
+        complete: () => console.log("HistoryList$ complete")
+    });
+};

@@ -3,13 +3,13 @@
         :storeKey="tagStoreName"
         :tagService="tagService"
         :disabled="disabled"
-        :useToggleLink="false" />
+        :useToggleLink="true" />
 </template>
 
 <script>
 
 import { Tags } from "components/Tags";
-import { DatasetTagService } from "./DatasetTagService";
+import { DatasetTagService } from "./model/DatasetTagService";
 
 export default {
     components: {

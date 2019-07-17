@@ -1,3 +1,11 @@
+// TODO: boolean filter is restricting polling update, need
+// nullable deleted and hidden flags that can be completely
+// ommitted from the api query
+
+import dateStore from "./dateStore";
+import hash from "object-hash";
+
+
 export class SearchParams {
 
     constructor(props = {}) {
@@ -5,6 +13,13 @@ export class SearchParams {
         this.filterText = "";
         this.showDeleted = false;
         this.showHidden = false;
+
+        // Maximum result length on a pagination request
+        this.limit = 50;
+
+        // Chunk-size for blocks of windowed content
+        this.pageSize = 50;
+
         this._start = null;
         this._end = null;
         Object.assign(this, props);
@@ -15,7 +30,11 @@ export class SearchParams {
     }
 
     set start(val) {
-        const pageSize = SearchParams.pageSize;
+        if (val === null || isNaN(val)) {
+            this._start = null;
+            return;
+        }
+        const pageSize = this.pageSize;
         const newVal = Math.floor(val / pageSize) * pageSize;
         this._start = Math.max(0, newVal);
     }
@@ -25,57 +44,76 @@ export class SearchParams {
     }
 
     set end(val) {
-        const pageSize = SearchParams.pageSize;
+        if (val === null || isNaN(val)) {
+            this._end = null;
+            return;
+        }
+        const pageSize = this.pageSize;
         const newVal = Math.ceil(val / pageSize) * pageSize;
         this._end = Math.max(0, newVal);
     }
 
-    get visible() {
-        return (this.hidden !== null) ? !this.hidden : null;
+    get showVisible() {
+        return !this.showHidden;
     }
 
-    
+    get lastCalled() {
+        return dateStore.get(this.dateStoreKey);
+    }
+
+    markLastCalled() {
+        dateStore.set(this.dateStoreKey);
+    }
+
+    get dateStoreKey() {
+        return `params-${hash(this)}`;
+    }
+
+    removeLimits() {
+        this._end = null;
+        this._start = null;
+        return this;
+    }
+
     // this one came into view
     expand(hid) {
-        if (this.start === null) {
-            this.start = hid;
+        if (hid === null || isNaN(hid)) {
+            return;
         }
-        if (this.end === null) {
-            this.end = hid;
-        }
-        this.start = Math.min(this.start, hid);
-        this.end = Math.max(this.end, hid);
-        // this.report(`expand: ${hid}`);
+        this.start = Math.min(this.start, hid - 1);
+        this.end = Math.max(this.end, hid + 1);
+        return this;
     }
 
     // this one ran off the top
     clipTop(hid) {
-        if (this.end === null) {
-            this.end = hid;
+        if (hid === null || isNaN(hid)) {
+            return;
         }
         this.end = Math.min(this.end, hid - 1);
-        // this.report(`clipTop: ${hid}`);
+        return this;
     }
 
     // ran off the bottom
     clipBottom(hid) {
-        if (this.start === null) {
-            this.start = hid;
+        if (hid === null || isNaN(hid)) {
+            return;
         }
         this.start = Math.max(this.start, hid + 1);
-        // this.report(`clipBottom: ${hid}`);
+        return this;
     }
 
     // debugging
     report(label = "params") {
-        const { start, end, showDeleted, showHidden, filterText, historyId  } = this;
+        const { lastCalled, start, end, showDeleted, showHidden, filterText, historyId } = this;
         console.groupCollapsed(label, `${start}-${end}`);
+        console.log("historyId", historyId);
         console.log("start", start);
         console.log("end", end);
+        console.log("lastCalled", lastCalled.toISOString());
         console.log("showDeleted", showDeleted);
         console.log("showHidden", showHidden);
         console.log("filterText", filterText);
-        console.log("historyId", historyId);
         console.dir(this);
         console.groupEnd();
     }
@@ -93,13 +131,25 @@ export class SearchParams {
         return !SearchParams.equals(instance, otherInstance);
     }
 
+    // creates a new params for a history, applies limits
+    // from known quantities
     static createForHistory(history) {
-        return new SearchParams({ 
-            historyId: history.id, 
-            end: history.hid_counter, start: 
-            history.hid_counter - SearchParams.pageSize
+        return new SearchParams({
+            historyId: history.id,
+            start: history.hid_counter,
+            end: history.hid_counter
+        });
+    }
+
+    // gets all content for indicated history regardless of
+    // endpoints or other filters, just a history id
+    static entireHistory(history) {
+        return new SearchParams({
+            historyId: history.id,
+            showDeleted: true,
+            showHidden: true
         });
     }
 }
 
-SearchParams.pageSize = 20;
+

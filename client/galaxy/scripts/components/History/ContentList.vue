@@ -1,21 +1,20 @@
 <template>
     <div>
         <transition name="fade">
-            <div v-if="content.length" class="scrollContainer"
-            ref="scrollContainer">
-
+            <div v-if="content.length" class="scrollContainer" ref="scrollContainer">
                 <ol ref="scrollContent">
-                    <li v-for="(c, index) in content" :key="c.type_id"
-                        class="d-flex p-2 mb-1"
-                        :data-state="c.state"
-                        v-observe-visibility="updatePageRange(c.hid)">
-                        <b-form-checkbox v-if="showSelection"
+                    <li v-for="(c, index) in content" :key="c.type_id" class="d-flex mb-1">
+                        <b-form-checkbox v-if="showSelection" class="m-1"
                             v-model="selection" :value="c" />
-                        <content-item class="flex-grow-1"
-                            :content="c" />
+                        <content-item  class="flex-grow-1"
+                            :type-id="c.type_id"
+                            :tabindex="index"
+                            v-observe-visibility="updatePageRange(c.hid)"
+                            @keyup.space.stop.prevent.self="toggleContent(c)"
+                            :data-state="c.state" />
                     </li>
+                    <li class="sensor" v-observe-visibility="updatePageRange(nextPage)"></li>
                 </ol>
-
             </div>
         </transition>
 
@@ -50,10 +49,12 @@ export default {
     directives: {
         ObserveVisibility
     },
+
     components: {
         ContentItem,
         HistoryEmpty
     },
+
     props: {
         history: { type: Object, required: true }
     },
@@ -82,20 +83,13 @@ export default {
             return this.historyContent(this.history.id);
         },
 
-        hids() {
-            return this.content.map(c => c.hid);
-        },
-
         minHid() {
-            return this.hids.reduce((result, hid) => {
-                return Math.min(result, hid);
-            }, this.history.hid_counter);
+            return this.content.map(c => c.hid)
+                .reduce(Math.min, Number.POSITIVE_INFINITY);
         },
 
-        maxHid() {
-            return this.hids.reduce((result, hid) => {
-                return Math.max(result, hid);
-            }, 0);
+        nextPage() {
+            return this.minHid - this.pageSize;
         },
 
         selection: {
@@ -104,14 +98,16 @@ export default {
                 return Array.from(selectionSet);
             },
             // bootstrap's stupid component fires this multiple times, one
-            // for each checkbox, so debounce this function
+            // for each checkbox, so debounce this function or we'll update
+            // way too many times
             set: debounce(function(newList = []) {
                 this.setContentSelection({
                     history: this.history,
                     selection: new Set(newList)
                 });
-            }, 100, true)
+            }, 50)
         }
+
     },
 
     methods: {
@@ -123,45 +119,16 @@ export default {
             "setContentSelection"
         ]),
 
-        itemClasses(c) {
-            const stateClass = this.itemStateClass(c);
-            const classConfig = {};
-            if (stateClass) {
-                classConfig[stateClass] = true;
-            }
-            return classConfig;
-        },
-
         displaySelection(show) {
             this.showSelection = show;
         },
 
-        updateParams(newParams) {
-            if (!SearchParams.equals(newParams, this.params)) {
-                newParams.report("sending new params");
-                this.setLoading(true);
-                this.setSearchParams({
-                    history: this.history,
-                    params: newParams
-                });
-            }
-        },
-
-
-        // Scrolling
-
-        showSensor(hid) {
-            const edging = 5;
-            if (Math.abs(this.maxHid - hid) <= edging) {
-                return true;
-            }
-            if (Math.abs(this.minHid - hid) <= edging) {
-                return true;
-            }
-            return false;
+        toggleContent(content) {
+            eventHub.$emit("collapseContent", content);
         },
 
         updatePageRange(hid) {
+            if (hid < 0) return;
             function handler(isVisible, entry) {
                 if (isVisible) {
                     this.localParams.expand(hid);
@@ -174,7 +141,6 @@ export default {
                     }
                 }
             }
-
             return handler.bind(this);
         },
 
@@ -190,18 +156,19 @@ export default {
 
         isBelowWindow({ boundingClientRect }) {
             return boundingClientRect.top > this.getContainerRect().bottom;
-        },
+        }
 
-        setLoading: debounce(function(val) {
-            this.loading = val;
-        }, 100, true)
     },
 
     watch: {
+
+        // cosmetic loading flag, unset when content changes
         content(newContent) {
-            this.setLoading(false);
+            this.loading = false;
         },
-        history:{
+
+        // Subscribe to polling updates and content output observable
+        history: {
             handler(history, oldHistory) {
                 if (oldHistory && (history.id !== oldHistory.id)) {
                     this.unsubLoader(oldHistory.id);
@@ -210,23 +177,35 @@ export default {
             },
             immediate: true
         },
+
+        // when params changes, create a local copy, that's what we
+        // manipulate until it gets sent
         params(newParams) {
             if (!SearchParams.equals(newParams, this.localParams)) {
-                // console.log("updating localParams from params", newParams);
                 this.localParams = newParams.clone();
             }
         },
+
+        // debounce changes to local copy, send when settled down
         localParams: {
             handler: debounce(function(newParams) {
-                this.updateParams(newParams);
+                if (!SearchParams.equals(newParams, this.params)) {
+                    this.loading = true;
+                    this.setSearchParams({
+                        history: this.history,
+                        params: newParams
+                    });
+                }
             }, 100, true),
             deep: true
         }
+
     },
 
     mounted() {
         eventHub.$on('toggleShowSelection', this.displaySelection);
     },
+
     beforeDestroy() {
         this.unsubLoader(this.history.id);
         eventHub.$off('toggleShowSelection', this.displaySelection);
@@ -239,6 +218,7 @@ export default {
 <style lang="scss" scoped>
 
 @import "~scss/mixins.scss";
+@import "~scss/transitions.scss";
 
 .scrollContainer {
     position: relative;
@@ -253,25 +233,21 @@ ol {
     top: 0;
     left: 0;
     right: 0;
-    padding-bottom: 100px;
-}
-
-li {
-    position: relative;
-    > .history-content  {
+    /* li {
         position: relative;
-        z-index: 0;
-    }
+        > .history-content  {
+            position: relative;
+            z-index: 0;
+        }
+        > div {
+            outline: none;
+        }
+    } */
 }
 
-.sensor {
-    position: abolute;
-    top: 0px;
-    left: 0px;
-    height: 40px;
-    width: 1px;
-    background-color: red;
-    z-index: 1;
+li.sensor {
+    height: 1px;
+    padding-bottom: 100px;
 }
 
 </style>

@@ -1,33 +1,23 @@
-/* Simple date store for local storage */
+/**
+ * Simple date storage.
+ */
+import moment from "moment";
+
+const storage = sessionStorage;
 
 function getDate(key) {
-    const stamp = getStamp(key);
-    return new Date(stamp);
+    const stamp = storage.getItem(key) || 0;
+    const stampInt = parseInt(stamp);
+    const result = moment.utc(stampInt);
+    return result;
 }
 
-function setDate(key, rawDate) {
-    const stamp = makeStamp(rawDate);
-    localStorage.setItem(key, stamp);
-}
-
-function setIfHigher(key, rawDate) {
-    const testTamp = makeStamp(rawDate);
-    const existingStamp = getStamp(key);
-    const newStamp = Math.max(testTamp, existingStamp);
-    localStorage.setItem(key, newStamp);
-}
-
-function makeStamp(raw) {
-    return (new Date(raw)).getTime()
-}
-
-function getStamp(key) {
-    const dateStr = localStorage.getItem(key);
-    return dateStr ? parseInt(dateStr) : 0;
+function setDate(key) {
+    const stamp = moment.utc().valueOf();
+    storage.setItem(key, stamp);
 }
 
 export default {
     get: getDate,
-    set: setDate,
-    setIfHigher
+    set: setDate
 };

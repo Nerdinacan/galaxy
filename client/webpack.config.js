@@ -5,7 +5,7 @@ const VueLoaderPlugin = require("vue-loader/lib/plugin");
 const OptimizeCssAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const DuplicatePackageCheckerPlugin = require("duplicate-package-checker-webpack-plugin");
-const WebpackBuildNotifierPlugin = require('webpack-build-notifier');
+const WebpackBuildNotifierPlugin = require("webpack-build-notifier");
 
 const scriptsBase = path.join(__dirname, "galaxy/scripts");
 const libsBase = path.join(scriptsBase, "libs");
@@ -61,26 +61,14 @@ let buildconfig = {
             {
                 test: /\.js$/,
                 // Pretty sure we don't want anything except node_modules here
-                exclude: [
-                    /(node_modules\/(?!(handsontable)\/)|bower_components)/,
-                    libsBase
-                ],
+                exclude: [/(node_modules\/(?!(handsontable)\/)|bower_components)/, libsBase],
                 loader: "babel-loader",
                 options: {
                     cacheDirectory: true,
                     cacheCompression: false,
-                    presets: [
-                        ["@babel/preset-env", { modules: false }]
-                    ],
-                    plugins: [
-                        "transform-vue-template",
-                        "@babel/plugin-syntax-dynamic-import"
-                    ],
-                    ignore: [
-                        "i18n.js",
-                        "utils/localization.js",
-                        "nls/*"
-                    ]
+                    presets: [["@babel/preset-env", { modules: false }]],
+                    plugins: ["transform-vue-template", "@babel/plugin-syntax-dynamic-import"],
+                    ignore: ["i18n.js", "utils/localization.js", "nls/*"]
                 }
             },
             {
@@ -161,12 +149,9 @@ let buildconfig = {
                     },
                     {
                         loader: "sass-loader",
-                        options: { 
+                        options: {
                             sourceMap: true,
-                            includePaths: [
-                                "galaxy/style/scss", 
-                                path.resolve(__dirname, './node_modules') 
-                            ]
+                            includePaths: ["galaxy/style/scss", path.resolve(__dirname, "./node_modules")]
                         }
                     }
                 ]
@@ -214,7 +199,7 @@ let buildconfig = {
         new DuplicatePackageCheckerPlugin(),
         new WebpackBuildNotifierPlugin({
             title: "Galaxy Webpack Build",
-            // Basso, Blow, Bottle, Frog, Funk, Glass, 
+            // Basso, Blow, Bottle, Frog, Funk, Glass,
             // Hero, Morse, Ping, Pop, Purr, Sosumi, Submarine, Tink.
             compilationSound: "Ping",
             successSound: "Submarine",

@@ -1,0 +1,33 @@
+import { stringArray } from "./types.schema";
+
+export default {
+    title: "historycontent",
+    version: 0,
+    type: "object",
+    properties: {
+        
+        // apparently id can collide between dataset/datasetCollection
+        // would prefer uuid but collection does not have one
+        type_id: { type: "string", primary: true },
+
+        // dataset or collection id
+        id: { type: "string", index: true },
+        history_id: { type: "string", index: true },
+
+        // sequence inside history, newer are higher
+        hid: { type: "integer", index: true },
+        history_content_type: { type: "string" },
+        
+        created_time: { type: "string", index: true },
+        update_time: { type: "string", index: true },
+
+        name: { type: "string" },
+        tags: stringArray,
+        url: { type: "string" },
+        isDeleted: { type: "boolean" },
+        purged: { type: "boolean" },
+        visible: { type: "boolean" },
+        accessible: { type: "boolean" },
+        state: { type: "string", index: true }
+    }
+}
