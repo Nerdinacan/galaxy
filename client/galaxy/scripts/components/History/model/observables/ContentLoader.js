@@ -1,7 +1,6 @@
 /**
- * Subscribes to a live content query observable (Content$) and a pollling
- * update  that updates the local database with changed data
- * corresponding to the history and parameters passed in.
+ * Gets data into RxDB via user interaction (params and manual requests) or
+ * through polling for server-side updates
  */
 
 import { of } from "rxjs";
@@ -11,7 +10,7 @@ import { getCachedHistory } from "caching";
 import { SearchParams } from "../SearchParams";
 import { Param$ } from "./Param$";
 import { getContentObservable, loadAndCacheContentForParams } from "./Content";
-import { historyUpdate } from "./historyUpdate";
+import { historyUpdate } from "./History";
 
 
 export const stopPolling = createInputFunction();

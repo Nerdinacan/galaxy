@@ -6,47 +6,32 @@
                 <span>Contents</span>
                 <span>{{ countShown }} shown</span>
                 <span v-if="countHidden">
-                    <a v-if="!params.showHidden" href="#"
-                        @click="params.showHidden = true">
+                    <a v-if="!params.showHidden" href="#" @click="params.showHidden = true">
                         {{ countHidden }} hidden
                     </a>
-                    <a v-if="params.showHidden" href="#"
-                        @click="params.showHidden = false">
+                    <a v-if="params.showHidden" href="#" @click="params.showHidden = false">
                         hide hidden
                     </a>
                 </span>
             </h6>
 
             <icon-menu class="no-border">
-                <icon-menu-item
-                    title="Filter History Content"
-                    icon="filter"
-                    @click="toggle('showFilter')"
+                <icon-menu-item title="Filter History Content" icon="filter" @click="toggle('showFilter')"
                     tooltip-placement="topleft" />
-                <icon-menu-item
-                    title="Operations on multiple datasets"
-                    icon="check-square-o"
-                    @click="toggle('showSelection')"
-                    tooltip-placement="topleft" />
-                <icon-menu-item id="datasetMenuGear"
-                    title="Dataset Operations"
-                    icon="cog"
-                    :useTooltip="false" />
+                <icon-menu-item title="Operations on multiple datasets" icon="check-square-o"
+                    @click="toggle('showSelection')" tooltip-placement="topleft" />
+                <icon-menu-item id="datasetMenuGear" title="Dataset Operations" icon="cog" :useTooltip="false" />
             </icon-menu>
         </header>
 
         <!-- search parameters -->
         <transition name="shutterfade">
-            <content-filters v-if="showFilter"
-                class="content-filters mt-1"
-                v-model="params"
-                :history="history" />
+            <content-filters v-if="showFilter" class="content-filters mt-1" v-model="params" :history="history" />
         </transition>
 
         <!-- dataset selection -->
         <transition name="shutterfade">
-            <b-button-toolbar v-if="showSelection"
-                class="content-selection justify-content-between mt-1">
+            <b-button-toolbar v-if="showSelection" class="content-selection justify-content-between mt-1">
 
                 <b-button-group>
 
@@ -58,9 +43,7 @@
                         {{ 'Unselect All' | localize }}
                     </b-button>
 
-                    <b-dropdown size="sm" text="With Selected"
-                        :disabled="!hasSelection"
-                        boundary="viewport">
+                    <b-dropdown size="sm" text="With Selected" :disabled="!hasSelection" boundary="viewport">
 
                         <b-dropdown-item @click="hideDatasets">
                             {{ 'Hide Datasets' | localize }}
@@ -97,25 +80,20 @@
             </b-button-toolbar>
         </transition>
 
-        <b-popover ref="datasetMenu" target="datasetMenuGear"
-            placement="bottomleft" triggers="focus">
+        <b-popover ref="datasetMenu" target="datasetMenuGear" placement="bottomleft" triggers="click blur">
 
-            <gear-menu #default="{ go, backboneGo, iframeGo, eventHub }"
-                @clicked="closeMenu('datasetMenu')">
+            <gear-menu #default="{ go, backboneGo, iframeGo, eventHub }" @clicked="closeMenu('datasetMenu')">
                 <div>
                     <a class="dropdown-item" @click="iframeGo('/dataset/copy_datasets')">
                         {{ 'Copy Datasets' | localize }}
                     </a>
-                    <a class="dropdown-item" href="#"
-                        @click="backboneGo('/histories/permissions?id=' + history.id)">
+                    <a class="dropdown-item" href="#" @click="backboneGo('/histories/permissions?id=' + history.id)">
                         {{ 'Dataset Security' | localize }}
                     </a>
-                    <a class="dropdown-item" href="#"
-                        @click="iframeGo('/history/resume_paused_jobs?current=True')">
+                    <a class="dropdown-item" href="#" @click="iframeGo('/history/resume_paused_jobs?current=True')">
                         {{ 'Resume Paused Jobs' | localize }}
                     </a>
-                    <a class="dropdown-item" href="#"
-                        @click="eventHub.$emit('collapseAllContent')">
+                    <a class="dropdown-item" href="#" @click="eventHub.$emit('collapseAllContent')">
                         {{ 'Collapse Expanded Datasets' | localize }}
                     </a>
                     <a class="dropdown-item" href="#" v-b-modal.show-hidden-content>
@@ -134,21 +112,15 @@
 
         <!-- confirm modals  -->
 
-        <b-modal id="show-hidden-content"
-            title="Show Hidden Datasets" title-tag="h2"
-            @ok="showHidden">
+        <b-modal id="show-hidden-content" title="Show Hidden Datasets" title-tag="h2" @ok="showHidden">
             <p>{{ messages.unhideContent | localize }}</p>
         </b-modal>
 
-        <b-modal id="delete-hidden-content"
-            title="Delete Hidden Datasets" title-tag="h2"
-            @ok="deleteHidden">
+        <b-modal id="delete-hidden-content" title="Delete Hidden Datasets" title-tag="h2" @ok="deleteHidden">
             <p>{{ messages.deleteHiddenContent | localize }}</p>
         </b-modal>
 
-        <b-modal id="purge-deleted-content"
-            title="Purge Deleted Datasets" title-tag="h2"
-            @ok="purgeDeleted">
+        <b-modal id="purge-deleted-content" title="Purge Deleted Datasets" title-tag="h2" @ok="purgeDeleted">
             <p>{{ messages.purgeDeletedContent | localize }}</p>
         </b-modal>
 
@@ -157,243 +129,241 @@
 
 <script>
 
-import { mapGetters, mapActions } from "vuex";
-import ContentFilters from "./ContentFilters";
-import GearMenu from "components/GearMenu";
-import { IconMenu, IconMenuItem } from "components/IconMenu";
-import { eventHub } from "components/eventHub";
-import { SearchParams } from "./model/SearchParams";
+    import { mapGetters, mapActions } from "vuex";
+    import ContentFilters from "./ContentFilters";
+    import GearMenu from "components/GearMenu";
+    import { IconMenu, IconMenuItem } from "components/IconMenu";
+    import { eventHub } from "components/eventHub";
+    import { SearchParams } from "./model/SearchParams";
 
-const messages = {
-    unhideContent: "Really unhide all hidden datasets?",
-    deleteHiddenContent: "Really delete all hidden datasets?",
-    purgeDeletedContent: "Really delete all deleted datasets permanently? This cannot be undone."
-};
+    const messages = {
+        unhideContent: "Really unhide all hidden datasets?",
+        deleteHiddenContent: "Really delete all hidden datasets?",
+        purgeDeletedContent: "Really delete all deleted datasets permanently? This cannot be undone."
+    };
 
-export default {
-    components: {
-        ContentFilters,
-        IconMenu,
-        IconMenuItem,
-        GearMenu
-    },
-    props: {
-        history: { type: Object, required: true }
-    },
-    data() {
-        return {
-            showSelection: false,
-            showFilter: false,
-            messages
-        }
-    },
-    computed: {
-
-        ...mapGetters("history", [
-            "historyContent",
-            "searchParams",
-            "contentSelection"
-        ]),
-
-        currentSelection() {
-            return this.contentSelection(this.history);
+    export default {
+        components: {
+            ContentFilters,
+            IconMenu,
+            IconMenuItem,
+            GearMenu
         },
-
-        hasSelection() {
-            return this.currentSelection.size;
+        props: {
+            history: { type: Object, required: true }
         },
-
-        historyId() {
-            return this.history.id;
+        data() {
+            return {
+                showSelection: false,
+                showFilter: false,
+                messages
+            }
         },
+        computed: {
 
-        content() {
-            return this.historyContent(this.historyId);
-        },
+            ...mapGetters("history", [
+                "historyContent",
+                "searchParams",
+                "contentSelection"
+            ]),
 
-        // create a local copy
-        params: {
-            get() {
-                const newParams = this.searchParams(this.historyId);
-                return newParams.clone();
+            currentSelection() {
+                return this.contentSelection(this.history);
             },
-            set(newParams) {
-                if (!SearchParams.equals(newParams, this.params)) {
-                    this.setSearchParams({
-                        history: this.history,
-                        params: newParams
-                    });
+
+            hasSelection() {
+                return this.currentSelection.size;
+            },
+
+            historyId() {
+                return this.history.id;
+            },
+
+            content() {
+                return this.historyContent(this.historyId);
+            },
+
+            // create a local copy
+            params: {
+                get() {
+                    const newParams = this.searchParams(this.historyId);
+                    return newParams.clone();
+                },
+                set(newParams) {
+                    if (!SearchParams.equals(newParams, this.params)) {
+                        this.setSearchParams({
+                            history: this.history,
+                            params: newParams
+                        });
+                    }
                 }
+            },
+
+            countShown() {
+                return this.history.contents_active.active;
+            },
+
+            countHidden() {
+                return this.history.contents_active.hidden;
             }
         },
+        methods: {
 
-        countShown() {
-            return this.history.contents_active.active;
-        },
-        
-        countHidden() {
-            return this.history.contents_active.hidden;
-        }
-    },
-    methods: {
+            ...mapActions("history", [
+                "setSearchParams",
+                "setContentSelection",
+                "clearContentSelection",
+                "showAllHiddenContent",
+                "deleteAllHiddenContent",
+                "purgeDeletedContent",
+                "updateSelectedContent"
+            ]),
 
-        ...mapActions("history", [
-            "setSearchParams",
-            "setContentSelection",
-            "clearContentSelection",
-            "showAllHiddenContent",
-            "deleteAllHiddenContent",
-            "purgeDeletedContent",
-            "updateSelectedContent"
-        ]),
-
-        toggle(paramName, forceVal) {
-            if (!(paramName in this)) {
-                console.warn("Missing toggle parameter", paramName);
-                return;
-            }
-            if (forceVal === undefined) {
-                this[paramName] = !this[paramName];
-            } else {
-                this[paramName] = forceVal;
-            }
-        },
+            toggle(paramName, forceVal) {
+                if (!(paramName in this)) {
+                    console.warn("Missing toggle parameter", paramName);
+                    return;
+                }
+                if (forceVal === undefined) {
+                    this[paramName] = !this[paramName];
+                } else {
+                    this[paramName] = forceVal;
+                }
+            },
 
 
-        // content selection
+            // content selection
 
-        selectAllVisibleContent() {
-            this.updateSelection(this.content);
-        },
+            selectAllVisibleContent() {
+                this.updateSelection(this.content);
+            },
 
-        clearSelection() {
-            this.updateSelection([]);
-        },
+            clearSelection() {
+                this.updateSelection([]);
+            },
 
-        updateSelection(content = []) {
-            this.setContentSelection({
-                history: this.history,
-                selection: new Set(content)
-            })
-        },
+            updateSelection(content = []) {
+                this.setContentSelection({
+                    history: this.history,
+                    selection: new Set(content)
+                })
+            },
 
-        showHidden(evt) {
-            this.showAllHiddenContent()
-                .then(() => evt.vueTarget.hide())
-                .catch(err => console.warn("Bad showHiddenContent", err));
-        },
+            showHidden(evt) {
+                this.showAllHiddenContent()
+                    .then(() => evt.vueTarget.hide())
+                    .catch(err => console.warn("Bad showHiddenContent", err));
+            },
 
-        deleteHidden(evt) {
-            this.deleteAllHiddenContent()
-                .then(() => evt.vueTarget.hide())
-                .catch(err => console.warn("Bad deleteHiddenContent", err));
-        },
+            deleteHidden(evt) {
+                this.deleteAllHiddenContent()
+                    .then(() => evt.vueTarget.hide())
+                    .catch(err => console.warn("Bad deleteHiddenContent", err));
+            },
 
-        purgeDeleted(evt) {
-            this.purgeDeletedContent()
-                .then(() => evt.vueTarget.hide())
-                .catch(err => console.warn("Bad purgeDeletedContent", err));
-        },
+            purgeDeleted(evt) {
+                this.purgeDeletedContent()
+                    .then(() => evt.vueTarget.hide())
+                    .catch(err => console.warn("Bad purgeDeletedContent", err));
+            },
 
 
-        // selection menu
+            // selection menu
 
-        hideDatasets() {
-            this.updateSelectedContent({
-                history: this.history,
-                field: "visible",
-                value: false
-            }).then(() => {
+            hideDatasets() {
+                this.updateSelectedContent({
+                    history: this.history,
+                    field: "visible",
+                    value: false
+                }).then(() => {
+                    this.clearContentSelection({
+                        history: this.history
+                    });
+                })
+            },
+
+            unhideDatasets() {
+                this.updateSelectedContent({
+                    history: this.history,
+                    field: "visible",
+                    value: true
+                });
+            },
+
+            deleteDatasets() {
+                this.updateSelectedContent({
+                    history: this.history,
+                    field: "deleted",
+                    value: true
+                }).then(() => {
+                    this.clearContentSelection({
+                        history: this.history
+                    });
+                })
+            },
+
+            undeleteDatasets() {
+                this.updateSelectedContent({
+                    history: this.history,
+                    field: "deleted",
+                    value: false
+                });
                 this.clearContentSelection({
                     history: this.history
                 });
-            })
-        },
+            },
 
-        unhideDatasets() {
-            this.updateSelectedContent({
-                history: this.history,
-                field: "visible",
-                value: true
-            });
-        },
+            purgeDatasets() {
+                console.log("purgeDatasets");
+            },
 
-        deleteDatasets() {
-            this.updateSelectedContent({
-                history: this.history,
-                field: "deleted",
-                value: true
-            }).then(() => {
-                this.clearContentSelection({
-                    history: this.history
-                });
-            })
-        },
+            buildDatasetList() {
+                console.log("buildDatasetList");
+            },
 
-        undeleteDatasets() {
-            this.updateSelectedContent({
-                history: this.history,
-                field: "deleted",
-                value: false
-            });
-            this.clearContentSelection({
-                history: this.history
-            });
-        },
+            buildDatasetPair() {
+                console.log("buildDatasetPair");
+            },
 
-        purgeDatasets() {
-            console.log("purgeDatasets");
-        },
+            buildListOfPairs() {
+                console.log("buildListOfPairs");
+            },
 
-        buildDatasetList() {
-            console.log("buildDatasetList");
-        },
-
-        buildDatasetPair() {
-            console.log("buildDatasetPair");
-        },
-
-        buildListOfPairs() {
-            console.log("buildListOfPairs");
-        },
-
-        buildCollectionFromRules() {
-            console.log("buildCollectionFromRules");
-        },
+            buildCollectionFromRules() {
+                console.log("buildCollectionFromRules");
+            },
 
 
-        // need to do this because bootstrap's components never close
-        // as advertised
-        closeMenu(refName) {
-            if (refName in this.$refs) {
-                this.$refs[refName].$emit('close');
+            // need to do this because bootstrap's components never close
+            // as advertised
+            closeMenu(refName) {
+                if (refName in this.$refs) {
+                    this.$refs[refName].$emit('close');
+                }
+            },
+
+            withSelectedMenuClick() {
+                console.log("withSelectedMenuClick");
             }
+
         },
-
-        withSelectedMenuClick() {
-            console.log("withSelectedMenuClick");
-        }
-
-    },
-    watch: {
-        showSelection(newVal, oldVal) {
-            if (!newVal) {
-                this.clearSelection();
+        watch: {
+            showSelection(newVal, oldVal) {
+                if (!newVal) {
+                    this.clearSelection();
+                }
+                eventHub.$emit('toggleShowSelection', newVal);
             }
-            eventHub.$emit('toggleShowSelection', newVal);
         }
     }
-}
 
 </script>
 
 <style lang="scss" scoped>
+    @import "~scss/mixins.scss";
+    @import "~scss/transitions.scss";
 
-@import "~scss/mixins.scss";
-@import "~scss/transitions.scss";
-
-section > header {
-    @include flexRowHeader();
-}
-
+    section>header {
+        @include flexRowHeader();
+    }
 </style>

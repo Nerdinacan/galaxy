@@ -3,15 +3,6 @@ import { prependPath } from "utils/redirect";
 
 const stdParams = "view=detailed&keys=contents_active,hid_counter,non_ready_jobs"
 
-export async function getCurrentHistory() {
-    const url = prependPath("/history/current_history_json");
-    const response = await axios.get(url);
-    if (response.status != 200) {
-        throw new Error(response);
-    }
-    return response.data;
-}
-
 
 
 export async function getHistoryById(id) {

@@ -1,27 +1,15 @@
 import Vue from "vue";
 import VuexPersistence from "vuex-persist";
-
 import { ContentLoader } from "./observables/ContentLoader";
-import { HistoryList$, updateHistory, deleteHistory } from "./observables/HistoryList$";
-import { CurrentHistoryId$, setCurrentHistoryId } from "./observables/CurrentHistory$";
-
-import {
-    updateHistoryFields,
-    createHistory,
-    cloneHistory,
-    deleteHistoryById,
-    makePrivate,
-    showAllHiddenContent,
-    deleteAllHiddenContent,
-    purgeDeletedContent,
-    deleteContent,
-    bulkUpdate
-} from "./queries";
-
+import { Histories$, updateHistory, deleteHistory, 
+    CurrentHistoryId$, setCurrentHistoryId } from "./observables/History";
+import { updateHistoryFields, createHistory, cloneHistory, deleteHistoryById,
+    makePrivate, showAllHiddenContent, deleteAllHiddenContent, purgeDeletedContent,
+    deleteContent, bulkUpdate } from "./queries";
 import { SearchParams } from "./SearchParams";
 import { flushCachedDataset, cacheContent, createPromiseFromOperator } from "caching";
-
 import { setEquals } from "utils/setFunctions";
+
 
 // container for a bunch of observables for querying content
 // for individual histories, doesn't seem appropriate to put
@@ -45,7 +33,7 @@ export const state = {
 
     // history.id -> Set of contentItem
     contentSelection: new Map()
-};
+}
 
 export const getters = {
     currentHistory: (state, getters) => {
@@ -83,7 +71,7 @@ export const getters = {
         }
         return storage.get(key);
     }
-};
+}
 
 export const actions = {
     // Select a new current history from the available options, must
@@ -105,8 +93,8 @@ export const actions = {
 
     async createNewHistory({ dispatch }) {
         const newHistory = await createHistory();
+        console.log("createNewHistory", newHistory);
         updateHistory(newHistory); // inform observable
-        await dispatch("selectCurrentHistory", newHistory.id);
         return newHistory;
     },
 
@@ -235,7 +223,7 @@ export const actions = {
             await cacheFn(item);
         }
     }
-};
+}
 
 export const mutations = {
     setCurrentHistoryId: (state, id) => {
@@ -264,7 +252,7 @@ export const mutations = {
         newMap.set(history.id, selection);
         Vue.set(state, "contentSelection", newMap);
     }
-};
+}
 
 export default {
     namespaced: true,
@@ -272,13 +260,15 @@ export default {
     getters,
     actions,
     mutations
-};
+}
+
 
 export const historyPersist = new VuexPersistence({
     key: "state-history",
     storage: sessionStorage,
     modules: ["history"]
-});
+})
+
 
 // Plugin to subscribe to global observables for initial loading
 // and real-time updates. The actions in the history store don't
@@ -287,15 +277,23 @@ export const historyPersist = new VuexPersistence({
 // subscribe to the end result.
 
 export const observeHistory = ({ commit }) => {
+
     CurrentHistoryId$.subscribe({
-        next: id => commit("history/setCurrentHistoryId", id),
+        next: id => {
+            // console.log("CurrentHistoryId", id);
+            commit("history/setCurrentHistoryId", id)
+        },
         error: err => console.warn("CurrentHistory$ error", err),
         complete: () => console.log("CurrentHistory$ complete")
-    });
+    })
 
-    HistoryList$.subscribe({
-        next: list => commit("history/setHistories", list),
-        error: err => console.warn("HistoryList$, error", err),
-        complete: () => console.log("HistoryList$ complete")
-    });
-};
+    Histories$.subscribe({
+        next: list => {
+            // console.log("Historis$", list);
+            commit("history/setHistories", list)
+        },
+        error: err => console.warn("Histories$, error", err),
+        complete: () => console.log("Histories$ complete")
+    })
+
+}
