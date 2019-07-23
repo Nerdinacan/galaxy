@@ -1,12 +1,12 @@
 <template>
     <section v-if="history" class="history d-flex flex-column">
         <header class="flex-grow-0">
-            <slot name="history-top-nav" :history="history"></slot>
-            <history-messages class="history-messages px-3 pt-3 pb-0" :history="history" />
-            <history-details class="history-details p-3" :history="history" />
-            <content-selection class="history-content-selection px-3 pb-2" :history="history" />
+            <slot v-if="history" name="history-top-nav" :history="history"></slot>
+            <history-messages v-if="history" class="history-messages px-3 pt-3 pb-0" :history="history" />
+            <history-details v-if="history" class="history-details p-3" :history="history" />
+            <content-selection v-if="history" class="history-content-selection px-3 pb-2" :history="history" />
         </header>
-        <content-list :history="history" class="history-contents flex-grow-1" />
+        <content-list v-if="history" :history="history" class="history-contents flex-grow-1" />
     </section>
 </template>
 
@@ -36,7 +36,7 @@ export default {
         ]),
 
         history() {
-            return this.getHistory(this.historyId);
+            return this.getHistory(this.historyId) || null;
         }
     }
 }

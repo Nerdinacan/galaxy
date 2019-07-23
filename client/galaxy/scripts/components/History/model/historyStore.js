@@ -1,7 +1,7 @@
 import Vue from "vue";
 import VuexPersistence from "vuex-persist";
 import { ContentLoader } from "./observables/ContentLoader";
-import { Histories$, updateHistory, deleteHistory, 
+import { Histories$, updateHistoryList, deleteHistoryFromList, 
     CurrentHistoryId$, setCurrentHistoryId } from "./observables/History";
 import { updateHistoryFields, createHistory, cloneHistory, deleteHistoryById,
     makePrivate, showAllHiddenContent, deleteAllHiddenContent, purgeDeletedContent,
@@ -87,27 +87,28 @@ export const actions = {
 
     async updateHistoryFields(context, { history, fields }) {
         const updatedHistory = await updateHistoryFields(history, fields);
-        updateHistory(updatedHistory); // inform observable
+        updateHistoryList(updatedHistory); // inform observable
         return updatedHistory;
     },
 
     async createNewHistory({ dispatch }) {
         const newHistory = await createHistory();
-        console.log("createNewHistory", newHistory);
-        updateHistory(newHistory); // inform observable
+        updateHistoryList(newHistory); // inform observable
+        await dispatch("selectCurrentHistory", newHistory.id);
         return newHistory;
     },
 
     async copyHistory({ dispatch }, { history, name, copyWhat }) {
         const newHistory = await cloneHistory(history, name, copyWhat);
-        updateHistory(newHistory); // inform observable
+        updateHistoryList(newHistory); // inform observable
         await dispatch("selectCurrentHistory", newHistory.id);
         return newHistory;
     },
 
-    async deleteHistory({ state }, { history, purge } = { purge: false }) {
-        await deleteHistoryById(history.id, purge);
-        deleteHistory(history); // inform observable
+    async deleteHistory({ dispatch }, { history, purge } = { purge: false }) {
+        dispatch("unsubLoader", history.id);
+        await deleteHistoryById(history.id, purge); // inform server
+        deleteHistoryFromList(history); // inform observable
         return history;
     },
 

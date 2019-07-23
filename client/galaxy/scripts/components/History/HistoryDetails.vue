@@ -251,11 +251,13 @@
 
 
 <style lang="scss" scoped>
-    @import "theme/blue.scss";
 
-    /* enlarge title input text to match h2 */
-    .history-title /deep/ h2 input {
-        font-size: $h2-font-size;
-        font-weight: 500;
-    }
+@import "theme/blue.scss";
+
+/* enlarge title input text to match h2 */
+.history-title /deep/ h2 input {
+    font-size: $h2-font-size;
+    font-weight: 500;
+}
+
 </style>

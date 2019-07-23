@@ -1,11 +1,11 @@
 <template>
     <b-modal ref="copyModal" v-model="showModal" :title="title" title-tag="h2">
-   
+
         <transition name="fade">
             <b-alert :show="isAnon" variant="warning" v-localize>
-                As an anonymous user, unless you login or register, 
-                you will lose your current history after copying this 
-                history. You can <a href="/user/login">login here</a> 
+                As an anonymous user, unless you login or register,
+                you will lose your current history after copying this
+                history. You can <a href="/user/login">login here</a>
                 or <a href="/user/create">register here</a>.
             </b-alert>
         </transition>
@@ -18,16 +18,14 @@
 
         <transition>
             <b-form v-if="!loading">
-    
-                <b-form-group label="Enter a title for the new history" 
-                    label-for="copy-modal-title">
-                    <b-input id="copy-modal-title" v-model="name"
-                        :state="newNameValid" required />
+
+                <b-form-group label="Enter a title for the new history" label-for="copy-modal-title">
+                    <b-input id="copy-modal-title" v-model="name" :state="newNameValid" required />
                     <b-form-invalid-feedback :state="newNameValid">
                         Please enter a valid history title.
                     </b-form-invalid-feedback>
                 </b-form-group>
-                
+
                 <b-form-group label="Choose which datasets from the original history
                 to include.">
                     <b-form-radio v-model="copyAll" :value="false">
@@ -37,7 +35,7 @@
                         Copy all datasets including deleted ones.
                     </b-form-radio>
                 </b-form-group>
-    
+
             </b-form>
         </transition>
 
@@ -46,9 +44,7 @@
                 <b-button @click="cancel()" class="mr-3">
                     Cancel
                 </b-button>
-                <b-button @click="copyHistory(ok)"
-                    :variant="saveVariant" 
-                    :disabled="!formValid">
+                <b-button @click="copyHistoryClick(ok)" :variant="saveVariant" :disabled="!formValid">
                     {{ saveTitle }}
                 </b-button>
             </div>
@@ -59,81 +55,81 @@
 
 <script>
 
-import { mapActions } from "vuex";
-import { getGalaxyInstance } from "app";
+    import { mapActions } from "vuex";
+    import { getGalaxyInstance } from "app";
 
-export default {
-    props: {
-        history: { type: Object, required: true },
-        value: { type: Boolean, required: false, default: false }
-    },
-    data() {
-        return {
-            name: "",
-            copyAll: false,
-            loading: false
-        }
-    },
-    computed: {
-        title() {
-            return `Copying History: ${this.history.name}`;
+    export default {
+        props: {
+            history: { type: Object, required: true },
+            value: { type: Boolean, required: false, default: false }
         },
-        saveTitle() {
-            return this.loading ? "Saving..." : "Copy History";
-        },
-        saveVariant() {
-            return this.loading ? 'info' : this.formValid ? 'primary' : 'secondary';
-        },
-        newNameValid() {
-            if (this.name == this.history.name) {
-                return null;
+        data() {
+            return {
+                name: "",
+                copyAll: false,
+                loading: false
             }
-            return this.name.length > 0;
         },
-        formValid() {
-            return this.newNameValid;
-        },
-        showModal: {
-            get() {
-                return this.value;
+        computed: {
+            title() {
+                return `Copying History: ${this.history.name}`;
             },
-            set(newVal, oldVal) {
-                if (newVal !== oldVal) {
-                    this.$emit('input', newVal);
+            saveTitle() {
+                return this.loading ? "Saving..." : "Copy History";
+            },
+            saveVariant() {
+                return this.loading ? 'info' : this.formValid ? 'primary' : 'secondary';
+            },
+            newNameValid() {
+                if (this.name == this.history.name) {
+                    return null;
                 }
+                return this.name.length > 0;
+            },
+            formValid() {
+                return this.newNameValid;
+            },
+            showModal: {
+                get() {
+                    return this.value;
+                },
+                set(newVal, oldVal) {
+                    if (newVal !== oldVal) {
+                        this.$emit('input', newVal);
+                    }
+                }
+            },
+            isAnon() {
+                return getGalaxyInstance().user.isAnonymous();
             }
         },
-        isAnon() {
-            return getGalaxyInstance().user.isAnonymous();
-        }
-    },
-    methods: {
-        
-        ...mapActions("history", [
-            "copyHistory"
-        ]),
-        
-        copyHistory(close) {
-            const { history, name, copyAll } = this;
-            this.loading = true;
-            this.copyHistory({ history, name, copyAll })
-                .then(close)
-                .finally(() => this.loading = false);
-        }
-    },
-    watch: {
-        history:{
-            handler(newHistory) {
-                this.name = `Copy of '${newHistory.name}'`;
-            },
-            immediate: true
+        methods: {
+
+            ...mapActions("history", [
+                "copyHistory"
+            ]),
+
+            async copyHistoryClick(close) {
+                this.loading = true;
+                const { history, name, copyAll } = this;
+                const newHistory = await this.copyHistory({ history, name, copyAll });
+                close();
+                this.loading = false;
+            }
+        },
+        watch: {
+            history: {
+                handler(newHistory) {
+                    this.name = `Copy of '${newHistory.name}'`;
+                },
+                immediate: true
+            }
         }
     }
-}
 
 </script>
 
 
 <style lang="scss">
-@import "~scss/transitions.scss";
+    @import "~scss/transitions.scss";
 </style>

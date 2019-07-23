@@ -4,7 +4,7 @@
  */
 
 import { of } from "rxjs";
-import { map, share, takeUntil } from "rxjs/operators";
+import { filter, map, share, takeUntil } from "rxjs/operators";
 import { createInputFunction, poll } from "utils/observable";
 import { getCachedHistory } from "caching";
 import { SearchParams } from "../SearchParams";
@@ -20,7 +20,8 @@ export function ContentLoader(historyId) {
 
     // just one history
     const history$ = of(historyId).pipe(
-        getCachedHistory()
+        getCachedHistory(),
+        filter(Boolean)
     );
 
     // watch vuex store for changes in params. Not sure we should

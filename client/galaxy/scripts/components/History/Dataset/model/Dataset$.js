@@ -1,5 +1,5 @@
 import { of, zip, concat, isObservable } from "rxjs";
-import { filter, map, pluck, share, mergeMap } from "rxjs/operators";
+import { tap, filter, map, pluck, share, mergeMap } from "rxjs/operators";
 import { ajax } from "rxjs/ajax";
 import { getCachedDataset, cacheDataset } from "caching";
 import { firstItem } from "utils/observable";

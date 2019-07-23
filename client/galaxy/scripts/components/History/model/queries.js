@@ -1,8 +1,7 @@
 import axios from "axios";
 import { prependPath } from "utils/redirect";
 
-const stdParams = "view=detailed&keys=contents_active,hid_counter,non_ready_jobs"
-
+const stdParams = "view=detailed&keys=contents_active,hid_counter,non_ready_jobs";
 
 
 export async function getHistoryById(id) {
@@ -24,7 +23,7 @@ export async function updateHistoryFields(history, payload) {
 
 
 export async function createHistory() {
-    const url = prependPath("/api/histories?${stdParams}");
+    const url = prependPath(`/api/histories?${stdParams}`);
     const response = await axios.post(url, { name: "New History" });
     if (response.status != 200) {
         throw new Error(response);
@@ -34,13 +33,11 @@ export async function createHistory() {
 
 
 export async function cloneHistory(history, name, copyAll) {
-    const url = prependPath("/api/histories");
+    const url = prependPath(`/api/histories?${stdParams}`);
     const response = await axios.post(url, {
         history_id: history.id,
         name,
         all_datasets: copyAll,
-        view: "detailed",
-        keys: "contents_active,hid_counter,non_ready_jobs",
         current: true
     });
     if (response.status != 200) {
@@ -72,7 +69,7 @@ export async function deleteHistoryById(id, purge = false) {
 
 
 export async function makePrivate(history_id) {
-    const url = prependPath('/history/make_private');
+    const url = prependPath("/history/make_private");
     const response = await axios.post(url, formData({ history_id }));
     if (response.status != 200) {
         throw new Error(response);

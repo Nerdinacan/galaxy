@@ -90,10 +90,8 @@
 
             async createHistory() {
                 const newHistory = await this.createNewHistory();
-                this.$nextTick(() => {
-                    this.selectCurrentHistory(newHistory.id);
-                    this.closeMenu();
-                });
+                // this.selectCurrentHistory(newHistory.id);
+                this.closeMenu();
             },
 
             closeMenu() {

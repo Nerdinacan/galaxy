@@ -1,10 +1,13 @@
-import { merge, pipe } from "rxjs";
+import { of, merge, pipe } from "rxjs";
 import { ajax } from "rxjs/ajax";
-import { map, filter, startWith, mapTo, switchMap, switchMapTo, share, pluck, withLatestFrom, mergeMap, take } from "rxjs/operators";
+import { tap, map, filter, startWith, mapTo, switchMap, switchMapTo, share, pluck, 
+    withLatestFrom, mergeMap, take } from "rxjs/operators";
 import { createInputFunction, split, firstItem } from "utils/observable";
-import { history$ as hColl$, withLatestFromDb, cacheHistory, deleteHistory as clearCachedHistory } from "caching";
+import { history$ as hColl$, withLatestFromDb, cacheHistory, 
+    deleteHistory as clearCachedHistory } from "caching";
 import { CurrentUserId$ } from "components/User/model/CurrentUser$";
 import { prependPath } from "utils/redirect";
+import { selectCurrentHistory, createHistory, getHistoryById } from "../queries";
 
 
 /* Histories */
@@ -22,11 +25,11 @@ const userHistories$ = CurrentUserId$.pipe(
     split()
 );
 
-export const updateHistory = createInputFunction();
-export const deleteHistory = createInputFunction();
+export const updateHistoryList = createInputFunction();
+export const deleteHistoryFromList = createInputFunction();
 
-const add$ = merge(userHistories$, updateHistory.$).pipe(cacheHistory());
-const subtract$ = deleteHistory.$.pipe(clearCachedHistory());
+const add$ = merge(userHistories$, updateHistoryList.$).pipe(cacheHistory());
+const subtract$ = deleteHistoryFromList.$.pipe(clearCachedHistory());
 
 const liveHistoryQueryForUser = () => pipe(
     withLatestFromDb(hColl$),
@@ -52,18 +55,38 @@ const loadedCurrentHistoryId$ = CurrentUserId$.pipe(
     pluck('id')
 )
 
-export const setCurrentHistoryId = createInputFunction()
+export const setCurrentHistoryId = createInputFunction();
 
-export const CurrentHistoryId$ = merge(loadedCurrentHistoryId$, setCurrentHistoryId.$).pipe(
+// save for server for reasons unknown
+const manualCurrentHistoryId = setCurrentHistoryId.$.pipe(
+    mergeMap(selectCurrentHistory),
+    pluck('id')
+)
+
+export const CurrentHistoryId$ = merge(loadedCurrentHistoryId$, manualCurrentHistoryId).pipe(
     filter(Boolean),
     share()
 )
 
 export const CurrentHistory$ = CurrentHistoryId$.pipe(
     withLatestFrom(Histories$),
-    map(([id, histories]) => histories.find(h => h.id == id)),
-    filter(Boolean),
-    startWith(null)
+    mergeMap(async ([id, histories]) => {
+        let h = histories.find(h => h.id == id);
+        if (!h && histories.length) {
+            h = histories[0];
+        } else {
+            h = null;
+        }
+        return of(h);
+    }),
+    tap(async (history) => {
+        // create new if nothing
+        if (!history) {
+            const newHistory = await createHistory();
+            setCurrentHistoryId(newHistory.id);
+        }
+    }),
+    filter(Boolean)
 )
 
 
