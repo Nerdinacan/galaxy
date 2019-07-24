@@ -81,7 +81,7 @@ export function ContentLoader(historyId) {
         });
 
         const pollSub = polling$.subscribe({
-            next: result => console.log("polling result", result),
+            // next: result => console.log("polling result", result),
             complete: () => console.log("polling complete"),
             error: err => console.warn("polling err", err)
         });
