@@ -10,16 +10,12 @@ import { SearchParams } from "./SearchParams";
 import { flushCachedDataset, cacheContent, 
     createPromiseFromOperator } from "caching";
 import { setEquals } from "utils/setFunctions";
+import { sortBy } from "underscore";
+
 
 // Holds subscriptions to ContentLoaders
 const loaderSubscriptions = new Map();
 
-// alpha sort object array on indicated prop
-const propAlphaSort = propName => (a, b) => {
-    const AA = a.name.toUpperCase();
-    const BB = b.name.toUpperCase();
-    return AA < BB ? -1 : AA > BB ? 1 : 0;
-}
 
 export const state = {
     currentHistoryId: null,
@@ -137,11 +133,8 @@ export const actions = {
     // Search parameters for a given history
     // Controls output and query contents
 
-    setSearchParams({ commit }, { history, params }) {
-        commit("setSearchParams", {
-            history,
-            params: params.clone()
-        });
+    setSearchParams({ commit }, params) {
+        commit("setSearchParams", params.clone());
     },
 
     // Subscribes to an observable that returns content as observed
@@ -150,7 +143,9 @@ export const actions = {
     loadContent({ commit }, historyId) {
         if (!loaderSubscriptions.has(historyId)) {
             const sub = ContentLoader(historyId).subscribe({
-                next: contents => commit("setHistoryContents", { historyId, contents }),
+                next: contents => {
+                    commit("setHistoryContents", { historyId, contents });
+                },
                 error: err => console.warn("ContentLoader err", err),
                 complete: () => console.log("ContentLoader complete")
             });
@@ -235,12 +230,13 @@ export const mutations = {
     },
 
     setHistories: (state, list = []) => {
-        state.histories = list.sort(propAlphaSort("name"));
+        const newList = sortBy(list, "name");
+        state.histories = newList;
     },
 
-    setSearchParams: (state, { history, params }) => {
+    setSearchParams: (state, params) => {
         state.params = Object.assign({}, state.params, {
-            [history.id]: params
+            [params.historyId]: params
         });
     },
 
@@ -265,21 +261,78 @@ export default {
     mutations
 };
 
-// Plugins and addons
 
+/**
+ * Persists some store data in the session, not using this
+ * yet, since it has some loading issues.
+ */
 export const historyPersist = new VuexPersistence({
-    key: "state-history",
+    
+    key: "vuex-state-history",
     storage: sessionStorage,
-    modules: ["history"]
+    modules: ["history"],
+
+    // only save some of the history module
+    saveState(key, { history }, storage) {
+        
+        // console.log("saveState", history);
+        
+        const { currentHistoryId, histories, params } = history;
+        
+        const payload = {
+            history: {
+                currentHistoryId,
+                histories,
+                params
+            }
+        };
+
+        storage.setItem(key, JSON.stringify(payload));
+    },
+
+    restoreState(key, storage) {
+
+        let payload = {
+            history: {
+                params: {}
+            }
+        };
+
+        if (!(key in storage)) {
+            return payload;
+        }
+
+        try {
+
+            const frozenState = storage[key];
+            const frozen = JSON.parse(frozenState);
+            payload = Object.assign(payload, frozen);
+    
+            // hydrate SearchParams
+            const oldParams = payload.history.params;
+            payload.history.params = Object.keys(oldParams)
+                .reduce((result, id) => ({
+                    ...result,
+                    [id]: new SearchParams(oldParams[id])
+                }), {});
+            
+        } catch(err) {
+            console.warn("history store unable to restore", err);
+        }
+
+        return payload;
+    }
+
 });
 
-// Plugin to subscribe to global observables for initial loading
-// and real-time updates. The actions in the history store don't
-// usually update the history list or the content directly, but
-// instead push new objects onto the observable pipes and just
-// subscribe to the end result.
 
+/**
+ * Vuex plugin to subscribe to global history list and global current user
+ * object. Both are rxjs observables and this subscription lasts the lifetime of
+ * the application so I haven't bothered unsubscribing it.
+ */
 export const observeHistory = ({ commit }) => {
+
     CurrentHistoryId$.subscribe({
         next: id => {
             // console.log("CurrentHistoryId", id);
@@ -287,7 +340,7 @@ export const observeHistory = ({ commit }) => {
         },
         error: err => console.warn("CurrentHistory$ error", err),
         complete: () => console.log("CurrentHistory$ complete")
-    });
+    })
 
     Histories$.subscribe({
         next: list => {
@@ -296,5 +349,6 @@ export const observeHistory = ({ commit }) => {
         },
         error: err => console.warn("Histories$, error", err),
         complete: () => console.log("Histories$ complete")
-    });
-};
+    })
+
+}

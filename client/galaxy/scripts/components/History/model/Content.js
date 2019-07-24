@@ -90,9 +90,18 @@ export const buildContentUrl = debug => params => {
     
     const base = `/api/histories/${params.historyId}/contents?v=dev&view=summary&keys=accessible`;
     const order = "order=hid-dsc";
-    const limit = `limit=${params.pageSize}`;
+    
     const endClause = params.end ? `q=hid-le&qv=${params.end}` : "";
     
+    // if we have a definite start point, use that
+    // otherwise back up one page
+    let startClause = "", limitClause = "";
+    if (params.start == null) {
+        limitClause = `limit=${SearchParams.pageSize}`;
+    } else {
+        startClause = `q=hid-ge&qv=${params.start}`;
+    }
+
     const since = params.lastCalled;
     const updateClause = since ? `q=update_time-gt&qv=${since.toISOString()}` : "";
     params.markLastCalled();
@@ -112,9 +121,9 @@ export const buildContentUrl = debug => params => {
 
     const textFilter = params.textFilter ? `q=name-contains&qv=${textFilter}` : "";
 
-    const parts = [base, deletedClause, purgedClause,
-        visibleClause, textFilter, endClause, updateClause,
-        order, limit];
+    const parts = [ base, endClause, startClause, limitClause,
+        deletedClause, purgedClause, visibleClause, textFilter, 
+        updateClause, order ];
 
     const url = parts.filter(o => o.length).join("&");
 

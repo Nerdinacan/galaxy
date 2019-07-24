@@ -14,16 +14,16 @@
                             @keyup.space.stop.prevent.self="toggleContent(c)"
                             :data-state="c.state" />
                     </li>
-                    <li class="sensor" v-observe-visibility="updatePageRange(nextPage)">
-                        <p>Sensor nextPage: {{ nextPage }}</p>
-                    </li> 
+                    <!-- <li class="sensor" v-observe-visibility="updatePageRange(minHid -1)">
+                        <p>Sensor nextPage</p>
+                    </li>  -->
                 </ol>
             </div>
         </transition>
 
         <transition name="fade">
             <b-alert v-if="!(loading || content.length)" class="m-3" show>
-                <history-empty v-observe-visibility="updatePageRange(nextPage)" />
+                <history-empty v-observe-visibility="updatePageRange(-1)" />
             </b-alert>
         </transition>
 
@@ -39,6 +39,8 @@
 
 <script>
 
+// TODO: move scrolling features into a separate ui component
+
 import { mapGetters, mapActions } from "vuex";
 import { debounce } from "debounce";
 import { eventHub } from "components/eventHub";
@@ -46,6 +48,9 @@ import { ObserveVisibility } from "vue-observe-visibility";
 import { SearchParams } from "./model/SearchParams";
 import ContentItem from "./ContentItem";
 import HistoryEmpty from "./HistoryEmpty";
+
+import { merge, combineLatest } from "rxjs";
+import { pluck, debounceTime } from "rxjs/operators";
 
 export default {
 
@@ -66,38 +71,32 @@ export default {
         return {
             loading: true,
             showSelection: false,
-            localParams: SearchParams.createForHistory(this.history)
+            start: Number.POSITIVE_INFINITY,
+            end: Number.NEGATIVE_INFINITY
         }
     },
 
     computed: {
 
         ...mapGetters("history", [
-            "searchParams",
             "historyContent",
-            "contentSelection"
+            "contentSelection",
+            "searchParams"
         ]),
 
         params() {
-            return this.searchParams(this.history.id).clone();
-        },
-
-        pageSize() {
-            return this.params.pageSize;
+            return this.searchParams(this.history.id);
         },
 
         content() {
-            return this.historyContent(this.history.id);
+            const content = this.historyContent(this.history.id);
+            return content;
         },
 
         minHid() {
             return this.content
                 .map(c => c.hid)
                 .reduce((a,b) => Math.min(a, b), this.history.hid_counter);
-        },
-
-        nextPage() {
-            return this.minHid - this.pageSize;
         },
 
         selection: {
@@ -113,7 +112,7 @@ export default {
                     history: this.history,
                     selection: new Set(newList)
                 });
-            }, 50)
+            }, 100)
         }
 
     },
@@ -135,45 +134,82 @@ export default {
             eventHub.$emit("collapseContent", content);
         },
 
+
+        // Scrolling Methods, move to another component
+
         updatePageRange(hid) {
-            if (hid < 0) return;
             function handler(isVisible, entry) {
                 if (isVisible) {
-                    this.localParams.expand(hid);
+                    this.expand(hid);
                 } else {
                     if (this.isAboveWindow(entry)) {
-                        this.localParams.clipTop(hid);
+                        this.clipTop(hid);
                     } else if(this.isBelowWindow(entry)) {
-                        this.localParams.clipBottom(hid);
+                        this.clipBottom(hid);
                     }
                 }
-                this.sendParams();
             }
             return handler.bind(this);
         },
 
-        sendParams() {
-            if (!SearchParams.equals(this.localParams, this.params)) {
-                // this.loading = true;
-                this.setSearchParams({
-                    history: this.history,
-                    params: this.localParams
-                });
-            }
+        // this one came into view
+        expand(hid) {
+            this.start = Math.min(this.start, hid);
+            this.end = Math.max(this.end, hid);
+        },
+
+        // this one ran off the top
+        clipTop(hid) {
+            this.end = Math.min(this.end, hid - 1);
+        },
+
+        // ran off the bottom
+        clipBottom(hid) {
+            this.start = Math.max(this.start, hid + 1);
         },
 
         getContainerRect() {
-            return this.$refs.scrollContainer.getBoundingClientRect();
+            try {
+                return this.$refs.scrollContainer.getBoundingClientRect();
+            } catch(err) {
+                return null;
+            }
         },
 
         isAboveWindow(entry, index) {
             const { boundingClientRect } = entry;
             const containerRect = this.getContainerRect();
-            return boundingClientRect.bottom < containerRect.top;
+            if (containerRect) {
+                return boundingClientRect.bottom < containerRect.top;
+            }
+            return false;
         },
 
         isBelowWindow({ boundingClientRect }) {
-            return boundingClientRect.top > this.getContainerRect().bottom;
+            const containerRect = this.getContainerRect();
+            if (containerRect) {
+                return boundingClientRect.top > containerRect.bottom;
+            }
+            return false;
+        },
+
+        setParameterRange([ start, end ]) {
+            console.log("setParameterRange", start, end);
+
+            const params = this.params.clone();
+            params.start = start;
+            params.end = end;
+
+            if (!this.loading) {
+                this.setSearchParams(params);
+                this.loading = true;
+            }
+        },
+
+        resetEndPoints() {
+            this.start = Number.POSITIVE_INFINITY;
+            this.end = Number.NEGATIVE_INFINITY;
+            this.loading = true;
         }
 
     },
@@ -189,6 +225,7 @@ export default {
         history: {
             handler(history, oldHistory) {
                 if (oldHistory && (history.id !== oldHistory.id)) {
+                    this.resetEndPoints();
                     this.unsubLoader(oldHistory.id);
                 }
                 this.loadContent(history.id);
@@ -196,13 +233,15 @@ export default {
             immediate: true
         },
 
-        // when params changes, create a local copy, that's what we
-        // manipulate until it gets sent
-        params(newParams) {
-            if (!SearchParams.equals(newParams, this.localParams)) {
-                this.localParams = newParams.clone();
-            }
-        }
+    },
+
+    created() {
+        const start$ = this.$watchAsObservable('start').pipe(pluck('newValue'));
+        const end$ = this.$watchAsObservable('end').pipe(pluck('newValue'));
+        const range$ = combineLatest(start$, end$).pipe(
+            debounceTime(500)
+        );
+        this.$subscribeTo(range$, this.setParameterRange);
     },
 
     mounted() {

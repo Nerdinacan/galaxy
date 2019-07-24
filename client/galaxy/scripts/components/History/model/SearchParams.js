@@ -11,9 +11,6 @@ export class SearchParams {
         this.showDeleted = false;
         this.showHidden = false;
 
-        // Chunk-size for blocks of windowed content
-        this.pageSize = 100;
-
         this._start = null;
         this._end = null;
         Object.assign(this, props);
@@ -58,34 +55,6 @@ export class SearchParams {
     removeLimits() {
         this._end = null;
         this._start = null;
-        return this;
-    }
-
-    // this one came into view
-    expand(hid) {
-        if (hid === null || isNaN(hid)) {
-            return;
-        }
-        this.start = Math.min(this.start, hid);
-        this.end = Math.max(this.end, hid);
-        return this;
-    }
-
-    // this one ran off the top
-    clipTop(hid) {
-        if (hid === null || isNaN(hid)) {
-            return;
-        }
-        this.end = Math.min(this.end, hid - 1);
-        return this;
-    }
-
-    // ran off the bottom
-    clipBottom(hid) {
-        if (hid === null || isNaN(hid)) {
-            return;
-        }
-        this.start = Math.max(this.start, hid + 1);
         return this;
     }
 
@@ -137,3 +106,7 @@ export class SearchParams {
         });
     }
 }
+
+// make this number pretty big to avoid a lot of repeated
+// trips to the server
+SearchParams.pageSize = 50;

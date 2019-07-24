@@ -3,11 +3,10 @@
  * through polling for server-side updates
  */
 
-import { pipe, of } from "rxjs";
-import { tap, share, distinct, map, filter, debounceTime, 
-    buffer, takeUntil, take, retry } from "rxjs/operators";
-import { watchVuexSelector } from "utils/observable";
-import { createInputFunction, split, ajaxGet, poll } from "utils/observable";
+import { of } from "rxjs";
+import { share, distinct, map, takeUntil, take } from "rxjs/operators";
+import { createInputFunction, ajaxGet, poll } from "utils/observable";
+import { getParamsFromHistoryId, bufferParamRange, segmentParams } from "./paramStreaming";
 import { getCachedHistory } from "caching";
 import { getContentObservable, buildContentUrlForHistory, cacheContentArray, buildContentUrl } from "./Content";
 import { historyUpdate } from "./History";
@@ -30,10 +29,10 @@ export function ContentLoader(historyId) {
             debug: false,
             label: "source params"
         }),
-        bufferParamRange({ 
-            debug: false, 
-            debounceDuration: 100
-        }),
+        // bufferParamRange({ 
+        //     debug: true, 
+        //     debounceDuration: 400
+        // }),
         share()
     );
 
@@ -46,7 +45,7 @@ export function ContentLoader(historyId) {
     // Do you have anything new for me for these parameters since
     // last time I asked?
     const manual$ = param$.pipe(
-        segmentParams(),
+        segmentParams(true),
         distinct(p => p.dateStoreKey),
         map(buildContentUrl()),
         ajaxGet(),
@@ -64,7 +63,6 @@ export function ContentLoader(historyId) {
             // triggers: manual$,
             // debounceDuration: 500,
         }),
-        retry(1),
         takeUntil(stopPolling.$)
     );
 
@@ -95,7 +93,6 @@ export function ContentLoader(historyId) {
 }
 
 
-
 // Poll for any recent changes to the history or its contents
 
 const buildRequest = id => of(id).pipe(
@@ -106,89 +103,3 @@ const buildRequest = id => of(id).pipe(
     ajaxGet(),
     cacheContentArray()
 )
-
-
-
-
-/**
- * Generates a parameters observable operator for the source history stream. Looks
- * at vuex store for changes. Updates self as history$ stream changes.
- */
-
-export const getParamsFromHistoryId = (config = {}) => {
-
-    const { 
-        store,
-        label = "params", 
-        debug = false
-    } = config;
-
-    return pipe(
-        map(id => (_, getters) => getters["history/searchParams"](id)),
-        watchVuexSelector(store),
-        tap(p => debug ? p.report(label) : null)
-    );
-}
-
-
-
-// emit a param representing the maximum range, max start/end of the params that
-// passed through before we buffered
-
-export const bufferParamRange = (config = {}) => src => {
-
-    const { 
-        debug = false, 
-        debounceDuration = 500
-    } = config;
-
-    return src.pipe(
-        tap(p => {
-            if (debug) {
-                p.report("bufferParamRange, preBuffer");
-            }
-        }),
-        buffer(src.pipe(
-            debounceTime(debounceDuration)
-        )),
-        // makes a single param interval with the highest/lowest
-        // start/ends of all the buffered params
-        map(bfr => bfr.reduce(amoebaInterval, null)),
-        filter(Boolean),
-        tap(result => {
-            if (debug) {
-                result.report("bufferParamRange");
-            }
-        })
-    );
-}
-
-export const amoebaInterval = (acc, p) => {
-    const result = acc === null ? p.clone() : acc.clone();
-    result.start = Math.min(result.start, p.start);
-    result.end = Math.max(result.end, p.end);
-    return result;
-}
-
-
-// splits a param into distinct chunks by param pageSize
-// reduces number of distinct calls to the server
-export const segmentParams = debug => pipe(
-    map(p => {
-        const result = [];
-        const chunk = p.pageSize;
-        let top = p.end;
-        do {
-            const newP = p.clone();
-            newP.end = Math.ceil(top / chunk) * chunk;
-            newP.start = newP.end - chunk + 1;
-            result.push(newP);
-            top = newP.end - chunk;
-        } while(top > p.start);
-        return result;
-    }),
-    split(),
-    tap(p => {
-        if (debug) p.report("segmented params");
-    })
-);

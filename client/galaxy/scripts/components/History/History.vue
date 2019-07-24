@@ -32,8 +32,7 @@ export default {
     computed: {
         ...mapGetters("history", [ "getHistory" ]),
         history() {
-            const historyDoc = this.getHistory(this.historyId);
-            return historyDoc ? historyDoc.toJSON() : null;
+            return this.getHistory(this.historyId);
         }
     }
 }

@@ -186,15 +186,11 @@ export default {
         // create a local copy
         params: {
             get() {
-                const newParams = this.searchParams(this.historyId);
-                return newParams.clone();
+                return this.searchParams(this.historyId);
             },
             set(newParams) {
                 if (!SearchParams.equals(newParams, this.params)) {
-                    this.setSearchParams({
-                        history: this.history,
-                        params: newParams
-                    });
+                    this.setSearchParams(newParams);
                 }
             }
         },

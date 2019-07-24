@@ -39,6 +39,7 @@ const liveHistoryQueryForUser = () => pipe(
 export const Histories$ = merge(add$, subtract$).pipe(
     switchMapTo(CurrentUserId$),
     liveHistoryQueryForUser(),
+    map(docs => docs.map(d => d.toJSON())),
     share()
 );
 
