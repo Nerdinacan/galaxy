@@ -30,7 +30,10 @@ export function ContentLoader(historyId) {
             debug: false,
             label: "source params"
         }),
-        bufferParamRange(),
+        bufferParamRange({ 
+            debug: false, 
+            debounceDuration: 100
+        }),
         share()
     );
 
@@ -53,7 +56,7 @@ export function ContentLoader(historyId) {
 
     const polling$ = historyId$.pipe(
         poll({
-            debug: true,
+            debug: false,
             buildRequest,
             delayDuration: 5000,
             // TODO: maybe delay poll requests further if user pulled
@@ -136,7 +139,7 @@ export const bufferParamRange = (config = {}) => src => {
 
     const { 
         debug = false, 
-        duration = 500
+        debounceDuration = 500
     } = config;
 
     return src.pipe(
@@ -146,7 +149,7 @@ export const bufferParamRange = (config = {}) => src => {
             }
         }),
         buffer(src.pipe(
-            debounceTime(duration)
+            debounceTime(debounceDuration)
         )),
         // makes a single param interval with the highest/lowest
         // start/ends of all the buffered params

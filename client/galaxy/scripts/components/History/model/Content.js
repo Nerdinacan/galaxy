@@ -18,44 +18,36 @@ export const getContentObservable = (label, debug = false) => pipe(
         }
     }),
     withLatestFromDb(historyContent$),
-    map(buildLocalContentQuery(label, debug)),
-    switchMap(query => query.$),
+    switchMap(buildLocalContentQuery(label, debug)),
     tap(results => {
         if (debug) {
-            console.log("getContentObservable", label, results);
+            console.log("getContentObservable", label, results.length);
         }
     })
 );
 
 const buildLocalContentQuery = (label, debug = false) => ([params, coll]) => {
 
-    let query = coll.find().where("history_id").eq(params.historyId);
+    const selector = {
+        history_id: { $eq: params.historyId }
+    }
 
     if (!params.showDeleted) {
         // limit to non-deleted
-        query = query.where("isDeleted").eq(false);
-        // datasetcollection has no purged property
-        query = query.or([{ purged: false }, { purged: undefined }]);
+        selector.isDeleted = { $eq: false };
     }
 
     if (!params.showHidden) {
         // limit to visible
-        query = query.where("visible").eq(true);
+        selector.visible = { $eq: true };
     }
 
     if (params.filterText.length) {
         const filterRE = new RegExp(params.filterText, "gi");
-        query = query.where("name").regex(filterRE);
+        selector.name = { $regex: filterRE };
     }
 
-    // if (params.start !== null) {
-    //     query = query.where("hid").gte(params.start);
-    // }
-
-    // if (params.end !== null) {
-    //     query = query.where("hid").lte(params.end);
-    // }
-
+    let query = coll.find(selector);
     query = query.sort("-hid");
 
     if (debug) {
@@ -66,7 +58,7 @@ const buildLocalContentQuery = (label, debug = false) => ([params, coll]) => {
         console.groupEnd();
     }
 
-    return query;
+    return query.$;
 };
 
 // takes a stream of content and emits the latest update_time

@@ -207,12 +207,19 @@ export const actions = {
 
     async updateSelectedContent({ getters }, { history, field, value }) {
         const contentSet = getters.contentSelection(history);
+
+        // "deleted" needs special handling because RxDB uses deleted as a
+        // built-in property, we've added an additional property to all
+        // the schemas called "isDeleted"
+        const localField = (field == "deleted") ? "isDeleted" : "field";
+
         const items = Array.from(contentSet)
-            .filter(c => c[field] != value)
+            .filter(c => c[localField] != value)
             .map(c => ({
                 id: c.id,
                 history_content_type: c.history_content_type
             }));
+
         const payload = { items, [field]: value };
         const updates = await bulkUpdate(history, payload);
         const cacheFn = createPromiseFromOperator(cacheContent);

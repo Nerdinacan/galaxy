@@ -226,13 +226,6 @@ export default {
         }
 
     },
-    watch: {
-        expand(newVal) {
-            if (newVal) {
-                this.loadDataset();
-            }
-        }
-    },
     methods: {
 
         // Holds off on subscribing to the dataset until they open
@@ -241,7 +234,7 @@ export default {
         // (which is updated through polling) and only requery when the local
         // dataset value has gone stale
         
-        loadDataset() {
+        load() {
             if (!this.datasetSub) {
                 console.log("subscribing to live dataset observable");
                 const sub = this.$subscribeTo(
@@ -301,6 +294,13 @@ export default {
 
         isMe(ds) {
             return ds.id == this.content.id;
+        }
+    },
+    watch: {
+        expand(newVal) {
+            if (newVal) {
+                this.load();
+            }
         }
     },
     created() {

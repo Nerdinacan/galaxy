@@ -1,8 +1,8 @@
 import { of, zip, concat, isObservable } from "rxjs";
-import { tap, filter, map, pluck, share, mergeMap } from "rxjs/operators";
+import { filter, map, pluck, share } from "rxjs/operators";
 import { ajax } from "rxjs/ajax";
-import { getCachedDataset, cacheDataset } from "caching";
-import { firstItem } from "utils/observable";
+import { getCachedDataset, cacheDataset, getCachedDatasetCollection, cacheDatasetCollection } from "caching";
+import { firstItem, ajaxGet } from "utils/observable";
 import { prependPath } from "utils/redirect";
 
 /**
@@ -12,25 +12,34 @@ import { prependPath } from "utils/redirect";
  */
 export function Dataset$(content) {
     const content$ = isObservable(content) ? content : of(content);
-    return content$.pipe(getFreshDatsetFromContent());
+    return content$.pipe(
+        getFresh(getCachedDataset, cacheDataset)
+    );
 }
 
-const getFreshDatsetFromContent = (debug = false) => c$ => {
+export function DatasetCollection$(content) {
+    const content$ = isObservable(content) ? content : of(content);
+    return content$.pipe(
+        getFresh(getCachedDatasetCollection, cacheDatasetCollection)
+    );
+}
+
+export const getFresh = (loader, cacher, debug = false) => c$ => {
     
     const content$ = c$.pipe(
         share()
     );
 
     // current dataset data in indexDB
-    const existingDataset$ = content$.pipe(
+    const existing$ = content$.pipe(
         pluck('id'),
-        getCachedDataset(debug),
+        loader(debug),
         share()
     );
 
     // compare to content, if content is newer, that means polling picked
     // up an update and we have to retrieve the new dataset
-    const staleDataset$ = zip(content$, existingDataset$).pipe(
+    const stale$ = zip(content$, existing$).pipe(
         filter(([ content, dataset ]) => {
             if (!dataset) return true;
             return dataset.getUpdateDate().isBefore(content.getUpdateDate());
@@ -38,26 +47,25 @@ const getFreshDatsetFromContent = (debug = false) => c$ => {
     );
     
     // actual request
-    const serverDataset$ = staleDataset$.pipe(
+    const retrievedVersion$ = stale$.pipe(
         map(buildUpdateUrl),
-        map(prependPath),
-        mergeMap(url => ajax.getJSON(url)),
+        ajaxGet(),
         firstItem(),
-        cacheDataset(debug)
+        cacher(debug)
     );
     
     // if server never emits, take original value
-    return concat(serverDataset$, existingDataset$).pipe(
+    return concat(retrievedVersion$, existing$).pipe(
         filter(Boolean)
     );
 }
 
 
-function buildUpdateUrl([ content, ds ]) {
+function buildUpdateUrl([ content, item ]) {
     const { history_id, hid } = content;
     const base = `/api/histories/${history_id}/contents?v=dev&view=detailed`;
     const hidClause = `q=hid&qv=${hid}`;
-    const updateClause = ds ? `q=update_time-gt&qv=${ds.update_time}` : "";
+    const updateClause = item ? `q=update_time-gt&qv=${item.update_time}` : "";
     const parts = [ base, hidClause, updateClause ];
     return parts.filter(o => o.length).join("&");
 }

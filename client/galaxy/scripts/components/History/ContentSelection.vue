@@ -308,9 +308,6 @@ export default {
                 field: "deleted",
                 value: false
             });
-            this.clearContentSelection({
-                history: this.history
-            });
         },
 
         purgeDatasets() {

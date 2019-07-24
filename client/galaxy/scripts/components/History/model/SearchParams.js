@@ -48,7 +48,6 @@ export class SearchParams {
     }
 
     markLastCalled() {
-        // debugger;
         dateStore.set(this.dateStoreKey);
     }
 

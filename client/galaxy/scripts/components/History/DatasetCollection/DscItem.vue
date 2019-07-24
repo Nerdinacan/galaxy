@@ -1,84 +1,98 @@
 <template>
-    <div>
+    <div :class="{ expanded, collapsed: !expanded }">
+        
+        <!-- <nav class="dataset-top-menu d-flex justify-content-between" 
+                @click="toggleDetails"></nav> -->
+        
         <header>
-            <h5 class="m-0">
-                <a href="#" @click="toggleDetails">{{ content.hid }}: {{ title }}</a>
-            </h5>
-            <!-- <icon-menu>
-                <icon-menu-item 
-                    title="Delete" 
-                    icon="times"
-                    @click="deleteCollection"
-                    tooltip-placement="topleft" />
-            </icon-menu> -->
+            <h4><a href="#" @click="toggleDetails">{{ title }}</a></h4>
         </header>
+
+        <transition name="shutterfade">
+            <div v-if="expanded" class="details px-3 pb-3">
+                {{ dsc }}
+            </div>
+        </transition>
+
     </div>
 </template>
 
 
 <script>
 
-import { filter, pluck, startWith } from "rxjs/operators";
 import { mapState, mapMutations } from "vuex";
-import { getCachedDatasetCollection } from "caching";
+import { DatasetCollection$ } from "../Dataset/model/Dataset$";
 import { eventHub } from "components/eventHub";
-import { IconMenu, IconMenuItem } from "components/IconMenu";
-
 
 export default {
-    components: {
-        IconMenu, IconMenuItem
-    },
     props: {
         content: { type: Object, required: true }
     },
     data() {
         return {
-            showDetails: false,
-            dsc: null
+            dsc: null,
+            expand: false
         }
     },
     computed: {
         title() {
             const { hid, name } = this.content;
             return `${hid}: ${name}`;
+        },
+        expanded() {
+            return this.dsc && this.expand;
         }
     },
     methods: {
 
-        ...mapMutations("dsc", [ "setCurrentCollectionId" ]),
+        // ...mapMutations("dsc", [ "setCurrentCollectionId" ]),
+        
+        toggle(paramName, forceVal) {
+            if (!(paramName in this)) {
+                console.warn("Missing toggle parameter", paramName);
+                return;
+            }
+            if (forceVal === undefined) {
+                this[paramName] = !this[paramName];
+            } else {
+                this[paramName] = forceVal;
+            }
+        },
 
         toggleDetails() {
-            this.showDetails = !this.showDetails;
-            const id = this.showDetails ? this.content.id : null;
-            this.setCurrentCollectionId(id)
+            this.toggle('expand');
         },
 
         collapse() {
-            this.showDetails = false;
+            this.toggle('expand', false);
         },
-        
-        deleteCollection() {
-            console.log("deleteCollection");
-            console.dir(this.dsc);
-        }
+
+        load() {
+            if (!this.dscSub) {
+                console.log("subscribing to live dataset observable");
+                const sub = this.$subscribeTo(
+                    DatasetCollection$(this.content),
+                    dsc => this.dsc = dsc,
+                    err => console.warn("DatasetCollection observable err", err),
+                    () => console.log("DatasetCollection observable complete")
+                );
+                this.dscSub = sub;
+            }
+        },
 
     },
-    // subscriptions() {
-    //     const dsc = this.$watchAsObservable("content", { immediate: true }).pipe(
-    //         pluck("newValue", "id"),
-    //         getCachedDatasetCollection(),
-    //         startWith(null)
-    //     );
-    //     return { dsc };
-    // },
+    watch: {
+        expand(newVal) {
+            if (newVal) {
+                this.load();
+            }
+        }
+    },
     created() {
         eventHub.$on('collapseAllContent', this.collapse);
-        eventHub.$on('toggleContent', this.toggleDetails);
     },
     beforeDestroy() {
         eventHub.$off('collapseAllContent', this.collapse);
-        eventHub.$off('toggleContent', this.toggleDetails);
     }
 }
 

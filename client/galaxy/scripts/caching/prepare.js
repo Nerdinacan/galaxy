@@ -28,8 +28,27 @@ export function prepareHistory(raw) {
 const conformManifest = conformToSchema(historyContentSchema);
 
 export function prepareContentSummary(raw) {
+
     const item = conformManifest(raw);
+
     item.isDeleted = raw.deleted;
+
+    // stupid api does not return purged for collections
+    if (raw.purged === undefined) {
+        item.purged = false;
+    }
+
+    // Again, stupid api will mark something as purged
+    // but not deleted.
+    if (raw.purged == true) {
+        item.isDeleted = true;
+    }
+
+    // stupid api does not return update_time for collections
+    if (!raw.update_time) {
+        item.update_time = (new Date()).toISOString();
+    }
+
     return item;
 }
 
@@ -40,7 +59,13 @@ const conformDataset = conformToSchema(datasetSchema);
 
 export function prepareDataset(raw) {
     const ds = conformDataset(raw);
+
     ds.isDeleted = raw.deleted;
+
+    if (raw.purged) {
+        ds.isDeleted = true;
+    }
+
     return ds;
 }
 
@@ -51,13 +76,17 @@ const conformDsc = conformToSchema(datasetCollectionSchema);
 
 export function prepareDatasetCollection(raw) {
     const dsc = conformDsc(raw);
+
+    dsc.isDeleted = raw.deleted;
+
+    if (raw.purged === undefined) {
+        dsc.purged = false;
+    }
+
     if (!raw.update_time) {
         dsc.update_time = (new Date()).toISOString();
     }
-    // Content query is malformed, does not return purged
-    // values for only dataset queries, so add it here.
-    dsc.purged = false;
-    debugger;
+
     return dsc;
 }
 
