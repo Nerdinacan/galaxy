@@ -5,11 +5,11 @@
 import { Observable, pipe } from "rxjs";
 import { switchMap } from "rxjs/operators";
 
-export const watchVuexSelector = (store, watchOpts = { immediate: true }) => pipe(
-    switchMap(selector => {
+export const watchVuexSelector = (store, watchOptions = { immediate: true }) => pipe(
+    switchMap(selectorFn => {
         return new Observable(subscriber => {
-            const handler = result => subscriber.next(result);
-            return store.watch(selector, handler, watchOpts);
+            const callback = result => subscriber.next(result);
+            return store.watch(selectorFn, callback, watchOptions);
         });
     })
 );

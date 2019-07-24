@@ -1,7 +1,3 @@
-// TODO: boolean filter is restricting polling update, need
-// nullable deleted and hidden flags that can be completely
-// ommitted from the api query
-
 import dateStore from "./dateStore";
 import hash from "object-hash";
 
@@ -10,15 +6,13 @@ export class SearchParams {
 
     constructor(props = {}) {
         this.historyId = null;
+
         this.filterText = "";
         this.showDeleted = false;
         this.showHidden = false;
 
-        // Maximum result length on a pagination request
-        this.limit = 50;
-
         // Chunk-size for blocks of windowed content
-        this.pageSize = 50;
+        this.pageSize = 100;
 
         this._start = null;
         this._end = null;
@@ -34,9 +28,7 @@ export class SearchParams {
             this._start = null;
             return;
         }
-        const pageSize = this.pageSize;
-        const newVal = Math.floor(val / pageSize) * pageSize;
-        this._start = Math.max(0, newVal);
+        this._start = Math.max(0, val);
     }
 
     get end() {
@@ -48,13 +40,7 @@ export class SearchParams {
             this._end = null;
             return;
         }
-        const pageSize = this.pageSize;
-        const newVal = Math.ceil(val / pageSize) * pageSize;
-        this._end = Math.max(0, newVal);
-    }
-
-    get showVisible() {
-        return !this.showHidden;
+        this._end = Math.max(0, val);
     }
 
     get lastCalled() {
@@ -62,6 +48,7 @@ export class SearchParams {
     }
 
     markLastCalled() {
+        // debugger;
         dateStore.set(this.dateStoreKey);
     }
 
@@ -80,8 +67,8 @@ export class SearchParams {
         if (hid === null || isNaN(hid)) {
             return;
         }
-        this.start = Math.min(this.start, hid - 1);
-        this.end = Math.max(this.end, hid + 1);
+        this.start = Math.min(this.start, hid);
+        this.end = Math.max(this.end, hid);
         return this;
     }
 
@@ -143,13 +130,11 @@ export class SearchParams {
 
     // gets all content for indicated history regardless of
     // endpoints or other filters, just a history id
-    static entireHistory(history) {
+    static entireHistory(historyId) {
         return new SearchParams({
-            historyId: history.id,
+            historyId,
             showDeleted: true,
             showHidden: true
         });
     }
 }
-
-

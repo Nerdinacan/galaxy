@@ -2,9 +2,10 @@
     <div class="d-flex flex-column ml-1 h-100">
         <history-top-nav class="px-3 pt-3 pb-0" />
         <history v-if="currentHistoryId"
-            :history-id="currentHistoryId" />
+            :historyId="currentHistoryId" />
     </div>
 </template>
+
 
 <script>
 
@@ -18,9 +19,7 @@ export default {
         HistoryTopNav
     },
     computed: {
-        ...mapState("history", [
-            "currentHistoryId"
-        ])
+        ...mapState("history", [ "currentHistoryId" ])
     }
 }
 

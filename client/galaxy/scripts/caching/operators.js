@@ -1,5 +1,5 @@
 import { of, combineLatest, pipe } from "rxjs";
-import { tap, filter, mergeMap, withLatestFrom, retry } from "rxjs/operators";
+import { tap, filter, mergeMap, retry } from "rxjs/operators";
 
 
 /**
@@ -58,14 +58,19 @@ export const getItem = (collection$, debug = false) => pipe(
 export const setItem = (collection$, debug = false) => pipe(
     withLatestFromDb(collection$),
     mergeMap(async ([ item, coll ]) => {
-        let result = await coll.upsert(item);
-        if (debug) {
-            console.groupCollapsed("CACHING", coll.name, item.id, item.name);
-            // console.log("collection", coll.name);
-            // console.log("input", item);
-            // console.log("output", result);
-            console.log("update_time", result.update_time);
-            console.groupEnd();
+        let result;
+        try {
+            result = await coll.atomicUpsert(item);
+            if (debug) {
+                console.groupCollapsed("CACHING", coll.name, item.id, item.name);
+                // console.log("collection", coll.name);
+                // console.log("input", item);
+                // console.log("output", result);
+                console.log("update_time", result.update_time);
+                console.groupEnd();
+            }
+        } catch(err) {
+            debugger;
         }
         return result;
     }),

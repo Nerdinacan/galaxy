@@ -102,150 +102,154 @@
 
 <script>
 
-    import { mapActions } from "vuex";
-    import HistoryTags from "./HistoryTags";
-    import CopyModal from "./CopyModal";
-    import ClickToEdit from "components/Form/ClickToEdit";
-    import GearMenu from "components/GearMenu";
-    import { IconMenu, IconMenuItem } from "components/IconMenu";
-    import { bytesToString } from "utils/utils"
-    import Annotation from "components/Form/Annotation";
+import { mapActions } from "vuex";
+import HistoryTags from "./HistoryTags";
+import CopyModal from "./CopyModal";
+import ClickToEdit from "components/Form/ClickToEdit";
+import GearMenu from "components/GearMenu";
+import { IconMenu, IconMenuItem } from "components/IconMenu";
+import { bytesToString } from "utils/utils"
+import Annotation from "components/Form/Annotation";
 
-    const messages = {
-        "deleteHistoryPrompt": "Really delete the current history?",
-        "purgeHistoryPrompt": "Really delete the current history permanently? This cannot be undone.",
-        "makePrivatePrompt": "This will make all the data in this history private (excluding library datasets), and will set permissions such that all new data is created as private.  Any datasets within that are currently shared will need to be re-shared or published. Are you sure you want to do this?",
-    };
+const messages = {
+    "deleteHistoryPrompt": "Really delete the current history?",
+    "purgeHistoryPrompt": "Really delete the current history permanently? This cannot be undone.",
+    "makePrivatePrompt": "This will make all the data in this history private (excluding library datasets), and will set permissions such that all new data is created as private.  Any datasets within that are currently shared will need to be re-shared or published. Are you sure you want to do this?",
+};
 
-    export default {
-        components: {
-            HistoryTags,
-            IconMenu,
-            IconMenuItem,
-            CopyModal,
-            GearMenu,
-            Annotation,
-            ClickToEdit
-        },
-        props: {
-            history: { type: Object, required: true }
-        },
-        data() {
-            return {
-                showTags: false,
-                showCopyModal: false,
-                editAnnotation: false,
-                messages,
-                showRaw: false
-            }
-        },
-        computed: {
-
-            annotation: {
-                get() {
-                    return this.history.annotation || "";
-                },
-                set(annotation) {
-                    this.updateFields({ annotation });
-                }
-            },
-
-            historyName: {
-                get() {
-                    return this.history.name;
-                },
-                set(name) {
-                    if (name.length) {
-                        this.updateFields({ name });
-                    }
-                }
-            },
-
-            // formats size number into x.xxMB/GB
-            niceSize() {
-                const size = this.history.size;
-                return size ? bytesToString(size, true, 2) : "(empty)";
-            }
-        },
-        methods: {
-
-            ...mapActions("history", [
-                "updateHistoryFields",
-                "deleteCurrentHistory",
-                "makeHistoryPrivate"
-            ]),
-
-            updateFields(fields = {}) {
-                this.updateHistoryFields({
-                    history: this.history,
-                    fields
-                });
-            },
-
-            toggle(paramName, forceVal) {
-                if (!(paramName in this)) {
-                    console.warn("Missing toggle parameter", paramName);
-                    return;
-                }
-                if (forceVal === undefined) {
-                    this[paramName] = !this[paramName];
-                } else {
-                    this[paramName] = forceVal;
-                }
-            },
-
-
-            // History name validation
-            // controls good/bad appearance of the input
-
-            nameInputState(val, origVal) {
-                if (val === origVal) {
-                    return null;
-                }
-                return val.length > 0;
-            },
-
-
-
-            // Current History Operations (moved here from endless gear menu)
-
-            // we could just put the links in the markup but
-            // these function include the galaxy.root
-            // into the target/url and also help with testing
-
-            openCopyModal() {
-                this.showCopyModal = true;
-            },
-
-            deleteHistory(evt) {
-                evt.preventDefault();
-                this.deleteCurrentHistory()
-                    .then(() => evt.vueTarget.hide())
-                    .catch(err => {
-                        console.warn("Failed to delete current history", err);
-                    });
-            },
-
-            // need clarification about what should be difference between
-            // purge and delete. requirements seem super-murky and insconsistent
-            // in the implementation in the current backbone catastrophe
-            purgeHistory(evt) {
-                evt.preventDefault();
-                this.deleteCurrentHistory({ purge: true })
-                    .then(() => evt.vueTarget.hide())
-                    .catch(err => console.warn("Failed to purge current history", err));
-            },
-
-            makePrivate(evt) {
-                evt.preventDefault();
-                this.makeHistoryPrivate({ history: this.history })
-                    .then(result => console.log(result))
-                    .then(() => evt.vueTarget.hide())
-                    .catch(err => console.warn("Failed to make history private.", err));
-            }
-
+export default {
+    components: {
+        HistoryTags,
+        IconMenu,
+        IconMenuItem,
+        CopyModal,
+        GearMenu,
+        Annotation,
+        ClickToEdit
+    },
+    // As always, when dealing with an inadequate observable
+    // system like Vuex, we run into problems. This history
+    // prop does not update from the outside
+    props: {
+        history: { type: Object, required: true }
+    },
+    data() {
+        return {
+            showTags: false,
+            showCopyModal: false,
+            editAnnotation: false,
+            messages,
+            showRaw: false
         }
+    },
+    computed: {
+
+        annotation: {
+            get() {
+                return this.history.annotation || "";
+            },
+            set(annotation) {
+                this.updateFields({ annotation });
+            }
+        },
+
+        historyName: {
+            get() {
+                return this.history.name;
+            },
+            set(name) {
+                if (name.length) {
+                    this.updateFields({ name });
+                }
+            }
+        },
+
+        // formats size number into x.xxMB/GB
+        niceSize() {
+            const size = this.history.size;
+            return size ? bytesToString(size, true, 2) : "(empty)";
+        }
+
+    },
+    methods: {
+
+        ...mapActions("history", [
+            "updateHistoryFields",
+            "deleteCurrentHistory",
+            "makeHistoryPrivate"
+        ]),
+
+        updateFields(fields = {}) {
+            this.updateHistoryFields({
+                history: this.history,
+                fields
+            });
+        },
+
+        toggle(paramName, forceVal) {
+            if (!(paramName in this)) {
+                console.warn("Missing toggle parameter", paramName);
+                return;
+            }
+            if (forceVal === undefined) {
+                this[paramName] = !this[paramName];
+            } else {
+                this[paramName] = forceVal;
+            }
+        },
+
+
+        // History name validation
+        // controls good/bad appearance of the input
+
+        nameInputState(val, origVal) {
+            if (val === origVal) {
+                return null;
+            }
+            return val.length > 0;
+        },
+
+
+
+        // Current History Operations (moved here from endless gear menu)
+
+        // we could just put the links in the markup but
+        // these function include the galaxy.root
+        // into the target/url and also help with testing
+
+        openCopyModal() {
+            this.showCopyModal = true;
+        },
+
+        deleteHistory(evt) {
+            evt.preventDefault();
+            this.deleteCurrentHistory()
+                .then(() => evt.vueTarget.hide())
+                .catch(err => {
+                    console.warn("Failed to delete current history", err);
+                });
+        },
+
+        // need clarification about what should be difference between
+        // purge and delete. requirements seem super-murky and insconsistent
+        // in the implementation in the current backbone catastrophe
+        purgeHistory(evt) {
+            evt.preventDefault();
+            this.deleteCurrentHistory({ purge: true })
+                .then(() => evt.vueTarget.hide())
+                .catch(err => console.warn("Failed to purge current history", err));
+        },
+
+        makePrivate(evt) {
+            evt.preventDefault();
+            this.makeHistoryPrivate({ history: this.history })
+                .then(result => console.log(result))
+                .then(() => evt.vueTarget.hide())
+                .catch(err => console.warn("Failed to make history private.", err));
+        }
+
     }
+}
 
 </script>
 

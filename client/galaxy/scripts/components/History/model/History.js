@@ -1,13 +1,13 @@
 import { of, merge, pipe } from "rxjs";
 import { ajax } from "rxjs/ajax";
-import { tap, map, filter, startWith, mapTo, switchMap, switchMapTo, share, pluck, 
-    withLatestFrom, mergeMap, take } from "rxjs/operators";
+import { tap, map, filter, mapTo, switchMap, switchMapTo, concatMap,
+    share, pluck, withLatestFrom, mergeMap } from "rxjs/operators";
 import { createInputFunction, split, firstItem } from "utils/observable";
-import { history$ as hColl$, withLatestFromDb, cacheHistory, 
+import { history$ as hColl$, withLatestFromDb, cacheHistory,
     deleteHistory as clearCachedHistory } from "caching";
 import { CurrentUserId$ } from "components/User/model/CurrentUser$";
+import { selectCurrentHistory, createHistory } from "./queries";
 import { prependPath } from "utils/redirect";
-import { selectCurrentHistory, createHistory, getHistoryById } from "../queries";
 
 
 /* Histories */
@@ -33,15 +33,15 @@ const subtract$ = deleteHistoryFromList.$.pipe(clearCachedHistory());
 
 const liveHistoryQueryForUser = () => pipe(
     withLatestFromDb(hColl$),
-    switchMap(([id, coll]) => coll.find().where("user_id").eq(id).$),
-    startWith([])
-)
+    switchMap(([id, coll]) => coll.find().where("user_id").eq(id).$)
+);
 
 export const Histories$ = merge(add$, subtract$).pipe(
     switchMapTo(CurrentUserId$),
     liveHistoryQueryForUser(),
     share()
-)
+);
+
 
 
 /* Current History */
@@ -52,21 +52,23 @@ const loadedCurrentHistoryId$ = CurrentUserId$.pipe(
     mapTo(currentHistoryUrl),
     map(prependPath),
     switchMap(ajax.getJSON),
-    pluck('id')
-)
+    pluck("id")
+);
 
 export const setCurrentHistoryId = createInputFunction();
 
 // save for server for reasons unknown
 const manualCurrentHistoryId = setCurrentHistoryId.$.pipe(
     mergeMap(selectCurrentHistory),
-    pluck('id')
-)
+    pluck("id")
+);
+
 
 export const CurrentHistoryId$ = merge(loadedCurrentHistoryId$, manualCurrentHistoryId).pipe(
     filter(Boolean),
     share()
-)
+);
+
 
 export const CurrentHistory$ = CurrentHistoryId$.pipe(
     withLatestFrom(Histories$),
@@ -79,7 +81,7 @@ export const CurrentHistory$ = CurrentHistoryId$.pipe(
         }
         return of(h);
     }),
-    tap(async (history) => {
+    tap(async history => {
         // create new if nothing
         if (!history) {
             const newHistory = await createHistory();
@@ -87,21 +89,38 @@ export const CurrentHistory$ = CurrentHistoryId$.pipe(
         }
     }),
     filter(Boolean)
-)
-
-
+);
 
 
 /* Updates to History server data */
 
-export const historyUpdate = (debug) => pipe(
+export const historyUpdate = debug => pipe(
+    tap(h => {
+        if (debug) {
+            console.log("historyUpdate", h);
+        }
+    }),
     map(buildHistoryUrl(debug)),
     map(prependPath),
-    mergeMap(ajax.getJSON),
-    take(1),
+    concatMap(ajax.getJSON),
+    tap(results => {
+        if (debug) {
+            console.log("historyUpdate retrieved results", results.length);
+        }
+    }),
     firstItem(),
-    cacheHistory(true)
-);
+    tap(h => {
+        if (debug) {
+            console.log("historyUpdate retrieved history", h);
+        }
+    }),
+    cacheHistory(debug),
+    tap(h => {
+        if (debug) {
+            console.log("historyUpdate cached history", h);
+        }
+    })
+)
 
 
 // Requests a history with same id but newer update time. Triggers on
@@ -109,19 +128,15 @@ export const historyUpdate = (debug) => pipe(
 // unless something's been updated.
 
 const buildHistoryUrl = debug => history => {
-
     const base = "/api/histories?view=detailed&keys=size,non_ready_jobs,contents_active,hid_counter";
     const idCriteria = `q=encoded_id-in&qv=${history.id}`;
     const updateCriteria = `q=update_time-gt&qv=${history.update_time}`;
-
-    const parts = [ base, idCriteria, updateCriteria ];
+    const parts = [base, idCriteria, updateCriteria];
     const url = parts.filter(o => o.length).join("&");
-
     if (debug) {
         console.groupCollapsed("buildHistoryUrl");
         console.log("history", history);
         console.groupEnd();
     }
-
     return url;
 }

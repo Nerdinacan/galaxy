@@ -21,9 +21,7 @@ export default {
         ]),
 
         activeHistories() {
-            return this.histories.filter(h => {
-                return !(h.isDeleted || h.purged);
-            })
+            return this.histories.filter(h => !(h.isDeleted || h.purged));
         },
 
         selectedId: {

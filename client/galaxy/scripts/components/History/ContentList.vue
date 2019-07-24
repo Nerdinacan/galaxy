@@ -3,7 +3,8 @@
         <transition name="fade">
             <div v-if="content.length" class="scrollContainer" ref="scrollContainer">
                 <ol ref="scrollContent">
-                    <li v-for="(c, index) in content" :key="c.type_id" class="d-flex mb-1">
+                    <li v-for="(c, index) in content" :key="c.type_id" 
+                        class="d-flex mb-1">
                         <b-form-checkbox v-if="showSelection" class="m-1"
                             v-model="selection" :value="c" />
                         <content-item  class="flex-grow-1"
@@ -13,14 +14,16 @@
                             @keyup.space.stop.prevent.self="toggleContent(c)"
                             :data-state="c.state" />
                     </li>
-                    <li class="sensor" v-observe-visibility="updatePageRange(nextPage)"></li>
+                    <li class="sensor" v-observe-visibility="updatePageRange(nextPage)">
+                        <p>Sensor nextPage: {{ nextPage }}</p>
+                    </li> 
                 </ol>
             </div>
         </transition>
 
         <transition name="fade">
             <b-alert v-if="!(loading || content.length)" class="m-3" show>
-                <history-empty />
+                <history-empty v-observe-visibility="updatePageRange(nextPage)" />
             </b-alert>
         </transition>
 
@@ -79,13 +82,18 @@ export default {
             return this.searchParams(this.history.id).clone();
         },
 
+        pageSize() {
+            return this.params.pageSize;
+        },
+
         content() {
             return this.historyContent(this.history.id);
         },
 
         minHid() {
-            return this.content.map(c => c.hid)
-                .reduce(Math.min, Number.POSITIVE_INFINITY);
+            return this.content
+                .map(c => c.hid)
+                .reduce((a,b) => Math.min(a, b), this.history.hid_counter);
         },
 
         nextPage() {
@@ -135,13 +143,23 @@ export default {
                 } else {
                     if (this.isAboveWindow(entry)) {
                         this.localParams.clipTop(hid);
-                    }
-                    if (this.isBelowWindow(entry)) {
+                    } else if(this.isBelowWindow(entry)) {
                         this.localParams.clipBottom(hid);
                     }
                 }
+                this.sendParams();
             }
             return handler.bind(this);
+        },
+
+        sendParams() {
+            if (!SearchParams.equals(this.localParams, this.params)) {
+                // this.loading = true;
+                this.setSearchParams({
+                    history: this.history,
+                    params: this.localParams
+                });
+            }
         },
 
         getContainerRect() {
@@ -184,22 +202,7 @@ export default {
             if (!SearchParams.equals(newParams, this.localParams)) {
                 this.localParams = newParams.clone();
             }
-        },
-
-        // debounce changes to local copy, send when settled down
-        localParams: {
-            handler: debounce(function(newParams) {
-                if (!SearchParams.equals(newParams, this.params)) {
-                    this.loading = true;
-                    this.setSearchParams({
-                        history: this.history,
-                        params: newParams
-                    });
-                }
-            }, 100, true),
-            deep: true
         }
-
     },
 
     mounted() {
@@ -233,16 +236,6 @@ ol {
     top: 0;
     left: 0;
     right: 0;
-    /* li {
-        position: relative;
-        > .history-content  {
-            position: relative;
-            z-index: 0;
-        }
-        > div {
-            outline: none;
-        }
-    } */
 }
 
 li.sensor {

@@ -1,39 +1,41 @@
-import Vue from "vue";
 import VuexPersistence from "vuex-persist";
-import { ContentLoader } from "./observables/ContentLoader";
+import { ContentLoader } from "./ContentLoader";
 import { Histories$, updateHistoryList, deleteHistoryFromList, 
-    CurrentHistoryId$, setCurrentHistoryId } from "./observables/History";
-import { updateHistoryFields, createHistory, cloneHistory, deleteHistoryById,
-    makePrivate, showAllHiddenContent, deleteAllHiddenContent, purgeDeletedContent,
+    CurrentHistoryId$, setCurrentHistoryId } from "./History";
+import { updateHistoryFields, createHistory, cloneHistory, 
+    deleteHistoryById, makePrivate, showAllHiddenContent, 
+    deleteAllHiddenContent, purgeDeletedContent, 
     deleteContent, bulkUpdate } from "./queries";
 import { SearchParams } from "./SearchParams";
-import { flushCachedDataset, cacheContent, createPromiseFromOperator } from "caching";
+import { flushCachedDataset, cacheContent, 
+    createPromiseFromOperator } from "caching";
 import { setEquals } from "utils/setFunctions";
-
-
-// container for a bunch of observables for querying content
-// for individual histories, doesn't seem appropriate to put
-// this in the state since it's just housing the subscriptions
-// to the observables that ultimately populate state.contents
 
 // Holds subscriptions to ContentLoaders
 const loaderSubscriptions = new Map();
+
+// alpha sort object array on indicated prop
+const propAlphaSort = propName => (a, b) => {
+    const AA = a.name.toUpperCase();
+    const BB = b.name.toUpperCase();
+    return AA < BB ? -1 : AA > BB ? 1 : 0;
+}
 
 export const state = {
     currentHistoryId: null,
 
     // history.id -> history object
-    histories: new Map(),
+    histories: [],
 
     // history.id -> SearchParams object
-    params: new Map(),
+    params: {},
 
     // history.id -> array of contentItems (datasets/collections)
-    contents: new Map(),
+    contents: {},
 
     // history.id -> Set of contentItem
-    contentSelection: new Map()
-}
+    contentSelection: {}
+};
 
 export const getters = {
     currentHistory: (state, getters) => {
@@ -41,37 +43,36 @@ export const getters = {
     },
 
     histories: state => {
-        return Array.from(state.histories.values());
+        return state.histories;
     },
 
     getHistory: state => id => {
-        return state.histories.has(id) ? state.histories.get(id) : null;
+        return state.histories.find(h => h.id == id);
     },
 
     searchParams: (state, getters) => id => {
-        if (!state.params.has(id)) {
+        if (!(id in state.params)) {
             const history = getters.getHistory(id);
-            state.params.set(id, SearchParams.createForHistory(history));
+            state.params[id] = SearchParams.createForHistory(history);
         }
-        return state.params.get(id);
+        return state.params[id];
     },
 
     historyContent: state => id => {
-        if (!state.contents.has(id)) {
-            state.contents.set(id, []);
+        if (!(id in state.contents)) {
+            state.contents[id] = [];
         }
-        return state.contents.get(id);
+        return state.contents[id];
     },
 
     contentSelection: state => history => {
         const key = history.id;
-        const storage = state.contentSelection;
-        if (!storage.has(key)) {
-            storage.set(key, new Set());
+        if (!(key in state.contentSelection)) {
+            state.contentSelection[key] = new Set();
         }
-        return storage.get(key);
+        return state.contentSelection[key];
     }
-}
+};
 
 export const actions = {
     // Select a new current history from the available options, must
@@ -94,14 +95,12 @@ export const actions = {
     async createNewHistory({ dispatch }) {
         const newHistory = await createHistory();
         updateHistoryList(newHistory); // inform observable
-        await dispatch("selectCurrentHistory", newHistory.id);
         return newHistory;
     },
 
     async copyHistory({ dispatch }, { history, name, copyWhat }) {
         const newHistory = await cloneHistory(history, name, copyWhat);
         updateHistoryList(newHistory); // inform observable
-        await dispatch("selectCurrentHistory", newHistory.id);
         return newHistory;
     },
 
@@ -124,15 +123,14 @@ export const actions = {
         return await makePrivate(history.id);
     },
 
-    // TODO: examine order of events
-    async selectNextHistory({ getters, dispatch }) {
+    async selectNextHistory({ state, getters, dispatch }) {
         let nextHistory;
-        if (getters.histories.length) {
-            nextHistory = getters.histories[0];
-            await dispatch("selectCurrentHistory", nextHistory.id);
+        if (state.histories.length) {
+            nextHistory = state.histories[0];
         } else {
             nextHistory = await dispatch("createNewHistory");
         }
+        await dispatch("selectCurrentHistory", nextHistory.id);
         return nextHistory;
     },
 
@@ -140,7 +138,6 @@ export const actions = {
     // Controls output and query contents
 
     setSearchParams({ commit }, { history, params }) {
-        // console.log("setSearchParams", params.start, params.end, params.showHidden, params.showDeleted, params.textFilter);
         commit("setSearchParams", {
             history,
             params: params.clone()
@@ -198,13 +195,13 @@ export const actions = {
 
     // Content
 
-    deleteContent({ getters }, { content }) {
+    deleteContent(_, { content }) {
         deleteContent(content).then(() => {
             flushCachedDataset(content);
         });
     },
 
-    undeleteContent({ getters }, { content }) {
+    undeleteContent(_, { content }) {
         return deleteContent(content);
     },
 
@@ -218,13 +215,12 @@ export const actions = {
             }));
         const payload = { items, [field]: value };
         const updates = await bulkUpdate(history, payload);
-
         const cacheFn = createPromiseFromOperator(cacheContent);
         for (const item of updates) {
             await cacheFn(item);
         }
     }
-}
+};
 
 export const mutations = {
     setCurrentHistoryId: (state, id) => {
@@ -232,28 +228,27 @@ export const mutations = {
     },
 
     setHistories: (state, list = []) => {
-        const historyMap = new Map(list.map(h => [h.id, h]));
-        Vue.set(state, "histories", historyMap);
+        state.histories = list.sort(propAlphaSort("name"));
     },
 
     setSearchParams: (state, { history, params }) => {
-        const newMap = new Map(state.params);
-        newMap.set(history.id, params);
-        Vue.set(state, "params", newMap);
+        state.params = Object.assign({}, state.params, {
+            [history.id]: params
+        });
     },
 
     setHistoryContents: (state, { historyId, contents }) => {
-        const newContents = new Map(state.contents);
-        newContents.set(historyId, contents);
-        Vue.set(state, "contents", newContents);
+        state.contents = Object.assign({}, state.contents, {
+            [historyId]: contents
+        });
     },
 
     setContentSelection: (state, { history, selection = new Set() }) => {
-        const newMap = new Map(state.contentSelection);
-        newMap.set(history.id, selection);
-        Vue.set(state, "contentSelection", newMap);
+        state.contentSelection = Object.assign({}, state.contentSelection, {
+            [history.id]: selection
+        });
     }
-}
+};
 
 export default {
     namespaced: true,
@@ -261,15 +256,15 @@ export default {
     getters,
     actions,
     mutations
-}
+};
 
+// Plugins and addons
 
 export const historyPersist = new VuexPersistence({
     key: "state-history",
     storage: sessionStorage,
     modules: ["history"]
-})
-
+});
 
 // Plugin to subscribe to global observables for initial loading
 // and real-time updates. The actions in the history store don't
@@ -278,23 +273,21 @@ export const historyPersist = new VuexPersistence({
 // subscribe to the end result.
 
 export const observeHistory = ({ commit }) => {
-
     CurrentHistoryId$.subscribe({
         next: id => {
             // console.log("CurrentHistoryId", id);
-            commit("history/setCurrentHistoryId", id)
+            commit("history/setCurrentHistoryId", id);
         },
         error: err => console.warn("CurrentHistory$ error", err),
         complete: () => console.log("CurrentHistory$ complete")
-    })
+    });
 
     Histories$.subscribe({
         next: list => {
-            // console.log("Historis$", list);
-            commit("history/setHistories", list)
+            // console.log("Histories$", list);
+            commit("history/setHistories", list);
         },
         error: err => console.warn("Histories$, error", err),
         complete: () => console.log("Histories$ complete")
-    })
-
-}
+    });
+};

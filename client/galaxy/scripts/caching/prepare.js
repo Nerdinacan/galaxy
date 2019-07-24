@@ -54,6 +54,10 @@ export function prepareDatasetCollection(raw) {
     if (!raw.update_time) {
         dsc.update_time = (new Date()).toISOString();
     }
+    // Content query is malformed, does not return purged
+    // values for only dataset queries, so add it here.
+    dsc.purged = false;
+    debugger;
     return dsc;
 }
 

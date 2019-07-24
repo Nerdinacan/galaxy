@@ -30,13 +30,10 @@ export default {
         historyId: { type: String, required: true }
     },
     computed: {
-        
-        ...mapGetters("history", [
-            "getHistory"
-        ]),
-
+        ...mapGetters("history", [ "getHistory" ]),
         history() {
-            return this.getHistory(this.historyId) || null;
+            const historyDoc = this.getHistory(this.historyId);
+            return historyDoc ? historyDoc.toJSON() : null;
         }
     }
 }

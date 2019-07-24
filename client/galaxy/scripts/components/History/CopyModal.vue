@@ -55,77 +55,79 @@
 
 <script>
 
-    import { mapActions } from "vuex";
-    import { getGalaxyInstance } from "app";
+import { mapActions } from "vuex";
+import { getGalaxyInstance } from "app";
 
-    export default {
-        props: {
-            history: { type: Object, required: true },
-            value: { type: Boolean, required: false, default: false }
+export default {
+    props: {
+        history: { type: Object, required: true },
+        value: { type: Boolean, required: false, default: false }
+    },
+    data() {
+        return {
+            name: "",
+            copyAll: false,
+            loading: false
+        }
+    },
+    computed: {
+        title() {
+            return `Copying History: ${this.history.name}`;
         },
-        data() {
-            return {
-                name: "",
-                copyAll: false,
-                loading: false
+        saveTitle() {
+            return this.loading ? "Saving..." : "Copy History";
+        },
+        saveVariant() {
+            return this.loading ? 'info' : this.formValid ? 'primary' : 'secondary';
+        },
+        newNameValid() {
+            if (this.name == this.history.name) {
+                return null;
             }
+            return this.name.length > 0;
         },
-        computed: {
-            title() {
-                return `Copying History: ${this.history.name}`;
+        formValid() {
+            return this.newNameValid;
+        },
+        showModal: {
+            get() {
+                return this.value;
             },
-            saveTitle() {
-                return this.loading ? "Saving..." : "Copy History";
-            },
-            saveVariant() {
-                return this.loading ? 'info' : this.formValid ? 'primary' : 'secondary';
-            },
-            newNameValid() {
-                if (this.name == this.history.name) {
-                    return null;
+            set(newVal, oldVal) {
+                if (newVal !== oldVal) {
+                    this.$emit('input', newVal);
                 }
-                return this.name.length > 0;
-            },
-            formValid() {
-                return this.newNameValid;
-            },
-            showModal: {
-                get() {
-                    return this.value;
-                },
-                set(newVal, oldVal) {
-                    if (newVal !== oldVal) {
-                        this.$emit('input', newVal);
-                    }
-                }
-            },
-            isAnon() {
-                return getGalaxyInstance().user.isAnonymous();
             }
         },
-        methods: {
+        isAnon() {
+            return getGalaxyInstance().user.isAnonymous();
+        }
+    },
+    methods: {
 
-            ...mapActions("history", [
-                "copyHistory"
-            ]),
+        ...mapActions("history", [
+            "copyHistory", 
+            "selectCurrentHistory"
+        ]),
 
-            async copyHistoryClick(close) {
-                this.loading = true;
-                const { history, name, copyAll } = this;
-                const newHistory = await this.copyHistory({ history, name, copyAll });
-                close();
-                this.loading = false;
-            }
-        },
-        watch: {
-            history: {
-                handler(newHistory) {
-                    this.name = `Copy of '${newHistory.name}'`;
-                },
-                immediate: true
-            }
+        async copyHistoryClick(close) {
+            this.loading = true;
+            const { history, name, copyAll } = this;
+            const newHistory = await this.copyHistory({ history, name, copyAll });
+            await this.selectCurrentHistory(newHistory.id);
+            this.loading = false;
+            close();
+        }
+    },
+    watch: {
+        history: {
+            handler(newHistory) {
+                this.name = `Copy of '${newHistory.name}'`;
+            },
+            immediate: true
         }
     }
+}
 
 </script>
 

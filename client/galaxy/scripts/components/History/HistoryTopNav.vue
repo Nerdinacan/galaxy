@@ -38,69 +38,69 @@
 
 <script>
 
-    import { mapState, mapActions } from "vuex";
-    import HistorySelector from "./HistorySelector";
-    import GearMenu from "components/GearMenu";
-    import { IconMenu, IconMenuItem } from "components/IconMenu";
-    import { stopPolling } from "./model/observables/ContentLoader";
+import { mapState, mapActions } from "vuex";
+import HistorySelector from "./HistorySelector";
+import GearMenu from "components/GearMenu";
+import { IconMenu, IconMenuItem } from "components/IconMenu";
+import { stopPolling } from "./model/ContentLoader";
 
-    export default {
-        components: {
-            HistorySelector,
-            IconMenu,
-            IconMenuItem,
-            GearMenu
-        },
-        data() {
-            return {
-                // Bootstrap Vue fails again, need to track
-                // open state just to close it properly
-                gearIsOpen: false
-            }
-        },
-        computed: {
+export default {
+    components: {
+        HistorySelector,
+        IconMenu,
+        IconMenuItem,
+        GearMenu
+    },
+    data() {
+        return {
+            // Bootstrap Vue fails again, need to track
+            // open state just to close it properly
+            gearIsOpen: false
+        }
+    },
+    computed: {
 
-            ...mapState("history", [
-                "currentHistoryId"
-            ]),
+        ...mapState("history", [
+            "currentHistoryId"
+        ]),
 
-            historyId: {
-                get() {
-                    return this.currentHistoryId;
-                },
-                set(id) {
-                    this.selectCurrentHistory(id);
-                }
-            }
-        },
-        methods: {
-
-            ...mapActions("history", [
-                "selectCurrentHistory",
-                "createNewHistory",
-                "deleteCurrentHistory",
-            ]),
-
-            stopPolling,
-
-            useLegacyHistoryPanel() {
-                sessionStorage.removeItem('useBetaHistory');
-                location.reload();
+        historyId: {
+            get() {
+                return this.currentHistoryId;
             },
+            set(id) {
+                this.selectCurrentHistory(id);
+            }
+        }
+    },
+    methods: {
 
-            async createHistory() {
-                const newHistory = await this.createNewHistory();
-                // this.selectCurrentHistory(newHistory.id);
-                this.closeMenu();
-            },
+        ...mapActions("history", [
+            "selectCurrentHistory",
+            "createNewHistory",
+            "deleteCurrentHistory",
+        ]),
 
-            closeMenu() {
-                const menu = this.$refs['endlessMenu'];
-                if (menu) {
-                    menu.$emit('close');
-                }
+        stopPolling,
+
+        useLegacyHistoryPanel() {
+            sessionStorage.removeItem('useBetaHistory');
+            location.reload();
+        },
+
+        async createHistory() {
+            const newHistory = await this.createNewHistory();
+            await this.selectCurrentHistory(newHistory.id);
+            this.closeMenu();
+        },
+
+        closeMenu() {
+            const menu = this.$refs['endlessMenu'];
+            if (menu) {
+                menu.$emit('close');
             }
         }
     }
+}
 
 </script>

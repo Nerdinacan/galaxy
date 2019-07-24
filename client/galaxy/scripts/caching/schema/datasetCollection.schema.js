@@ -26,7 +26,8 @@ export default {
         element_count: { type: "integer" },
         id: { type: "string", primary: true },
         populated_state: { type: "string" },
-        update_time: { type: "string" }
+        update_time: { type: "string" },
+        purged: { type: "boolean" }
     },
     definitions: {
 

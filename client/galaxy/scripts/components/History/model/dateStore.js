@@ -3,7 +3,7 @@
  */
 import moment from "moment";
 
-const storage = sessionStorage;
+const storage = new MemoryStorage(); // sessionStorage;
 
 function getDate(key) {
     const stamp = storage.getItem(key) || 0;
@@ -21,3 +21,18 @@ export default {
     get: getDate,
     set: setDate
 };
+
+
+
+// Just a map with the standard Storage interface
+function MemoryStorage() {
+    const store = new Map();
+    return {
+        getItem(key) {
+            return store.get(key);
+        },
+        setItem(key, val) {
+            return store.set(key, val);
+        }
+    }
+}

@@ -1,6 +1,9 @@
 import axios from "axios";
 import { prependPath } from "utils/redirect";
 
+
+// standard search params, might want to update detailedView on server
+// to contain the fields we always ask for
 const stdParams = "view=detailed&keys=contents_active,hid_counter,non_ready_jobs";
 
 
