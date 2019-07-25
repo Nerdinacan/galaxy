@@ -6,7 +6,7 @@
 import { of } from "rxjs";
 import { share, distinct, map, takeUntil, take } from "rxjs/operators";
 import { createInputFunction, ajaxGet, poll } from "utils/observable";
-import { getParamsFromHistoryId, bufferParamRange, segmentParams } from "./paramStreaming";
+import { getParamsFromHistoryId, segmentParams } from "./paramStreaming";
 import { getCachedHistory } from "caching";
 import { getContentObservable, buildContentUrlForHistory, cacheContentArray, buildContentUrl } from "./Content";
 import { historyUpdate } from "./History";
@@ -45,7 +45,7 @@ export function ContentLoader(historyId) {
     // Do you have anything new for me for these parameters since
     // last time I asked?
     const manual$ = param$.pipe(
-        segmentParams(true),
+        segmentParams(false),
         distinct(p => p.dateStoreKey),
         map(buildContentUrl()),
         ajaxGet(),

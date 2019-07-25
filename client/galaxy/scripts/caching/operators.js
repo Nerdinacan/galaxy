@@ -1,5 +1,6 @@
 import { of, combineLatest, pipe } from "rxjs";
-import { tap, filter, mergeMap, retry, catchError } from "rxjs/operators";
+import { tap, filter, mergeMap, retryWhen, catchError, pluck } from "rxjs/operators";
+
 
 
 /**
@@ -24,9 +25,8 @@ export const withLatestFromDb = rxDbCollection$ =>
  * @param  {...any} config Config for the operator
  */
 export const createPromiseFromOperator = (operator, ...config) => item => {
-    return of(item).pipe(
-        operator(...config)
-    ).toPromise()
+    const src$ = of(item);
+    return src$.pipe(operator(...config)).toPromise();
 }
 
 
@@ -57,29 +57,24 @@ export const getItem = (collection$, debug = false) => pipe(
  */
 export const setItem = (collection$, debug = false) => pipe(
     withLatestFromDb(collection$),
-    mergeMap(async ([ item, coll ]) => {
-        const result = await coll.upsert(item);
+    tap(([ item, coll ]) => {
         if (debug) {
             console.groupCollapsed("CACHING", coll.name, item.id, item.name);
-            // console.log("collection", coll.name);
-            // console.log("input", item);
-            // console.log("output", result);
-            console.log("update_time", result.update_time);
+            console.log("item", item);
             console.groupEnd();
         }
-        return result;
     }),
-    catchError((err, caught) => {
-        if (err.status == 409) {
-            return caught.pipe(
-                mergeMap(async ([ item, coll ]) => {
-                    debugger;
-                    return await coll.atomicUpsert(item);
-                })
-            )
-        }
-        return err;
-    })
+    mergeMap(([ item, coll ]) => coll.upsert(item)),
+    retryWhen(err => err.pipe(
+        tap(err => console.warn("setItem upsert error", err)),
+        pluck('status'),
+        filter(status => status == 409)
+    )),
+    catchError(err => {
+        console.warn("setItem error", err);
+        return of(null);
+    }),
+    filter(Boolean)
 )
 
 

@@ -1,10 +1,25 @@
+import { createDatasetCollection } from "./queries";
+import { cacheContent, createPromiseFromOperator } from "caching";
+
+
+import { of } from "rxjs";
+
+
 const state = {
-    currentCollectionId: null // "1e8ab44153008be8"
+    currentCollectionId: null
 }
 
 const getters = {}
 
-const actions = {}
+const actions = {
+
+    async createCollection(context, { history, selection }) {
+        const ajaxResult = await createDatasetCollection(history, selection);
+        const cacheFn = createPromiseFromOperator(cacheContent, true);
+        return await cacheFn(ajaxResult);
+    }
+
+}
 
 const mutations = {
     setCurrentCollectionId(state, id = null) {

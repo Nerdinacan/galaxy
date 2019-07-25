@@ -1,8 +1,17 @@
-import { merge, combineLatest, pipe } from "rxjs";
-import { map, mergeMap, share } from "rxjs/operators";
+import { merge, combineLatest, pipe, of } from "rxjs";
+import { tap, map, mergeMap, share } from "rxjs/operators";
 import { history$, historyContent$, dataset$, datasetCollection$, paramDateCollection$ } from "./db";
 import { prepareHistory, prepareContentSummary, prepareDataset, prepareDatasetCollection } from "./prepare";
 import { getItem, setItem, deleteItem } from "./operators";
+
+
+import { create } from "rxjs-spy";
+import { tag } from "rxjs-spy/operators";
+
+
+// const spy = create();
+// window.spy = spy;
+
 
 
 // load item from cache by source: primary key
@@ -33,25 +42,18 @@ export const cacheParamDate = debug => pipe(
 
 // when we cache a dataset, cache the corresponding content too
 
-export const cacheDataset = debug => input$ => {
-    const item$ = input$.pipe(share());
-    const content$ = item$.pipe(cacheContent(debug));
-    const ds$ = item$.pipe(
-        map(prepareDataset),
-        setItem(dataset$, debug)
-    );
-    return combineLatest(content$, ds$).pipe(map(inputs => inputs[1]));
-};
+export const cacheDataset = debug => pipe(
+    tap(input => of(input).pipe(cacheContent(debug)).subscribe()),
+    map(prepareDataset),
+    setItem(dataset$, debug)
+)
 
-export const cacheDatasetCollection = debug => input$ => {
-    const item$ = input$.pipe(share());
-    const content$ = item$.pipe(cacheContent(debug));
-    const dsc$ = item$.pipe(
-        map(prepareDatasetCollection),
-        setItem(datasetCollection$, debug)
-    );
-    return combineLatest(content$, dsc$).pipe(map(inputs => inputs[1]));
-};
+export const cacheDatasetCollection = debug => pipe(
+    tap(input => of(input).pipe(cacheContent(debug)).subscribe()),
+    map(prepareDatasetCollection),
+    tap(p => console.log("supposedly prepared", p)),
+    setItem(datasetCollection$, true)
+);
 
 
 // Remove source item from history

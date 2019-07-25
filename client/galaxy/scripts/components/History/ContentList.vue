@@ -7,16 +7,16 @@
                         class="d-flex mb-1">
                         <b-form-checkbox v-if="showSelection" class="m-1"
                             v-model="selection" :value="c" />
-                        <content-item  class="flex-grow-1"
+                        <content-item class="flex-grow-1"
                             :type-id="c.type_id"
                             :tabindex="index"
                             v-observe-visibility="updatePageRange(c.hid)"
                             @keyup.space.stop.prevent.self="toggleContent(c)"
                             :data-state="c.state" />
                     </li>
-                    <!-- <li class="sensor" v-observe-visibility="updatePageRange(minHid -1)">
+                    <li class="sensor" v-observe-visibility="updatePageRange(nextPage)">
                         <p>Sensor nextPage</p>
-                    </li>  -->
+                    </li>
                 </ol>
             </div>
         </transition>
@@ -50,7 +50,7 @@ import ContentItem from "./ContentItem";
 import HistoryEmpty from "./HistoryEmpty";
 
 import { merge, combineLatest } from "rxjs";
-import { pluck, debounceTime } from "rxjs/operators";
+import { pluck, debounceTime, distinctUntilChanged, filter } from "rxjs/operators";
 
 export default {
 
@@ -69,7 +69,7 @@ export default {
 
     data() {
         return {
-            loading: true,
+            loading: false,
             showSelection: false,
             start: Number.POSITIVE_INFINITY,
             end: Number.NEGATIVE_INFINITY
@@ -97,6 +97,10 @@ export default {
             return this.content
                 .map(c => c.hid)
                 .reduce((a,b) => Math.min(a, b), this.history.hid_counter);
+        },
+
+        nextPage() {
+            return this.params.start - SearchParams.pageSize;
         },
 
         selection: {
@@ -194,22 +198,15 @@ export default {
         },
 
         setParameterRange([ start, end ]) {
-            console.log("setParameterRange", start, end);
-
             const params = this.params.clone();
             params.start = start;
             params.end = end;
-
-            if (!this.loading) {
-                this.setSearchParams(params);
-                this.loading = true;
-            }
+            this.setSearchParams(params);
         },
 
         resetEndPoints() {
             this.start = Number.POSITIVE_INFINITY;
             this.end = Number.NEGATIVE_INFINITY;
-            this.loading = true;
         }
 
     },
@@ -217,15 +214,15 @@ export default {
     watch: {
 
         // cosmetic loading flag, unset when content changes
-        content(newContent) {
-            this.loading = false;
-        },
+        // content(newContent) {
+        //     this.loading = false;
+        // },
 
         // Subscribe to polling updates and content output observable
         history: {
             handler(history, oldHistory) {
+                this.resetEndPoints();
                 if (oldHistory && (history.id !== oldHistory.id)) {
-                    this.resetEndPoints();
                     this.unsubLoader(oldHistory.id);
                 }
                 this.loadContent(history.id);
@@ -236,11 +233,19 @@ export default {
     },
 
     created() {
-        const start$ = this.$watchAsObservable('start').pipe(pluck('newValue'));
-        const end$ = this.$watchAsObservable('end').pipe(pluck('newValue'));
+
+        const start$ = this.$watchAsObservable('start').pipe(
+            filter((n,o) => n !== o),
+            pluck('newValue')
+        );
+        const end$ = this.$watchAsObservable('end').pipe(
+            filter((n,o) => n !== o),
+            pluck('newValue')
+        );
         const range$ = combineLatest(start$, end$).pipe(
             debounceTime(500)
         );
+
         this.$subscribeTo(range$, this.setParameterRange);
     },
 

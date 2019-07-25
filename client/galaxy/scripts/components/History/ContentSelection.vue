@@ -136,6 +136,11 @@ import { IconMenu, IconMenuItem } from "components/IconMenu";
 import { eventHub } from "components/eventHub";
 import { SearchParams } from "./model/SearchParams";
 
+// temporary adapters use old backbone modals until I rewrite them
+import { datasetListModal, datasetPairModal, listOfPairsModal, 
+    collectionFromRulesModal } from "./adapters/backboneListModals";
+
+
 const messages = {
     unhideContent: "Really unhide all hidden datasets?",
     deleteHiddenContent: "Really delete all hidden datasets?",
@@ -213,6 +218,10 @@ export default {
             "deleteAllHiddenContent",
             "purgeDeletedContent",
             "updateSelectedContent"
+        ]),
+
+        ...mapActions("datasetCollection", [
+            "createCollection"
         ]),
 
         toggle(paramName, forceVal) {
@@ -310,23 +319,31 @@ export default {
             console.log("purgeDatasets");
         },
 
-        buildDatasetList() {
-            console.log("buildDatasetList");
+        async buildDatasetList() {
+            const modalSelection = await datasetListModal(this.currentSelection);
+            const result = await this.createCollection({ 
+                history: this.history, 
+                selection: modalSelection
+            })
+            console.log("buildDatasetList done", result);
         },
 
-        buildDatasetPair() {
-            console.log("buildDatasetPair");
+        async buildDatasetPair() {
+            const result = datasetPairModal(this.history, this.currentSelection)
+            console.log("buildDatasetPair", result);
         },
 
-        buildListOfPairs() {
-            console.log("buildListOfPairs");
+        async buildListOfPairs() {
+            const result = listOfPairsModal(this.currentSelection)
+            console.log("buildListOfPairs", result);
         },
 
         buildCollectionFromRules() {
-            console.log("buildCollectionFromRules");
+            const result = collectionFromRulesModal(this.currentSelection)
+            console.log("buildCollectionFromRules", result);
         },
 
-
+        
         // need to do this because bootstrap's components never close
         // as advertised
         closeMenu(refName) {

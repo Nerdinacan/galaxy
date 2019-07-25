@@ -9,8 +9,9 @@ import createCache from "vuex-cache";
 import { gridSearchStore } from "./gridSearchStore";
 import { tagStore } from "./tagStore";
 import { jobMetricsStore } from "./jobMetricsStore";
-import historyStore, { observeHistory, historyPersist } from "components/History/model/historyStore";
-import userStore from "store/userStore";
+import history, { observeHistory, historyPersist } from "components/History/model/historyStore";
+import datasetCollection from "components/History/DatasetCollection/store";
+import user from "store/userStore";
 
 Vue.use(Vuex);
 
@@ -19,8 +20,9 @@ export default new Vuex.Store({
         gridSearch: gridSearchStore,
         tags: tagStore,
         jobMetrics: jobMetricsStore,
-        history: historyStore,
-        user: userStore
+        history,
+        user,
+        datasetCollection
     },
     plugins: [
         createCache(),
