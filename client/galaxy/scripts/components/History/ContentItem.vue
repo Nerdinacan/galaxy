@@ -1,8 +1,10 @@
 <template>
-    <component v-if="content" 
+    <component v-if="content"
+        :content="content"
+        class="content-item"
         :class="contentClassName"
         :is="contentItemComponent" 
-        :content="content" />
+        :data-state="content.state" />
 </template>
 
 
@@ -40,11 +42,16 @@ export default {
 </script>
 
 
-<style>
+<style lang="scss" scoped>
 
-.dataset, .dataset-collection {
+.content-item {
     outline: none;
-    border: none;
+    border-style: none;
+    border-width: none;
+    &.selected{
+        border-style: solid;
+        border-left-width: 6px;
+    }
 }
 
 </style>

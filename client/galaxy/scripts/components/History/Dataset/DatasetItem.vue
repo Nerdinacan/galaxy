@@ -364,6 +364,8 @@ min-width setting to make the peek overflow properly */
 
 .dataset {
     min-width: 0;
+    border-style: none;
+    border-width: 0;
     .details .dataset-peek {
         width: auto;
         max-width: 100%;
@@ -372,8 +374,6 @@ min-width setting to make the peek overflow properly */
     }
 }
 
-.content-select-box {
-    
-}
+
 
 </style>

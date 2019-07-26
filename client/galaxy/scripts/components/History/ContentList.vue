@@ -8,8 +8,7 @@
                             :type-id="c.type_id"
                             :tabindex="index"
                             v-observe-visibility="updatePageRange(c.hid)"
-                            @keyup.space.stop.prevent.self="toggleContent(c)"
-                            :data-state="c.state" />
+                            @keyup.space.stop.prevent.self="toggleContent(c)" />
                     </li>
                     <li class="sensor" v-observe-visibility="updatePageRange(nextPage)">
                         <p>Sensor nextPage</p>

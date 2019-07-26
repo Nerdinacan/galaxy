@@ -14,37 +14,44 @@
                     </a>
                 </span>
             </h6>
-
+            <!-- #region Filter Menu Toggles -->
             <icon-menu class="no-border">
-                <icon-menu-item title="Filter History Content" icon="filter" @click="toggle('showFilter')"
+                <icon-menu-item title="Filter History Content" 
+                    icon="filter" 
+                    @click="toggle('showFilter')"
                     tooltip-placement="topleft" />
-                <icon-menu-item title="Operations on multiple datasets" icon="check-square-o"
-                    @click="toggle('showSelection')" tooltip-placement="topleft" />
-                <icon-menu-item id="datasetMenuGear" title="Dataset Operations" icon="cog" :useTooltip="false" />
+                <icon-menu-item title="Operations on multiple datasets" 
+                    icon="check-square-o"
+                    @click="toggle('showSelection')" 
+                    tooltip-placement="topleft" />
+                <icon-menu-item id="datasetMenuGear" 
+                    title="Dataset Operations" 
+                    icon="cog" 
+                    :useTooltip="false" />
             </icon-menu>
+            <!-- #endregion -->
         </header>
 
-        <!-- search parameters -->
+        <!-- #region search parameters -->
         <transition name="shutterfade">
-            <content-filters v-if="showFilter" class="content-filters mt-1" v-model="params" :history="history" />
+            <content-filters v-if="showFilter" 
+                class="content-filters mt-1" 
+                v-model="params" :history="history" />
         </transition>
+        <!-- #endregion -->
 
-        <!-- dataset selection -->
+        <!-- #region dataset selection -->
         <transition name="shutterfade">
             <b-button-toolbar v-if="showSelection" class="content-selection justify-content-between mt-1">
-
                 <b-button-group>
-
                     <b-button size="sm" @click="selectAllVisibleContent">
                         {{ 'Select All' | localize }}
                     </b-button>
-
                     <b-button size="sm" @click="clearSelection">
                         {{ 'Unselect All' | localize }}
                     </b-button>
-
+                    <!-- #region "With Selected" Dropdown -->
                     <b-dropdown size="sm" text="With Selected" :disabled="!hasSelection" boundary="viewport">
-
                         <b-dropdown-item @click="hideDatasets">
                             {{ 'Hide Datasets' | localize }}
                         </b-dropdown-item>
@@ -72,14 +79,14 @@
                         <b-dropdown-item @click="buildCollectionFromRules">
                             {{ 'Build Collection from Rules' | localize }}
                         </b-dropdown-item>
-
                     </b-dropdown>
-
+                    <!-- #endregion -->
                 </b-button-group>
-
             </b-button-toolbar>
         </transition>
+        <!-- #endregion -->
 
+        <!-- #region dataset operation menu -->
         <b-popover ref="datasetMenu" target="datasetMenuGear" placement="bottomleft" triggers="click blur">
 
             <gear-menu #default="{ go, backboneGo, iframeGo, eventHub }" @clicked="closeMenu('datasetMenu')">
@@ -108,9 +115,9 @@
                 </div>
             </gear-menu>
         </b-popover>
+        <!-- #endregion -->
 
-
-        <!-- confirm modals  -->
+        <!-- #region modal boxes  -->
 
         <b-modal id="show-hidden-content" title="Show Hidden Datasets" title-tag="h2" @ok="showHidden">
             <p>{{ messages.unhideContent | localize }}</p>
@@ -123,6 +130,8 @@
         <b-modal id="purge-deleted-content" title="Purge Deleted Datasets" title-tag="h2" @ok="purgeDeleted">
             <p>{{ messages.purgeDeletedContent | localize }}</p>
         </b-modal>
+        
+        <!-- #endregion-->
 
     </section>
 </template>
