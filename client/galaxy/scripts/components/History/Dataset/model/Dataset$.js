@@ -1,9 +1,14 @@
 import { of, zip, concat, isObservable } from "rxjs";
-import { filter, map, pluck, share } from "rxjs/operators";
+import { filter, map, pluck, share, take } from "rxjs/operators";
 import { ajax } from "rxjs/ajax";
 import { getCachedDataset, cacheDataset, getCachedDatasetCollection, cacheDatasetCollection } from "caching";
 import { firstItem, ajaxGet } from "utils/observable";
 import { prependPath } from "utils/redirect";
+
+// debugging
+// import { create } from "rxjs-spy";
+// import { tag } from "rxjs-spy/operators";
+
 
 /**
  * Generates an observable that compares the local dataset data to the content
@@ -26,42 +31,37 @@ export function DatasetCollection$(content) {
 
 export const getFresh = (loader, cacher, debug = false) => c$ => {
     
-    const content$ = c$.pipe(
-        share()
-    );
+    const content$ = c$.pipe(share());
 
     // current dataset data in indexDB
     const existing$ = content$.pipe(
-        pluck('id'),
-        loader(debug),
-        share()
+        pluck('id'), 
+        loader(debug)
     );
 
     // compare to content, if content is newer, that means polling picked
     // up an update and we have to retrieve the new dataset
     const stale$ = zip(content$, existing$).pipe(
-        filter(([ content, dataset ]) => {
-            if (!dataset) return true;
-            return dataset.getUpdateDate().isBefore(content.getUpdateDate());
+        filter(([ content, item ]) => {
+            if (!item) return true;
+            return item.getUpdateDate().isBefore(content.getUpdateDate());
         })
-    );
-    
+    )
+
     // actual request
     const retrievedVersion$ = stale$.pipe(
         map(buildUpdateUrl),
         ajaxGet(),
         firstItem(),
         cacher(debug)
-    );
+    )
     
     // if server never emits, take original value
-    return concat(retrievedVersion$, existing$).pipe(
-        filter(Boolean)
-    );
+    return concat(retrievedVersion$, existing$).pipe(take(1))
 }
 
-
-function buildUpdateUrl([ content, item ]) {
+// item may be null indicating we haven't loaded this dataset yet
+function buildUpdateUrl([ content, item = null ]) {
     const { history_id, hid } = content;
     const base = `/api/histories/${history_id}/contents?v=dev&view=detailed`;
     const hidClause = `q=hid&qv=${hid}`;

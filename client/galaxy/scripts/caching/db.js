@@ -1,7 +1,7 @@
 import RxDB from "rxdb";
 import idb from "pouchdb-adapter-idb";
 import { of } from "rxjs";
-import { shareReplay, mergeMap, switchMapTo, retryWhen, take, delay } from "rxjs/operators";
+import { tap, shareReplay, mergeMap, switchMapTo, retryWhen, take, delay } from "rxjs/operators";
 import { dbConfig, historySchema, historyContentSchema, datasetSchema, datasetCollectionSchema, paramDateSchema } from "./schema";
 import moment from "moment";
 

@@ -216,7 +216,10 @@ export default {
         // downloads
 
         showDownloads() {
-            if (!this.dataset || this.content.purged || !this.dataset.hasData()) {
+            if (!this.dataset || this.content.purged) {
+                return false;
+            }
+            if (!this.dataset.hasData()) {
                 return false;
             }
             const okStates = new Set([

@@ -1,20 +1,8 @@
-<!--
-Dataset item. Monitors two types of data:
-    content
-        The summary data that comes from the polling manifest and
-        ultimately the hda table
-    dataset
-        direct subscription to the local detailed dataset indexDb data.
-        This data is loaded and cached when the dataset item is expanded, so
-        avoid using data from the dataset property in uncollapsed views. If
-        you find yourself needing fields from dataset, expand the historyContent
-        schema and update queries.
--->
-
 <template>
     <div :class="{ expanded, collapsed: !expanded }">
 
-        <nav class="dataset-top-menu d-flex justify-content-between" @click="toggleDetails">
+        <nav class="dataset-top-menu d-flex justify-content-between" 
+            @click.self="toggleDetails">
             <icon-menu>
                 <content-selection-box :content="content" />
                 <icon-menu-item :icon="expanded ? 'chevron-up' : 'chevron-down'"
@@ -28,15 +16,15 @@ Dataset item. Monitors two types of data:
             <dataset-menu :content="content" :dataset="dataset" />
         </nav>
 
-        <header :class="expanded ? 'p-3' : 'px-3 py-2'" @keyup.space.self="toggleDetails">
+        <header :class="expanded ? 'p-3' : 'px-3 py-2'"
+            @keyup.space.self.stop="toggleDetails">
 
             <h4 v-if="!expanded">
                 <a href="#" @click="toggleDetails">{{ title }}</a>
             </h4>
             <click-to-edit v-if="expanded && datasetName" tagName="h4" v-model="datasetName" />
 
-            <annotation v-if="expanded"
-                class="mt-1"
+            <annotation v-if="expanded" class="mt-1"
                 tooltip-placement="left"
                 v-model="annotation" />
 
