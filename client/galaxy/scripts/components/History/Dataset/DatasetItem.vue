@@ -1,10 +1,11 @@
 <template>
-    <div :class="{ expanded, collapsed: !expanded }">
+    <div :class="{ expanded, collapsed: !expanded, selected }">
 
-        <nav class="dataset-top-menu d-flex justify-content-between" 
-            @click.self="toggleDetails">
+        <nav class="dataset-top-menu d-flex justify-content-between m-1 mb-0" 
+            @click="toggleDetails">
+            <content-selection-box class="content-select-box" 
+                :content="content" />
             <icon-menu>
-                <content-selection-box :content="content" />
                 <icon-menu-item :icon="expanded ? 'chevron-up' : 'chevron-down'"
                     :active="expanded"
                     @click.stop="toggleDetails" />
@@ -20,7 +21,7 @@
             @keyup.space.self.stop="toggleDetails">
 
             <h4 v-if="!expanded">
-                <a href="#" @click="toggleDetails">{{ title }}</a>
+                <a href="#" @click.stop="toggleDetails">{{ title }}</a>
             </h4>
             <click-to-edit v-if="expanded && datasetName" tagName="h4" v-model="datasetName" />
 
@@ -78,6 +79,8 @@
 
 <script>
 
+import { mapGetters } from "vuex";
+
 import { Dataset$, updateDatasetFields } from "./model/Dataset$";
 import { loadToolFromDataset } from "./model/queries";
 import { eventHub } from "components/eventHub";
@@ -133,17 +136,18 @@ export default {
     },
     computed: {
 
+        ...mapGetters("history", ["contentIsSelected"]),
+
         selected() {
-            return this.isSelected(this.content);
+            return this.contentIsSelected(this.content);
         },
 
         unViewable() {
-            return false;
-            // return !this.dataset || this.dataset.state === STATES.NOT_VIEWABLE;
+            return !this.dataset || this.dataset.state === STATES.NOT_VIEWABLE;
         },
 
         expanded() {
-            return this.dataset && this.expand && !this.unViewable;
+            return this.dataset && this.expand;
         },
 
         tagStoreName() {
@@ -353,7 +357,6 @@ header {
 
 .dataset-top-menu {
     cursor: pointer;
-    margin: 3px 3px 0px 3px;
 }
 
 /* there's a quirk in flexbox containers, we need the strange
@@ -367,6 +370,10 @@ min-width setting to make the peek overflow properly */
         margin-bottom: 0;
         display: inline-block;
     }
+}
+
+.content-select-box {
+    
 }
 
 </style>

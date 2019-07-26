@@ -1,5 +1,7 @@
 <template>
-    <b-form-checkbox v-if="showSelection" v-model="isSelected" />
+    <div @click.stop="() => null">
+        <b-form-checkbox v-if="showSelection" v-model="isSelected" />
+    </div>
 </template>
 
 <script>
@@ -51,6 +53,7 @@ export default {
         displaySelection(val) {
             this.showSelection = val;
         }
+
     },
     created() {
         eventHub.$on('toggleShowSelection', this.displaySelection);
