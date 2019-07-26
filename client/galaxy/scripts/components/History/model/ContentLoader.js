@@ -84,7 +84,7 @@ export function ContentLoader(historyId) {
             error: err => console.warn("polling err", err)
         });
 
-        return contentSub.add(manualSub).add(pollSub);
+        return contentSub.add(manualSub); // .add(pollSub);
     }
 
     return {

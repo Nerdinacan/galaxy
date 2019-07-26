@@ -17,7 +17,6 @@
             </slot>
         </header>
 
-        <!-- click to edit name -->
         <click-to-edit v-model="historyName" tag-name="h2" class="history-title mt-4" :state-validator="nameInputState"
             ref="historyNameInput">
             <template v-slot:tooltip>
@@ -26,17 +25,14 @@
             </template>
         </click-to-edit>
 
-        <!-- annotation -->
         <annotation class="history-annotation mt-1" v-model="annotation" />
 
-        <!-- tags -->
         <transition name="shutterfade">
             <history-tags v-if="showTags" class="history-tags mt-2" :history="history" />
         </transition>
 
-        <pre v-if="showRaw">{{ history }}</pre>
+        <!-- #region menus and modals -->
 
-        <!-- menus and modals -->
         <b-popover ref="downloadMenu" target="historyDownloadMenu" placement="bottomleft" triggers="click blur">
             <gear-menu #default="{ go }">
                 <div @click="$refs.downloadMenu.$emit('close')">
@@ -49,7 +45,6 @@
                 </div>
             </gear-menu>
         </b-popover>
-
 
         <b-popover ref="historyOperations" target="historyOperationsIcon" placement="bottomleft" triggers="click blur">
             <gear-menu #default="{ backboneGo, iframeGo }">
@@ -79,9 +74,6 @@
             </gear-menu>
         </b-popover>
 
-
-        <!-- modals -->
-
         <copy-modal v-model="showCopyModal" :history="history" />
 
         <b-modal id="delete-history-modal" title="Delete History?" title-tag="h2" @ok="deleteHistory">
@@ -95,6 +87,8 @@
         <b-modal id="make-private-modal" title="Make History Private" title-tag="h2" @ok="makePrivate">
             <p>{{ messages.makePrivatePrompt | localize }}</p>
         </b-modal>
+
+        <!-- #endregion -->
 
     </section>
 </template>

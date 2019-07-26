@@ -11,4 +11,4 @@ export * from "./cacheOperators";
 export * from "./db";
 
 // utils
-export { withLatestFromDb, createPromiseFromOperator } from "./operators";
+export { withLatestFromDb, createPromiseFromOperator } from "./genericOperators";

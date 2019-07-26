@@ -1,14 +1,11 @@
-import { merge, combineLatest, pipe, of } from "rxjs";
-import { tap, map, mergeMap, share } from "rxjs/operators";
+import { merge, pipe, of } from "rxjs";
+import { tap, map, mergeMap } from "rxjs/operators";
 import { history$, historyContent$, dataset$, datasetCollection$, paramDateCollection$ } from "./db";
 import { prepareHistory, prepareContentSummary, prepareDataset, prepareDatasetCollection } from "./prepare";
-import { getItem, setItem, deleteItem } from "./operators";
+import { getItem, setItem, deleteItem } from "./genericOperators";
 
-
-import { create } from "rxjs-spy";
-import { tag } from "rxjs-spy/operators";
-
-
+// import { create } from "rxjs-spy";
+// import { tag } from "rxjs-spy/operators";
 // const spy = create();
 // window.spy = spy;
 

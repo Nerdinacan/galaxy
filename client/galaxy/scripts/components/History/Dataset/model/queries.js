@@ -1,7 +1,6 @@
 import axios from "axios";
 import { prependPath } from "utils/redirect";
 
-
 // export async function updateDataset(history_id, dataset_id, payload) {
 //     const path = `/api/histories/${history_id}/contents/datasets/${dataset_id}`;
 //     const url = prependPath(path);
@@ -11,7 +10,6 @@ import { prependPath } from "utils/redirect";
 //     }
 //     return response.data;
 // }
-
 
 export async function loadToolFromDataset(dataset) {
     const { creating_job } = dataset;
@@ -23,5 +21,3 @@ export async function loadToolFromDataset(dataset) {
     const tool = toolResponse.data;
     return tool;
 }
-
-

@@ -16,29 +16,24 @@ Dataset item. Monitors two types of data:
 
         <nav class="dataset-top-menu d-flex justify-content-between" @click="toggleDetails">
             <icon-menu>
-                <icon-menu-item 
-                    :icon="expanded ? 'chevron-up' : 'chevron-down'"
+                <content-selection-box :content="content" />
+                <icon-menu-item :icon="expanded ? 'chevron-up' : 'chevron-down'"
                     :active="expanded"
-                    @click="toggleDetails" />
-                <icon-menu-item icon="clock-o"  />
+                    @click.stop="toggleDetails" />
+                <!-- <icon-menu-item icon="clock-o"  /> -->
             </icon-menu>
             <div class="hid flex-grow-1">
                 <span>{{ content.hid }}</span>
             </div>
-            <dataset-menu :content="content"
-                :dataset="dataset" />
+            <dataset-menu :content="content" :dataset="dataset" />
         </nav>
 
-        <header :class="expanded ? 'p-3' : 'px-3 py-2'" 
-            @keyup.space.self="toggleDetails">
+        <header :class="expanded ? 'p-3' : 'px-3 py-2'" @keyup.space.self="toggleDetails">
 
             <h4 v-if="!expanded">
-                <a href="#" @click="toggleDetails">
-                    {{ title }}
-                </a>
+                <a href="#" @click="toggleDetails">{{ title }}</a>
             </h4>
-            <click-to-edit v-if="expanded && datasetName"
-                tagName="h4" v-model="datasetName" />
+            <click-to-edit v-if="expanded && datasetName" tagName="h4" v-model="datasetName" />
 
             <annotation v-if="expanded"
                 class="mt-1"
@@ -46,14 +41,14 @@ Dataset item. Monitors two types of data:
                 v-model="annotation" />
 
             <!-- tags visible as nametags in collapsed, editor in expanded -->
-            <nametags v-if="!expanded"
-                :tags="content.tags"
+            <nametags v-if="!expanded" :tags="content.tags"
                 :storeKey="tagStoreName" />
-            <dataset-tags v-if="expanded"
-                :dataset="dataset"
+            <dataset-tags v-if="expanded" :dataset="dataset"
                 :historyId="dataset.history_id" />
 
         </header>
+
+        <!-- #region expanded section -->
 
         <transition name="shutterfade">
             <div v-if="expanded" class="details px-3 pb-3">
@@ -87,6 +82,8 @@ Dataset item. Monitors two types of data:
             </div>
         </transition>
 
+        <!-- #endregion -->
+
     </div>
 </template>
 
@@ -104,14 +101,15 @@ import { IconMenu, IconMenuItem } from "components/IconMenu";
 import { Nametags } from "components/Nametags";
 import DatasetTags from "./DatasetTags";
 import DatasetMenu from "./DatasetMenu";
+import ContentSelectionBox from "../ContentSelectionBox";
 
 import STATES from "mvc/dataset/states";
 
-import { 
-    Discarded, Empty, Error, 
-    New, NotViewable, Ok, 
-    Paused, Queued, Running, 
-    SettingMetadata, Upload 
+import {
+    Discarded, Empty, Error,
+    New, NotViewable, Ok,
+    Paused, Queued, Running,
+    SettingMetadata, Upload
 } from "./Summary";
 
 
@@ -124,12 +122,13 @@ export default {
         IconMenu,
         IconMenuItem,
         Nametags,
+        ContentSelectionBox,
 
         // summaries
-        Discarded, Empty, Error, 
-        New, NotViewable, Ok, 
-        Paused, Queued, Running, 
-        SettingMetadata, Upload 
+        Discarded, Empty, Error,
+        New, NotViewable, Ok,
+        Paused, Queued, Running,
+        SettingMetadata, Upload
     },
     props: {
         content: { type: Object, required: true }
@@ -146,8 +145,13 @@ export default {
     },
     computed: {
 
+        selected() {
+            return this.isSelected(this.content);
+        },
+
         unViewable() {
-            return !this.dataset || this.dataset.state === STATES.NOT_VIEWABLE;
+            return false;
+            // return !this.dataset || this.dataset.state === STATES.NOT_VIEWABLE;
         },
 
         expanded() {
@@ -233,7 +237,7 @@ export default {
         // will compare the local datset update_time to the content update_time
         // (which is updated through polling) and only requery when the local
         // dataset value has gone stale
-        
+
         load() {
             if (!this.datasetSub) {
                 console.log("subscribing to live dataset observable");
@@ -305,11 +309,11 @@ export default {
     },
     created() {
         eventHub.$on('collapseAllContent', this.collapse);
-        eventHub.$on('toggleToolHelp', this.toggleToolHelp)
+        eventHub.$on('toggleToolHelp', this.toggleToolHelp);
     },
     beforeDestroy() {
         eventHub.$off('collapseAllContent', this.collapse);
-        eventHub.$off('toggleToolHelp', this.toggleToolHelp)
+        eventHub.$off('toggleToolHelp', this.toggleToolHelp);
     }
 }
 
@@ -338,7 +342,7 @@ export default {
 }
 
 header {
-    
+
     h4,
     h4 a {
         display: block;

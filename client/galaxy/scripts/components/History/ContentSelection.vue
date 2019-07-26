@@ -129,7 +129,7 @@
 
 <script>
 
-import { mapGetters, mapActions } from "vuex";
+import { mapGetters, mapActions, mapMutations } from "vuex";
 import ContentFilters from "./ContentFilters";
 import GearMenu from "components/GearMenu";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
@@ -137,8 +137,12 @@ import { eventHub } from "components/eventHub";
 import { SearchParams } from "./model/SearchParams";
 
 // temporary adapters use old backbone modals until I rewrite them
-import { datasetListModal, datasetPairModal, listOfPairsModal, 
-    collectionFromRulesModal } from "./adapters/backboneListModals";
+import { 
+    datasetListModal, 
+    datasetPairModal, 
+    listOfPairsModal, 
+    collectionFromRulesModal 
+} from "./adapters/backboneListModals";
 
 
 const messages = {
@@ -173,7 +177,7 @@ export default {
         ]),
 
         currentSelection() {
-            return this.contentSelection(this.history);
+            return this.contentSelection(this.history.id);
         },
 
         hasSelection() {
@@ -217,7 +221,8 @@ export default {
             "showAllHiddenContent",
             "deleteAllHiddenContent",
             "purgeDeletedContent",
-            "updateSelectedContent"
+            "updateSelectedContent",
+            "setContentSelection"
         ]),
 
         ...mapActions("datasetCollection", [
@@ -236,8 +241,7 @@ export default {
             }
         },
 
-
-        // content selection
+        //#region content selection
 
         selectAllVisibleContent() {
             this.updateSelection(this.content);
@@ -250,9 +254,13 @@ export default {
         updateSelection(content = []) {
             this.setContentSelection({
                 history: this.history,
-                selection: new Set(content)
+                selection: content
             })
         },
+
+        //#endregion
+
+        //#region Bulk Operations
 
         showHidden(evt) {
             this.showAllHiddenContent()
@@ -271,9 +279,6 @@ export default {
                 .then(() => evt.vueTarget.hide())
                 .catch(err => console.warn("Bad purgeDeletedContent", err));
         },
-
-
-        // selection menu
 
         hideDatasets() {
             this.updateSelectedContent({
@@ -318,31 +323,47 @@ export default {
         purgeDatasets() {
             console.log("purgeDatasets");
         },
+        //#endregion
 
+        //#region Legacy backbone modals for collection assembly 
         async buildDatasetList() {
             const modalSelection = await datasetListModal(this.currentSelection);
             const result = await this.createCollection({ 
                 history: this.history, 
                 selection: modalSelection
             })
-            console.log("buildDatasetList done", result);
+            console.log("buildDatasetList", result);
         },
 
         async buildDatasetPair() {
-            const result = datasetPairModal(this.history, this.currentSelection)
+            const modalSelection = await datasetPairModal(this.currentSelection)
+            const result = await this.createCollection({ 
+                history: this.history, 
+                selection: modalSelection
+            })
             console.log("buildDatasetPair", result);
         },
 
         async buildListOfPairs() {
-            const result = listOfPairsModal(this.currentSelection)
+            const modalSelection = await listOfPairsModal(this.currentSelection)
+            const result = await this.createCollection({ 
+                history: this.history, 
+                selection: modalSelection
+            })
             console.log("buildListOfPairs", result);
         },
 
-        buildCollectionFromRules() {
-            const result = collectionFromRulesModal(this.currentSelection)
+        async buildCollectionFromRules() {
+            const modalSelection = await collectionFromRulesModal(this.currentSelection)
+            const result = await this.createCollection({ 
+                history: this.history, 
+                selection: modalSelection
+            })
             console.log("buildCollectionFromRules", result);
         },
+        //#endregion
 
+        //#region Fixes for Bootstrap's many inadequacies
         
         // need to do this because bootstrap's components never close
         // as advertised
@@ -350,11 +371,9 @@ export default {
             if (refName in this.$refs) {
                 this.$refs[refName].$emit('close');
             }
-        },
-
-        withSelectedMenuClick() {
-            console.log("withSelectedMenuClick");
         }
+
+        //#endregion
 
     },
     watch: {

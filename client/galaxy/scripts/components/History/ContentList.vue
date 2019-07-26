@@ -3,10 +3,7 @@
         <transition name="fade">
             <div v-if="content.length" class="scrollContainer" ref="scrollContainer">
                 <ol ref="scrollContent">
-                    <li v-for="(c, index) in content" :key="c.type_id" 
-                        class="d-flex mb-1">
-                        <b-form-checkbox v-if="showSelection" class="m-1"
-                            v-model="selection" :value="c" />
+                    <li v-for="(c, index) in content" :key="c.type_id" class="d-flex mb-1">
                         <content-item class="flex-grow-1"
                             :type-id="c.type_id"
                             :tabindex="index"
@@ -80,7 +77,7 @@ export default {
 
         ...mapGetters("history", [
             "historyContent",
-            "contentSelection",
+            // "contentSelection",
             "searchParams"
         ]),
 
@@ -103,21 +100,21 @@ export default {
             return this.params.start - SearchParams.pageSize;
         },
 
-        selection: {
-            get() {
-                const selectionSet = this.contentSelection(this.history);
-                return Array.from(selectionSet);
-            },
-            // bootstrap's stupid component fires this multiple times, one
-            // for each checkbox, so debounce this function or we'll update
-            // way too many times
-            set: debounce(function(newList = []) {
-                this.setContentSelection({
-                    history: this.history,
-                    selection: new Set(newList)
-                });
-            }, 100)
-        }
+        // selection: {
+        //     get() {
+        //         const selectionSet = this.contentSelection(this.history);
+        //         return Array.from(selectionSet);
+        //     },
+        //     // bootstrap's stupid component fires this multiple times, one
+        //     // for each checkbox, so debounce this function or we'll update
+        //     // way too many times
+        //     set: debounce(function(newList = []) {
+        //         this.setContentSelection({
+        //             history: this.history,
+        //             selection: new Set(newList)
+        //         });
+        //     }, 100)
+        // }
 
     },
 
@@ -129,10 +126,6 @@ export default {
             "setSearchParams",
             "setContentSelection"
         ]),
-
-        displaySelection(show) {
-            this.showSelection = show;
-        },
 
         toggleContent(content) {
             eventHub.$emit("collapseContent", content);
@@ -249,13 +242,8 @@ export default {
         this.$subscribeTo(range$, this.setParameterRange);
     },
 
-    mounted() {
-        eventHub.$on('toggleShowSelection', this.displaySelection);
-    },
-
     beforeDestroy() {
         this.unsubLoader(this.history.id);
-        eventHub.$off('toggleShowSelection', this.displaySelection);
     }
 }
 

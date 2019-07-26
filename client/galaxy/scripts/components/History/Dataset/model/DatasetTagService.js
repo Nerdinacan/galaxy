@@ -4,6 +4,8 @@ import { updateDatasetFields } from "./Dataset$";
 
 
 // TODO: refactor Tags (again). Not liking this service injection
+// essentially all we need to do is write our own Tags instead
+// of attempting to leverage the npm package I selected before
 
 export class DatasetTagService extends TagService {
 

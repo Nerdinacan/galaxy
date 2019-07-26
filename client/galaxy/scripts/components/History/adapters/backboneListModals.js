@@ -1,26 +1,53 @@
-// Temporary adapters for launching backbone modals I don't want to replace yet
+/**
+ * Temporary adapters launch bootstrap modals from Vue components, for use with
+ * the dataset assembly modals. i.e. With selected..... create dataset collection,
+ * create paired collection, etc.
+ */
 
 import jQuery from "jquery";
-import atrocities from "mvc/collection/list-collection-creator.js";
+import atrocities from "mvc/collection/list-collection-creator";
+import warcrimes from "mvc/collection/pair-collection-creator";
+import republicans from "mvc/collection/list-of-pairs-collection-creator";
 
 export async function datasetListModal(selection) {
-    
-    // Opens a drag/drop list creator
-    // POST http://localhost:8080/api/histories/8317ee2b0d0f62d9/contents/dataset_collection
-    // sample post: testdata/createList.json
+    const fn = _createCollectionModal(atrocities.createListCollection);
+    return await fn(selection);
+}
+
+export async function datasetPairModal(selection) {    
+    const fn = _createCollectionModal(warcrimes.createPairCollection);
+    return await fn(selection);
+}
+
+export async function listOfPairsModal(selection) {
+    const fn = _createCollectionModal(republicans.createListOfPairsCollection);
+    return await fn(selection);
+}
+
+export async function collectionFromRulesModal(selection) {
+    const fn = _createCollectionModal(atrocities.createCollectionViaRules);
+    return await fn(selection);
+}
+
+const _createCollectionModal = modalHandler => async (selection) => {
 
     // flatten set to array, turn into plain javascript
     const flatSelection = Array.from(selection).map(doc => doc.toJSON());
 
     const trojanHorse = {
         toJSON: () => flatSelection,
-        createHDCA(element_identifiers, collection_type, name, hide_source_items, copy_elements, options = {}) {
-            
-            // response needs to be a deferred instead of a promise
-            // (Mmmm... tasty depricated data types!)
+
+        // result must be a $.Deferred object instead of a promise because
+        // that's the kind of deprecated data format that backbone likes to use.
+        createHDCA(
+            element_identifiers, 
+            collection_type, 
+            name, 
+            hide_source_items, 
+            copy_elements, 
+            options = {}
+        ) {
             const def = jQuery.Deferred();
-            
-            // Pointlessly rename a bunch of properties
             return def.resolve(null, {
                 collection_type,
                 name,
@@ -31,30 +58,9 @@ export async function datasetListModal(selection) {
         }
     }
 
-    const dfr = atrocities.createListCollection(trojanHorse);
-    return await Promise.resolve(dfr);
+    const def = modalHandler(trojanHorse);
+    return await Promise.resolve(def);
 }
-
-
-
-export async function datasetPairModal(selection) {
-    
-    // POST http://localhost:8080/api/histories/8317ee2b0d0f62d9/contents
-    // createPair.json
-    // opens a similar list creator with only 2 slots
-    
-    return 1;
-}
-
-export async function listOfPairsModal(selection) {
-    return 1;
-}
-
-export async function collectionFromRulesModal(selection) {
-    return 1;
-}
-
-
 
 
 /*
@@ -87,7 +93,7 @@ buildCollection: function(collectionType, selection, hideSourceItems) {
     hideSourceItems = hideSourceItems || false;
     var createFunc;
     if (collectionType == "list") {
-        createFunc = totalCrap.createListCollection;
+        createFunc = LIST_COLLECTION_CREATOR.createListCollection;
     } else if (collectionType == "paired") {
         createFunc = PAIR_COLLECTION_CREATOR.createPairCollection;
     } else if (collectionType == "list:paired") {

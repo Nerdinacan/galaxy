@@ -2,6 +2,7 @@ import axios from "axios";
 import { prependPath } from "utils/redirect";
 import { safeAssign } from "utils/safeAssign";
 
+
 export async function createDatasetCollection(history, inputs = {}) {
 
     console.log("createDatasetCollection", history, inputs);
@@ -11,7 +12,7 @@ export async function createDatasetCollection(history, inputs = {}) {
         "copy_elements": true,
         "name": "list",
         "element_identifiers": [],
-        "hide_source_items": false,
+        "hide_source_items": "True",
         "type": "dataset_collection"
     }
 

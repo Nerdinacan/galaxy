@@ -1,23 +1,18 @@
 import VuexPersistence from "vuex-persist";
 import { ContentLoader } from "./ContentLoader";
-import { Histories$, updateHistoryList, deleteHistoryFromList, 
-    CurrentHistoryId$, setCurrentHistoryId } from "./History";
-import { updateHistoryFields, createHistory, cloneHistory, 
-    deleteHistoryById, makePrivate, showAllHiddenContent, 
-    deleteAllHiddenContent, purgeDeletedContent, 
-    deleteContent, bulkUpdate } from "./queries";
+import { Histories$, updateHistoryList, deleteHistoryFromList, CurrentHistoryId$, setCurrentHistoryId } from "./History";
+import { updateHistoryFields, createHistory, cloneHistory, deleteHistoryById, makePrivate, showAllHiddenContent, deleteAllHiddenContent, purgeDeletedContent, deleteContent, bulkUpdate } from "./queries";
 import { SearchParams } from "./SearchParams";
-import { flushCachedDataset, cacheContent, 
-    createPromiseFromOperator } from "caching";
+import { flushCachedDataset, cacheContent, createPromiseFromOperator } from "caching";
 import { setEquals } from "utils/setFunctions";
 import { sortBy } from "underscore";
 
-
 // Holds subscriptions to ContentLoaders
+// history.id -> subscription
 const loaderSubscriptions = new Map();
 
-
 export const state = {
+
     currentHistoryId: null,
 
     // history.id -> history object
@@ -29,11 +24,45 @@ export const state = {
     // history.id -> array of contentItems (datasets/collections)
     contents: {},
 
-    // history.id -> Set of contentItem
-    contentSelection: {}
-};
+    // history.id -> Set of type_ids
+    contentSelection: {},
+}
+
+export const mutations = {
+
+    setCurrentHistoryId: (state, id) => {
+        state.currentHistoryId = id;
+    },
+
+    setHistories: (state, list = []) => {
+        const newList = sortBy(list, "name");
+        state.histories = newList;
+    },
+
+    setSearchParams: (state, params) => {
+        state.params = {
+            ...state.params,
+            [params.historyId]: params
+        };
+    },
+
+    setHistoryContents: (state, { historyId, contents }) => {
+        state.contents = {
+            ...state.contents,
+            [historyId]: contents
+        }
+    },
+
+    setContentSelection: (state, { historyId, typeIds }) => {
+        state.contentSelection = {
+            ...state.contentSelection,
+            [historyId]: new Set(typeIds)
+        }
+    }
+}
 
 export const getters = {
+
     currentHistory: (state, getters) => {
         return getters.getHistory(state.currentHistoryId);
     },
@@ -49,28 +78,46 @@ export const getters = {
     searchParams: (state, getters) => id => {
         if (!(id in state.params)) {
             const history = getters.getHistory(id);
-            state.params[id] = SearchParams.createForHistory(history);
+            return SearchParams.createForHistory(history);
         }
         return state.params[id];
     },
 
     historyContent: state => id => {
         if (!(id in state.contents)) {
-            state.contents[id] = [];
+            return [];
         }
         return state.contents[id];
     },
 
-    contentSelection: state => history => {
-        const key = history.id;
-        if (!(key in state.contentSelection)) {
-            state.contentSelection[key] = new Set();
+    //#region selection
+
+    contentSelectionSet: state => historyId => {
+        if (!(historyId in state.contentSelection)) {
+            // state.contentSelection[historyId] = new Set();
+            return new Set();
         }
-        return state.contentSelection[key];
+        return state.contentSelection[historyId];
+    },
+
+    contentSelection: (_, getters) => historyId => {
+        const selection = getters.contentSelectionSet(historyId);
+        const contents = getters.historyContent(historyId);
+        return contents.filter(c => selection.has(c.type_id));
+    },
+
+    contentIsSelected: (_, getters) => contentItem => {
+        const selection = getters.contentSelectionSet(contentItem.history_id);
+        return selection.has(contentItem.type_id);
     }
-};
+
+    //#endregion selection
+}
 
 export const actions = {
+
+    //#region History selection
+    
     // Select a new current history from the available options, must
     // alert server because it is monitoring this for no clear reason
 
@@ -78,45 +125,6 @@ export const actions = {
         if (state.currentHistoryId !== id) {
             setCurrentHistoryId(id);
         }
-    },
-
-    // History objects
-
-    async updateHistoryFields(context, { history, fields }) {
-        const updatedHistory = await updateHistoryFields(history, fields);
-        updateHistoryList(updatedHistory); // inform observable
-        return updatedHistory;
-    },
-
-    async createNewHistory({ dispatch }) {
-        const newHistory = await createHistory();
-        updateHistoryList(newHistory); // inform observable
-        return newHistory;
-    },
-
-    async copyHistory({ dispatch }, { history, name, copyWhat }) {
-        const newHistory = await cloneHistory(history, name, copyWhat);
-        updateHistoryList(newHistory); // inform observable
-        return newHistory;
-    },
-
-    async deleteHistory({ dispatch }, { history, purge } = { purge: false }) {
-        dispatch("unsubLoader", history.id);
-        await deleteHistoryById(history.id, purge); // inform server
-        deleteHistoryFromList(history); // inform observable
-        return history;
-    },
-
-    async deleteCurrentHistory({ getters, dispatch }, { purge } = { purge: false }) {
-        const history = getters.currentHistory;
-        if (history) {
-            dispatch("deleteHistory", { history, purge });
-        }
-        return dispatch("selectNextHistory");
-    },
-
-    async makeHistoryPrivate({ getters, dispatch }, { history }) {
-        return await makePrivate(history.id);
     },
 
     async selectNextHistory({ state, getters, dispatch }) {
@@ -130,6 +138,9 @@ export const actions = {
         return nextHistory;
     },
 
+    //#endregion
+
+    //#region Params
     // Search parameters for a given history
     // Controls output and query contents
 
@@ -137,9 +148,10 @@ export const actions = {
         commit("setSearchParams", params.clone());
     },
 
-    // Subscribes to an observable that returns content as observed
-    // from IndexDB and runs polling updates for the indicated history
+    //#endregion
 
+    //#region Content Loading
+    
     loadContent({ commit }, historyId) {
         if (!loaderSubscriptions.has(historyId)) {
             const sub = ContentLoader(historyId).subscribe({
@@ -153,51 +165,71 @@ export const actions = {
         }
     },
 
-    unsubLoader(context, id) {
+    unsubLoader(_, id) {
         if (loaderSubscriptions.has(id)) {
             loaderSubscriptions.get(id).unsubscribe();
             loaderSubscriptions.delete(id);
         }
     },
 
-    // Current dataset/dataset collection selection from the history content
+    //#endregion
 
-    setContentSelection({ commit, getters }, { history, selection }) {
-        const existingSelection = getters.contentSelection(history);
-        if (!setEquals(existingSelection, selection)) {
-            commit("setContentSelection", { history, selection });
-        }
-    },
+    //#region Content selection
 
-    clearContentSelection({ commit }, { history }) {
-        commit("setContentSelection", { history });
-    },
-
-    // Show/hide all content independent of selection polling should handle the
-    // updates if the update-time is properly udpated
-
-    showAllHiddenContent({ getters }) {
-        return showAllHiddenContent(getters.currentHistory);
-    },
-
-    deleteAllHiddenContent({ getters }) {
-        return deleteAllHiddenContent(getters.currentHistory);
-    },
-
-    purgeDeletedContent({ getters }) {
-        return purgeDeletedContent(getters.currentHistory);
-    },
-
-    // Content
-
-    deleteContent(_, { content }) {
-        deleteContent(content).then(() => {
-            flushCachedDataset(content);
+    setContentSelection({ commit }, { history, selection = [] }) {
+        commit("setContentSelection", { 
+            historyId: history.id, 
+            typeIds: selection.map(c => c.type_id)
         });
     },
 
-    undeleteContent(_, { content }) {
-        return deleteContent(content);
+    clearContentSelection({ dispatch }, { history }) {
+        dispatch("setContentSelection", { history });
+    },
+
+    selectContentItem({ getters, commit }, { content }) {        
+        const existingSelection = getters.contentSelectionSet(content.history_id);
+        const newSelection = new Set(existingSelection);
+        newSelection.add(content.type_id);
+        commit("setContentSelection", {
+            historyId: content.history_id,
+            typeIds: newSelection
+        })
+    },
+
+    unselectContentItem({ getters, commit }, { content }) {        
+        const existingSelection = getters.contentSelectionSet(content.history_id);
+        const newSelection = new Set(existingSelection);
+        newSelection.delete(content.type_id);
+        commit("setContentSelection", {
+            historyId: content.history_id,
+            typeIds: newSelection
+        })
+    },
+
+    //#endregion
+
+    //#region Content Operations
+
+    async showAllHiddenContent({ getters }) {
+        return await showAllHiddenContent(getters.currentHistory);
+    },
+
+    async deleteAllHiddenContent({ getters }) {
+        return await deleteAllHiddenContent(getters.currentHistory);
+    },
+
+    async purgeDeletedContent({ getters }) {
+        return await purgeDeletedContent(getters.currentHistory);
+    },
+
+    async deleteContent(_, { content }) {
+        await deleteContent(content);
+        await flushCachedDataset(content);
+    },
+
+    async undeleteContent(_, { content }) {
+        return await deleteContent(content);
     },
 
     async updateSelectedContent({ getters }, { history, field, value }) {
@@ -222,36 +254,10 @@ export const actions = {
             await cacheFn(item);
         }
     }
+
+    //#endregion
 };
 
-export const mutations = {
-    setCurrentHistoryId: (state, id) => {
-        state.currentHistoryId = id;
-    },
-
-    setHistories: (state, list = []) => {
-        const newList = sortBy(list, "name");
-        state.histories = newList;
-    },
-
-    setSearchParams: (state, params) => {
-        state.params = Object.assign({}, state.params, {
-            [params.historyId]: params
-        });
-    },
-
-    setHistoryContents: (state, { historyId, contents }) => {
-        state.contents = Object.assign({}, state.contents, {
-            [historyId]: contents
-        });
-    },
-
-    setContentSelection: (state, { history, selection = new Set() }) => {
-        state.contentSelection = Object.assign({}, state.contentSelection, {
-            [history.id]: selection
-        });
-    }
-};
 
 export default {
     namespaced: true,
@@ -259,7 +265,8 @@ export default {
     getters,
     actions,
     mutations
-};
+}
+
 
 
 /**
