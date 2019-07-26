@@ -1,7 +1,8 @@
 import { pipe } from "rxjs";
-import { tap, map, filter, debounceTime, buffer } from "rxjs/operators";
+import { tap, map, filter } from "rxjs/operators";
 import { watchVuexSelector, split } from "utils/observable";
 import { SearchParams } from "./SearchParams";
+
 
 /**
  * Generates a parameters observable operator for the source history stream. Looks
@@ -19,14 +20,54 @@ export const getParamsFromHistoryId = (config = {}) => {
     return pipe(
         map(id => (_, getters) => getters["history/searchParams"](id)),
         watchVuexSelector(store),
+        filter(p => p.validRange()),
         tap(p => debug ? p.report(label) : null)
     );
 }
 
 
+/**
+ * Splits a parameter into multiple discrete parameters by pageSize, reduces
+ * number of separate calls to the api and lets us cache them
+ * @param {boolean} debug 
+ */
+export const segmentParams = debug => pipe(
+    tap(p => {
+        if (debug) {
+            console.group("Segmenting...", p.end, p.start);
+        }
+    }),
+    map(p => {
 
+        const segments = [];
+        const chunk = SearchParams.pageSize;
+
+        let top = p.end;
+        do {
+            const newP = p.clone();
+            newP.end = Math.ceil(top / chunk) * chunk;
+            newP.start = newP.end - chunk + 1;
+            segments.push(newP);
+            top = newP.end - chunk;
+        } while(top > p.start);
+
+        return segments;
+    }),
+    tap(arrP => {
+        if (debug) {
+            arrP.forEach(p => p.report("segmented result"));
+            console.groupEnd();
+        }
+    }),
+    split()
+)
+
+
+//#region Unused
+/*
 // emit a param representing the maximum range, max start/end of the params that
 // passed through before we buffered
+// Possibly unnecessary, I have the component buffering the endpoints now.
 
 export const bufferParamRange = (config = {}) => src => {
 
@@ -57,6 +98,7 @@ export const bufferParamRange = (config = {}) => src => {
     );
 }
 
+
 export const amoebaInterval = (acc, p) => {
     const result = acc === null ? p.clone() : acc.clone();
     result.end = Math.max(result.end, p.end);
@@ -69,39 +111,5 @@ export const amoebaInterval = (acc, p) => {
 
     return result;
 }
-
-
-/**
- * Splits a parameter into multiple discrete parameters by pageSize, reduces
- * number of separate calls to the api
- * @param {boolean} debug 
- */
-export const segmentParams = debug => pipe(
-    map(p => {
-        const result = [];
-
-        const chunk = SearchParams.pageSize;
-        let top = p.end;
-        do {
-            const newP = p.clone();
-            newP.end = Math.ceil(top / chunk) * chunk;
-            newP.start = newP.end - chunk + 1;
-            result.push(newP);
-            top = newP.end - chunk;
-        } while(top > p.start);
-
-        // append "next page" params
-        if (p.start > 0) {
-            const nextPage = p.clone();
-            nextPage.end = p.start;
-            nextPage.start = null;
-            result.push(nextPage);
-        }
-
-        return result;
-    }),
-    split(),
-    tap(p => {
-        if (debug) p.report("segmented params");
-    })
-);
+*/
+//#endregion

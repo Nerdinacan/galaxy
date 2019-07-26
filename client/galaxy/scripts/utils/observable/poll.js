@@ -1,5 +1,5 @@
-import { of, merge, defer, isObservable } from "rxjs";
-import { tap, switchMap, repeatWhen, delay, finalize, debounceTime } from "rxjs/operators";
+import { of, defer, isObservable } from "rxjs";
+import { tap, switchMap, repeatWhen, delay, finalize } from "rxjs/operators";
 
 /**
  * Operator to create a periodic poll. Individual requests are built with the
@@ -55,19 +55,21 @@ export const poll = (config = {}) => src => {
 
             // repeat that request on the timer or when immediate triggers fire
             return request$.pipe(
-                repeatWhen(done => {
-                    return done.pipe(delay(delayDuration));
-                    // return merge(done, ...arrTriggers).pipe(
-                    //     tap(interrupter => {
-                    //         if (debug) {
-                    //             console.log("something triggered!", interrupter);
-                    //         }
-                    //     }),
-                    //     delay(delayDuration)
-                    // );
-                })
+                repeatWhen(done => done.pipe(
+                    delay(delayDuration)
+                ))
             )
         })
     )
 
 }
+
+
+// return merge(done, ...arrTriggers).pipe(
+//     tap(interrupter => {
+//         if (debug) {
+//             console.log("something triggered!", interrupter);
+//         }
+//     }),
+//     delay(delayDuration)
+// );

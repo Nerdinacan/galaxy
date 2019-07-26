@@ -80,22 +80,18 @@
 <script>
 
 import { mapGetters } from "vuex";
-
 import { Dataset$, updateDatasetFields } from "./model/Dataset$";
 import { loadToolFromDataset } from "./model/queries";
 import { eventHub } from "components/eventHub";
 import { capitalize, camelize } from "underscore.string";
-
 import Annotation from "components/Form/Annotation";
 import ClickToEdit from "components/Form/ClickToEdit";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
 import { Nametags } from "components/Nametags";
 import DatasetTags from "./DatasetTags";
 import DatasetMenu from "./DatasetMenu";
-import ContentSelectionBox from "../ContentSelectionBox";
-
+import ContentSelectionBox from "../Content/ContentSelectionBox";
 import STATES from "mvc/dataset/states";
-
 import {
     Discarded, Empty, Error,
     New, NotViewable, Ok,

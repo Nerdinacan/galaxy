@@ -11,8 +11,8 @@
 <script>
 
 import { of } from "rxjs";
-import { DatasetItem } from "./Dataset";
-import { DatasetCollectionItem } from "./DatasetCollection";
+import { DatasetItem } from "../Dataset";
+import { DatasetCollectionItem } from "../DatasetCollection";
 import dasherize from "underscore.string/dasherize";
 import { getCachedContent } from "caching";
 

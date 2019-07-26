@@ -17,7 +17,7 @@ import { mapGetters } from "vuex";
 import HistoryDetails from "./HistoryDetails";
 import HistoryMessages from "./HistoryMessages";
 import ContentSelection from "./ContentSelection";
-import ContentList from "./ContentList";
+import ContentList from "./Content/ContentList";
 
 export default {
     components: {

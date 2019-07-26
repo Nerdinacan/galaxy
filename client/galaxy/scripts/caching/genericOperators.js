@@ -86,11 +86,6 @@ export const setItem = (collection$, debug = false) => pipe(
             catchError(err => {
                 console.warn("setItem upsert error", err);
                 return of(null);
-            }),
-            finalize(() => {
-                if (debug) {
-                    console.groupEnd();
-                }
             })
         )
     }),

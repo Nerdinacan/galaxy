@@ -1,16 +1,18 @@
-import dateStore from "./dateStore";
 import hash from "object-hash";
+import moment from "moment";
+
+// Keeps track of last time we used these params by the parameter contents
+// represented by a hash string
+const lastCalled = new Map();
 
 
 export class SearchParams {
 
     constructor(props = {}) {
         this.historyId = null;
-
         this.filterText = "";
         this.showDeleted = false;
         this.showHidden = false;
-
         this._start = null;
         this._end = null;
         Object.assign(this, props);
@@ -41,27 +43,107 @@ export class SearchParams {
     }
 
     get lastCalled() {
-        return dateStore.get(this.dateStoreKey);
+        const stamp = lastCalled.get(this.requestStateKey) || 0;
+        return moment.utc(stamp);
     }
 
     markLastCalled() {
-        dateStore.set(this.dateStoreKey);
+        const stamp = moment.utc().valueOf();
+        lastCalled.set(this.requestStateKey, stamp);
     }
 
-    get dateStoreKey() {
+    get stateKey() {
         return `params-${hash(this)}`;
     }
 
+    // like stateKey but with no start factored into the state
+    // (used in ContentLoader)
+    get requestStateKey() {
+        const dummyP = this.clone();
+        dummyP.start = null;
+        return dummyP.stateKey;
+    }
+
     removeLimits() {
-        this._end = null;
-        this._start = null;
+        this.end = null;
+        this.start = null;
         return this;
     }
+
+    validRange() {
+        const result = this.end < Number.POSITIVE_INFINITY
+            && this.start > Number.NEGATIVE_INFINITY
+            && this.end >= this.start;
+        return result;
+    }
+
+    chunkEnd() {
+        const chunked = this.clone();
+        const chunkSize = SearchParams.pageSize;
+        chunked.end = Math.ceil(this.end / chunkSize) * chunkSize;
+        return chunked;
+    }
+
+    chunkStart() {
+        const chunked = this.clone();
+        const chunkSize = SearchParams.pageSize;
+        chunked.start = Math.floor(this.start / chunkSize) * chunkSize;
+        return chunked;
+    }
+
+
+
+    /**
+     * Generates request url for a given set of request parameters.
+     */
+    get contentUrl() {
+
+        const base = `/api/histories/${this.historyId}/contents?v=dev&view=summary&keys=accessible`;
+        const order = "order=hid-dsc";
+        
+        let endClause = "";
+        if (this.end && this.end < Number.POSITIVE_INFINITY) {
+            endClause = `q=hid-le&qv=${this.end}`;
+        }
+        
+        const limitClause = `limit=${SearchParams.pageSize}`;
+        
+        // if (this.start == null) {
+        //     limitClause = `limit=${SearchParams.pageSize}`;
+        // } else {
+        //     startClause = `q=hid-ge&qv=${this.start}`;
+        // }
+
+        const since = this.lastCalled;
+        const updateClause = since ? `q=update_time-gt&qv=${since.toISOString()}` : "";
+        
+        let deletedClause = "", purgedClause = "";
+        if (!this.showDeleted) {
+            // limit to non-deleted
+            deletedClause = `q=deleted&qv=False`;
+            purgedClause = `q=purged&qv=False`;
+        }
+
+        let visibleClause = "";
+        if (!this.showHidden) {
+            // limit to visible
+            visibleClause = `q=visible&qv=True`;
+        }
+
+        const textFilter = this.textFilter ? `q=name-contains&qv=${textFilter}` : "";
+
+        const parts = [ base, endClause, limitClause,
+            deletedClause, purgedClause, visibleClause, textFilter, 
+            updateClause, order ];
+
+        return parts.filter(o => o.length).join("&");
+    }
+
 
     // debugging
     report(label = "params") {
         const { lastCalled, start, end, showDeleted, showHidden, filterText, historyId } = this;
-        console.groupCollapsed(label, `${start}-${end}`);
+        console.groupCollapsed(label, `${end} -> ${start}`);
         console.log("historyId", historyId);
         console.log("start", start);
         console.log("end", end);
@@ -91,7 +173,7 @@ export class SearchParams {
     static createForHistory(history) {
         return new SearchParams({
             historyId: history.id,
-            start: history.hid_counter,
+            start: history.hid_counter - SearchParams.pageSize,
             end: history.hid_counter
         });
     }
@@ -109,4 +191,4 @@ export class SearchParams {
 
 // make this number pretty big to avoid a lot of repeated
 // trips to the server
-SearchParams.pageSize = 50;
+SearchParams.pageSize = 100;

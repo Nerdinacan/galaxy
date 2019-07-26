@@ -1,13 +1,11 @@
 import { of, merge, pipe } from "rxjs";
-import { ajax } from "rxjs/ajax";
-import { tap, map, filter, mapTo, switchMap, switchMapTo, concatMap,
+import { tap, map, filter, mapTo, switchMap, switchMapTo,
     share, pluck, withLatestFrom, mergeMap } from "rxjs/operators";
-import { createInputFunction, split, firstItem } from "utils/observable";
+import { createInputFunction, split, firstItem, ajaxGet } from "utils/observable";
 import { history$ as hColl$, withLatestFromDb, cacheHistory,
     deleteHistory as clearCachedHistory } from "caching";
 import { CurrentUserId$ } from "components/User/model/CurrentUser$";
 import { selectCurrentHistory, createHistory } from "./queries";
-import { prependPath } from "utils/redirect";
 
 
 /* Histories */
@@ -20,8 +18,7 @@ const loadHistoryUrl = [
 
 const userHistories$ = CurrentUserId$.pipe(
     mapTo(loadHistoryUrl),
-    map(prependPath),
-    switchMap(ajax.getJSON),
+    ajaxGet(),
     split()
 );
 
@@ -51,8 +48,7 @@ const currentHistoryUrl = "/history/current_history_json";
 
 const loadedCurrentHistoryId$ = CurrentUserId$.pipe(
     mapTo(currentHistoryUrl),
-    map(prependPath),
-    switchMap(ajax.getJSON),
+    ajaxGet(),
     pluck("id")
 );
 
@@ -102,8 +98,7 @@ export const historyUpdate = debug => pipe(
         }
     }),
     map(buildHistoryUrl(debug)),
-    map(prependPath),
-    concatMap(ajax.getJSON),
+    ajaxGet(),
     tap(results => {
         if (debug) {
             console.log("historyUpdate retrieved results", results.length);

@@ -48,7 +48,6 @@ export const cacheDataset = debug => pipe(
 export const cacheDatasetCollection = debug => pipe(
     tap(input => of(input).pipe(cacheContent(debug)).subscribe()),
     map(prepareDatasetCollection),
-    tap(p => console.log("supposedly prepared", p)),
     setItem(datasetCollection$, true)
 );
 

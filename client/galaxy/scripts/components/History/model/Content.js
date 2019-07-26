@@ -6,25 +6,15 @@ import { operateOnArray } from "utils/observable";
 import moment from "moment";
 
 
-// Retrieves observable query to local content matching source parameters
+//#region Local Content Live rxdb query
 
 export const getContentObservable = (label, debug = false) => pipe(
     // Don't care about start/end for local display
     map(p => p.clone().removeLimits()),
     distinctUntilChanged(SearchParams.equals),
-    tap(params => {
-        if (debug) {
-            params.report("getContentObservable input params");
-        }
-    }),
     withLatestFromDb(historyContent$),
-    switchMap(buildLocalContentQuery(label, debug)),
-    tap(results => {
-        if (debug) {
-            console.log("getContentObservable", label, results.length);
-        }
-    })
-);
+    switchMap(buildLocalContentQuery(label, debug))
+)
 
 const buildLocalContentQuery = (label, debug = false) => ([params, coll]) => {
 
@@ -59,7 +49,10 @@ const buildLocalContentQuery = (label, debug = false) => ([params, coll]) => {
     }
 
     return query.$;
-};
+}
+
+//#endregion
+
 
 // takes a stream of content and emits the latest update_time
 // content$ must complete for this to work since it uses a reduce
@@ -70,7 +63,7 @@ export const latestContentDate = () => pipe(
     reduce(Math.max, 0),
     map(stamp => moment.utc(stamp + 1)), // +1 for rounding error on server
     map(lastDate => lastDate.toISOString())
-);
+)
 
 
 export const cacheContentArray = debug => pipe(
@@ -80,82 +73,16 @@ export const cacheContentArray = debug => pipe(
             console.log("cached results", cached.length);
         }
     })
-);
-
-// The manual update content URL and polling update URL are very similar.
-// Polling: requires the since date
-// Param Change: remove update_time limit, add end HID clamp
-
-export const buildContentUrl = debug => params => {
-    
-    const base = `/api/histories/${params.historyId}/contents?v=dev&view=summary&keys=accessible`;
-    const order = "order=hid-dsc";
-    
-    const endClause = params.end ? `q=hid-le&qv=${params.end}` : "";
-    
-    // if we have a definite start point, use that
-    // otherwise back up one page
-    let startClause = "", limitClause = "";
-    if (params.start == null) {
-        limitClause = `limit=${SearchParams.pageSize}`;
-    } else {
-        startClause = `q=hid-ge&qv=${params.start}`;
-    }
-
-    const since = params.lastCalled;
-    const updateClause = since ? `q=update_time-gt&qv=${since.toISOString()}` : "";
-    params.markLastCalled();
-
-    let deletedClause = "", purgedClause = "";
-    if (!params.showDeleted) {
-        // limit to non-deleted
-        deletedClause = `q=deleted&qv=False`;
-        purgedClause = `q=purged&qv=False`;
-    }
-
-    let visibleClause = "";
-    if (!params.showHidden) {
-        // limit to visible
-        visibleClause = `q=visible&qv=True`;
-    }
-
-    const textFilter = params.textFilter ? `q=name-contains&qv=${textFilter}` : "";
-
-    const parts = [ base, endClause, startClause, limitClause,
-        deletedClause, purgedClause, visibleClause, textFilter, 
-        updateClause, order ];
-
-    const url = parts.filter(o => o.length).join("&");
-
-    if (debug) {
-        console.groupCollapsed("buildContentUrl");
-        console.log("params", params);
-        console.log("parts", parts);
-        console.log("since", since);
-        console.log("url", url);
-        console.groupEnd();
-    }
-
-    return url;
-};
+)
 
 
-export const buildContentUrlForHistory = debug => history => {
-    
+/**
+ * Generates a URL for catching external updates to the source history.
+ */
+export const buildContentUrlForHistory = history => {
     const base = `/api/histories/${history.id}/contents?v=dev&view=summary&keys=accessible`;
     const since = moment.utc(history.update_time);
     const updateClause = `q=update_time-gt&qv=${since.toISOString()}`
-    
     const parts = [ base, updateClause ];
-    const url = parts.filter(o => o.length).join("&");
-
-    if (debug) {
-        console.groupCollapsed("buildContentUrlForHistory");
-        console.log("parts", parts);
-        console.log("since", since);
-        console.log("url", url);
-        console.groupEnd();
-    }
-    return url;
-};
-
+    return parts.filter(o => o.length).join("&");
+}
