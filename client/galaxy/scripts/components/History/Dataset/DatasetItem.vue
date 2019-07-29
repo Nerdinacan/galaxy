@@ -1,29 +1,46 @@
 <template>
     <div :class="{ expanded, collapsed: !expanded, selected }">
 
-        <nav class="dataset-top-menu d-flex justify-content-between m-1 mb-0" 
+        <!-- #region dataset top button bar -->
+        <nav class="dataset-top-menu d-flex justify-content-between" 
             @click="toggleDetails">
-            <content-selection-box class="content-select-box" 
-                :content="content" />
-            <icon-menu>
-                <icon-menu-item :icon="expanded ? 'chevron-up' : 'chevron-down'"
-                    :active="expanded"
+
+            <icon-menu class="status-menu">
+                <icon-menu-item :active="expanded"
+                    :icon="expanded ? 'chevron-up' : 'chevron-down'"
                     @click.stop="toggleDetails" />
-                <!-- <icon-menu-item icon="clock-o"  /> -->
+                <!-- <icon-menu-item icon="clock-o" />
+                <icon-menu-item icon="eye-slash" />
+                <icon-menu-item icon="pause" />
+                <icon-menu-item icon="exclamation" /> -->
             </icon-menu>
+            
             <div class="hid flex-grow-1">
                 <span>{{ content.hid }}</span>
             </div>
+
             <dataset-menu :content="content" :dataset="dataset" />
+
         </nav>
+        <!-- #endregion -->
 
-        <header :class="expanded ? 'p-3' : 'px-3 py-2'"
-            @keyup.space.self.stop="toggleDetails">
-
-            <h4 v-if="!expanded">
-                <a href="#" @click.stop="toggleDetails">{{ title }}</a>
-            </h4>
-            <click-to-edit v-if="expanded && datasetName" tagName="h4" v-model="datasetName" />
+        <!-- #region dataset header always visible -->
+        <header :class="expanded ? 'p-3' : 'px-3 py-2'">
+ 
+            <div class="d-flex">
+                <content-selection-box 
+                    class="content-select-box" 
+                    :content="content" />
+                <div>
+                    <h4 v-if="!expanded">
+                        <a href="#" @click.stop="toggleDetails">
+                            {{ title(content) }}
+                        </a>
+                    </h4>
+                    <click-to-edit v-if="expanded && datasetName" 
+                        tagName="h4" v-model="datasetName" />
+                </div>
+            </div>
 
             <annotation v-if="expanded" class="mt-1"
                 tooltip-placement="left"
@@ -36,9 +53,9 @@
                 :historyId="dataset.history_id" />
 
         </header>
+        <!-- #endregion -->
 
         <!-- #region expanded section -->
-
         <transition name="shutterfade">
             <div v-if="expanded" class="details px-3 pb-3">
 
@@ -70,7 +87,6 @@
 
             </div>
         </transition>
-
         <!-- #endregion -->
 
     </div>
@@ -80,10 +96,12 @@
 <script>
 
 import { mapGetters } from "vuex";
+import { capitalize, camelize } from "underscore.string";
 import { Dataset$, updateDatasetFields } from "./model/Dataset$";
 import { loadToolFromDataset } from "./model/queries";
 import { eventHub } from "components/eventHub";
-import { capitalize, camelize } from "underscore.string";
+import STATES from "mvc/dataset/states";
+
 import Annotation from "components/Form/Annotation";
 import ClickToEdit from "components/Form/ClickToEdit";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
@@ -91,13 +109,12 @@ import { Nametags } from "components/Nametags";
 import DatasetTags from "./DatasetTags";
 import DatasetMenu from "./DatasetMenu";
 import ContentSelectionBox from "../Content/ContentSelectionBox";
-import STATES from "mvc/dataset/states";
-import {
-    Discarded, Empty, Error,
-    New, NotViewable, Ok,
-    Paused, Queued, Running,
-    SettingMetadata, Upload
-} from "./Summary";
+import { Discarded, Empty, Error, New, NotViewable, Ok, Paused, 
+    Queued, Running, SettingMetadata, Upload } from "./Summary";
+
+// import { create } from "rxjs-spy";
+// import { tag } from "rxjs-spy/operators";
+// window.spy = create();
 
 
 export default {
@@ -122,6 +139,7 @@ export default {
     },
     data() {
         return {
+            loading: false,
             dataset: null,
             expand: false,
             showTags: false,
@@ -183,10 +201,6 @@ export default {
             return result;
         },
 
-        loading() {
-            return !this.dataset;
-        },
-
         summaryComponent() {
             let state = this.dataset.state;
             if (state == STATES.FAILED_METADATA) {
@@ -195,54 +209,37 @@ export default {
             return capitalize(camelize(state));
         },
 
-        title() {
-            const { name, isDeleted, visible, purged } = this.content;
-
-            let result = name;
-
-            const itemStates = [];
-            if (isDeleted) {
-                itemStates.push("Deleted");
-            }
-            if (visible == false) {
-                itemStates.push("Hidden");
-            }
-            if (purged) {
-                itemStates.push("Purged");
-            }
-            if (itemStates.length) {
-                result += ` (${itemStates.join(", ")})`;
-            }
-
-            return result;
-        }
-
     },
     methods: {
 
-        // Holds off on subscribing to the dataset until they open
-        // the expanded view. Caches result locally and future expansions
-        // will compare the local datset update_time to the content update_time
-        // (which is updated through polling) and only requery when the local
-        // dataset value has gone stale
-
         load() {
             if (!this.datasetSub) {
-                console.log("subscribing to live dataset observable");
-                const sub = this.$subscribeTo(
+                this.datasetSub = this.$subscribeTo(
                     Dataset$(this.content),
-                    ds => this.dataset = ds,
-                    err => console.warn("Dataset observable err", err),
-                    () => console.log("Datset observable complete")
-                );
-                this.datasetSub = sub;
+                    ds => {
+                        this.loading = false;
+                        this.dataset = ds;
+                    },
+                    err => console.warn("Dataset observable err", err)
+                )
+            }
+        },
+
+        unload() {
+            if (this.datasetSub) {
+                this.datasetSub.unsubscribe();
+                this.dataset = null;
+                this.loading = false;
+                this.datasetSub = null;
             }
         },
 
         async updateDataset(fields) {
             try {
+                this.loading = true;
                 await updateDatasetFields(this.dataset, fields).toPromise();
             } catch(err) {
+                this.loading = false;
                 console.warn("boo", err);
             }
         },
@@ -286,13 +283,34 @@ export default {
 
         isMe(ds) {
             return ds.id == this.content.id;
+        },
+
+        title(data) {
+            const { name, isDeleted, visible, purged } = data;
+
+            let result = name;
+
+            const itemStates = [];
+            if (isDeleted) {
+                itemStates.push("Deleted");
+            }
+            if (visible == false) {
+                itemStates.push("Hidden");
+            }
+            if (purged) {
+                itemStates.push("Purged");
+            }
+            if (itemStates.length) {
+                result += ` (${itemStates.join(", ")})`;
+            }
+
+            return result;
         }
+
     },
     watch: {
         expand(newVal) {
-            if (newVal) {
-                this.load();
-            }
+            newVal ? this.load() : this.unload();
         }
     },
     created() {
@@ -322,7 +340,7 @@ export default {
     span {
         display: block;
         position: absolute;
-        top: 48%;
+        top: 52%;
         left: 0%;
         transform: translateY(-50%);
         margin-left: 4px;

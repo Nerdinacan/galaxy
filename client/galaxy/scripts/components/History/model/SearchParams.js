@@ -1,9 +1,19 @@
 import hash from "object-hash";
 import moment from "moment";
 
+
 // Keeps track of last time we used these params by the parameter contents
 // represented by a hash string
-const lastCalled = new Map();
+
+const lastCalled = {
+    get(key) {
+        const stamp = sessionStorage.getItem(key);
+        return stamp ? parseInt(stamp) : 0;
+    },
+    set(key, stamp) {
+        sessionStorage.setItem(key, stamp);
+    }
+}
 
 
 export class SearchParams {
@@ -91,6 +101,14 @@ export class SearchParams {
         return chunked;
     }
 
+    nextPage() {
+        const newParams = this.clone();
+        newParams.end = newParams.end - SearchParams.pageSize;
+        // newParams.report("NEXT");
+        return newParams;
+    }
+
+
 
 
     /**
@@ -114,9 +132,10 @@ export class SearchParams {
         //     startClause = `q=hid-ge&qv=${this.start}`;
         // }
 
-        const since = this.lastCalled;
-        const updateClause = since ? `q=update_time-gt&qv=${since.toISOString()}` : "";
-        
+        // const since = this.lastCalled;
+        // const updateClause = since ? `q=update_time-gt&qv=${since.toISOString()}` : "";
+        const updateClause = "";
+
         let deletedClause = "", purgedClause = "";
         if (!this.showDeleted) {
             // limit to non-deleted

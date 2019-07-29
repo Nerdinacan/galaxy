@@ -3,13 +3,13 @@ import { tap, switchMap, repeatWhen, delay, finalize } from "rxjs/operators";
 
 /**
  * Operator to create a periodic poll. Individual requests are built with the
- * buildRequest parameter which should return an observable. Optional retrigger events force a poll immediately
+ * buildPollRequest parameter which should return an observable. Optional retrigger events force a poll immediately
  * delaytime is the amount of time to wait after the previous poll has completed
  */
 export const poll = (config = {}) => src => {
 
     const { 
-        buildRequest, 
+        buildPollRequest, 
         delayDuration = 5000,
         debug = false,
         // triggers = [],
@@ -17,7 +17,7 @@ export const poll = (config = {}) => src => {
 
     // const arrTriggers = Array.isArray(triggers) ? triggers : [ triggers ];
     
-    if (!(buildRequest instanceof Function)) {
+    if (!(buildPollRequest instanceof Function)) {
         throw new Error("Please provide an observable factory to poll. Should be a function that takes the inputs and returns an observable.")
     }
 
@@ -38,7 +38,7 @@ export const poll = (config = {}) => src => {
                         }
                     }),
                     switchMap(args => {
-                        const obs$ = buildRequest(args);
+                        const obs$ = buildPollRequest(args);
                         if (!isObservable(obs$)) {
                             throw new Error("Observable factory did not return an observable");
                         }

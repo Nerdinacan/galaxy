@@ -1,33 +1,25 @@
 <template>
     <component v-if="content"
+        class="content-item" :data-state="content.state"
+        :is="contentItemComponent"
         :content="content"
-        class="content-item"
-        :class="contentClassName"
-        :is="contentItemComponent" 
-        :data-state="content.state" />
+        :class="contentClassName" />
 </template>
 
 
 <script>
 
-import { of } from "rxjs";
 import { DatasetItem } from "../Dataset";
 import { DatasetCollectionItem } from "../DatasetCollection";
 import dasherize from "underscore.string/dasherize";
-import { getCachedContent } from "caching";
 
 export default {
     props: {
-        typeId: { type: String, required: true }
+        content: { type: Object, required: true }
     },
     components: {
         "dataset": DatasetItem,
         "dataset_collection": DatasetCollectionItem
-    },
-    subscriptions() {
-        return {
-            content: of(this.typeId).pipe(getCachedContent())
-        }
     },
     computed: {
         contentItemComponent() {

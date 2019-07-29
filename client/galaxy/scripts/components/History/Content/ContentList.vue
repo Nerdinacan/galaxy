@@ -5,14 +5,13 @@
             <div v-if="content.length" class="scrollContainer" ref="scrollContainer">
                 <ol ref="scrollContent">
                     <li v-for="(c, index) in content" :key="c.type_id" class="mb-1">
-                        <content-item :type-id="c.type_id" 
-                            :tabindex="index"
-                            v-observe-visibility="updatePageRange(c.hid)"
-                        />
+                        <div class="sensor" v-if="showSensor(index)" 
+                            v-observe-visibility="updatePageRange(c.hid)"></div>
+                        <content-item :content="c" :tabindex="index" />
                     </li>
-                    <li class="sensor" v-observe-visibility="updatePageRange(nextPage)">
-                        Load until: {{ nextPage }}
-                    </li>
+                    <div v-observe-visibility="updatePageRange(nextPage)">
+                        <!-- Load until: {{ nextPage }} -->
+                    </div>
                 </ol>
             </div>
         </transition>
@@ -42,7 +41,6 @@ import { ObserveVisibility } from "vue-observe-visibility";
 import { SearchParams } from "../model/SearchParams";
 import ContentItem from "./ContentItem";
 import HistoryEmpty from "./HistoryEmpty";
-
 
 export default {
     directives: {
@@ -76,11 +74,17 @@ export default {
         ]),
 
         params() {
-            return this.searchParams(this.history.id);
+            if (this.history) {
+                return this.searchParams(this.history.id);
+            }
+            return null;
         },
 
         content() {
-            return this.historyContent(this.history.id);
+            if (this.history) {
+                return this.historyContent(this.history.id);
+            }
+            return [];
         },
 
         minHid() {
@@ -103,6 +107,7 @@ export default {
         ]),
 
         updatePageRange(hid) {
+
             function handler(isVisible, entry) {
 
                 // this one came into view
@@ -118,13 +123,13 @@ export default {
                     if (this.isAboveWindow(containerRect, entry)) {
                         // ran off the top
                         this.end = Math.min(this.end, hid - 1);
-                    } else {
-                        // else if(this.isBelowWindow(containerRect, entry)) {
+                    } else if(this.isBelowWindow(containerRect, entry)) {
                         // ran off the bottom
                         this.start = Math.max(this.start, hid + 1);
                     }
                 }
             }
+
             return handler.bind(this);
         },
 
@@ -153,6 +158,11 @@ export default {
 
         sendParams(newParams) {
             this.setSearchParams(newParams);
+            this.loading = true;
+        },
+
+        showSensor(index) {
+            return true;
         }
 
     },
@@ -161,6 +171,12 @@ export default {
 
         content() {
             this.loading = false;
+            this.end = this.content.hid_counter;
+            this.start = Number.POSITIVE_INFINITY;
+        },
+
+        params() {
+            this.loading = true;
         },
 
         // Subscribe to polling updates and content output observable
@@ -229,6 +245,18 @@ ol {
     left: 0;
     right: 0;
     padding-bottom: 100px;
+}
+
+ol li {
+    position: relative;
+}
+
+.sensor {
+    position: absolute;
+    height: 1px;
+    width: 1px;
+    bottom: 0;
+    left: 0;
 }
 
 </style>

@@ -70,10 +70,10 @@ a {
     }
 
     /* sizing */
-    height: 1.25rem;
-    width: 1.25rem;
-    line-height: 1.25rem;
-    font-size: 125%;
+    height: 1.5rem;
+    width: 1.5rem;
+    /* line-height: 1.25rem;
+    font-size: 125%; */
 
     text-decoration: none;
     cursor: pointer;

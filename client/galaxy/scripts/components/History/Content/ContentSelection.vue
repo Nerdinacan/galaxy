@@ -4,15 +4,27 @@
         <header>
             <h6>
                 <span>Contents</span>
-                <span>{{ countShown }} shown</span>
-                <span v-if="countHidden">
+                <a href="#" @click="toggle('showFilter')">
+                    <span>{{ countShown }}/{{ history.hid_counter }}</span>
+                </a>
+                <!-- 
+                <span v-if="history.contents_active.hidden">
                     <a v-if="!params.showHidden" href="#" @click="params.showHidden = true">
-                        {{ countHidden }} hidden
+                        {{ history.contents_active.hidden }} hidden
                     </a>
                     <a v-if="params.showHidden" href="#" @click="params.showHidden = false">
                         hide hidden
                     </a>
                 </span>
+                <span v-if="history.contents_active.deleted">
+                    <a v-if="!params.showDeleted" href="#" @click="params.showDeleted = true">
+                        {{ history.contents_active.deleted }} deleted
+                    </a>
+                    <a v-if="params.showDeleted" href="#" @click="params.showDeleted = false">
+                        hide deleted
+                    </a>
+                </span>
+                -->
             </h6>
             <!-- #region Filter Menu Toggles -->
             <icon-menu class="no-border">
@@ -143,7 +155,7 @@ import ContentFilters from "./ContentFilters";
 import GearMenu from "components/GearMenu";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
 import { eventHub } from "components/eventHub";
-import { SearchParams } from "./model/SearchParams";
+import { SearchParams } from "../model/SearchParams";
 
 // temporary adapters use old backbone modals until I rewrite them
 import { 
@@ -151,7 +163,7 @@ import {
     datasetPairModal, 
     listOfPairsModal, 
     collectionFromRulesModal 
-} from "./adapters/backboneListModals";
+} from "../adapters/backboneListModals";
 
 
 const messages = {
@@ -201,6 +213,11 @@ export default {
             return this.historyContent(this.historyId);
         },
 
+        countShown() {
+            return this.content ? this.content.length : 0;
+        },
+
+
         // create a local copy
         params: {
             get() {
@@ -211,10 +228,6 @@ export default {
                     this.setSearchParams(newParams);
                 }
             }
-        },
-
-        countShown() {
-            return this.history.contents_active.active;
         },
 
         countHidden() {

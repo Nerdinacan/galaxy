@@ -1,14 +1,14 @@
-import { of, zip, concat, isObservable } from "rxjs";
-import { filter, map, pluck, share, take } from "rxjs/operators";
+import { of, zip, concat } from "rxjs";
+import { tap, filter, map, pluck, share, take, switchMap } from "rxjs/operators";
 import { ajax } from "rxjs/ajax";
-import { getCachedDataset, cacheDataset, getCachedDatasetCollection, cacheDatasetCollection } from "caching";
+import { getCachedContent, getCachedDataset, cacheDataset, getCachedDatasetCollection, cacheDatasetCollection } from "caching";
 import { firstItem, ajaxGet } from "utils/observable";
 import { prependPath } from "utils/redirect";
 
 // debugging
 // import { create } from "rxjs-spy";
 // import { tag } from "rxjs-spy/operators";
-
+// window.spy = create();
 
 /**
  * Generates an observable that compares the local dataset data to the content
@@ -16,27 +16,36 @@ import { prependPath } from "utils/redirect";
  * that dataset if it is stale, then re-caches the result.
  */
 export function Dataset$(content) {
-    const content$ = isObservable(content) ? content : of(content);
-    return content$.pipe(
-        getFresh(getCachedDataset, cacheDataset)
-    );
+    return of(content).pipe(
+        pluck('type_id'),
+        getCachedContent(true),
+        switchMap(newContent => of(newContent).pipe(
+            getFresh(getCachedDataset, cacheDataset)
+        ))
+    )
 }
 
 export function DatasetCollection$(content) {
-    const content$ = isObservable(content) ? content : of(content);
-    return content$.pipe(
-        getFresh(getCachedDatasetCollection, cacheDatasetCollection)
-    );
+    return of(content).pipe(
+        pluck('type_id'),
+        getCachedContent(true),
+        switchMap(newContent => of(newContent).pipe(
+            tap(c => console.log("changed content", c.name)),
+            getFresh(getCachedDatasetCollection, cacheDatasetCollection)
+        ))
+    )
 }
 
 export const getFresh = (loader, cacher, debug = false) => c$ => {
     
-    const content$ = c$.pipe(share());
+    const content$ = c$.pipe(
+        share()
+    );
 
     // current dataset data in indexDB
     const existing$ = content$.pipe(
         pluck('id'), 
-        loader(debug)
+        loader(debug),
     );
 
     // compare to content, if content is newer, that means polling picked
@@ -57,7 +66,9 @@ export const getFresh = (loader, cacher, debug = false) => c$ => {
     )
     
     // if server never emits, take original value
-    return concat(retrievedVersion$, existing$).pipe(take(1))
+    return concat(retrievedVersion$, existing$).pipe(
+        take(1)
+    )
 }
 
 // item may be null indicating we haven't loaded this dataset yet

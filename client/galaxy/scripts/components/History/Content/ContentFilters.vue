@@ -25,7 +25,7 @@
 
 <script>
 
-import { SearchParams } from "./model/SearchParams";
+import { SearchParams } from "../model/SearchParams";
 import DebouncedInput from "components/Form/DebouncedInput";
 
 export default {

@@ -1,15 +1,19 @@
 import VuexPersistence from "vuex-persist";
 import { ContentLoader } from "./ContentLoader";
-import { Histories$, updateHistoryList, deleteHistoryFromList, CurrentHistoryId$, setCurrentHistoryId } from "./History";
-import { updateHistoryFields, createHistory, cloneHistory, deleteHistoryById, makePrivate, showAllHiddenContent, deleteAllHiddenContent, purgeDeletedContent, deleteContent, bulkUpdate } from "./queries";
+import { Histories$, updateHistoryList, deleteHistoryFromList, 
+    CurrentHistoryId$, setCurrentHistoryId } from "./History";
+import { updateHistoryFields, createHistory, cloneHistory, 
+    deleteHistoryById, makePrivate, showAllHiddenContent, 
+    deleteAllHiddenContent, purgeDeletedContent, 
+    deleteContent, bulkUpdate } from "./queries";
 import { SearchParams } from "./SearchParams";
 import { flushCachedDataset, cacheContent, createPromiseFromOperator } from "caching";
-import { setEquals } from "utils/setFunctions";
 import { sortBy } from "underscore";
 
 // Holds subscriptions to ContentLoaders
 // history.id -> subscription
 const loaderSubscriptions = new Map();
+
 
 export const state = {
 
@@ -78,7 +82,12 @@ export const getters = {
     searchParams: (state, getters) => id => {
         if (!(id in state.params)) {
             const history = getters.getHistory(id);
-            return SearchParams.createForHistory(history);
+            if (history) {
+                return SearchParams.createForHistory(history);
+            } else {
+                debugger;
+                return null;
+            }
         }
         return state.params[id];
     },
@@ -140,17 +149,62 @@ export const actions = {
 
     //#endregion
 
-    //#region Params
-    // Search parameters for a given history
-    // Controls output and query contents
 
+    //#region History CRUD & operations
+
+    async createNewHistory({ dispatch }) {
+        const newHistory = await createHistory();
+        updateHistoryList(newHistory); // inform observable
+        await dispatch("selectCurrentHistory", newHistory.id);
+        return newHistory;
+    },
+
+    async copyHistory({ dispatch }, { history, name, copyWhat }) {
+        const newHistory = await cloneHistory(history, name, copyWhat);
+        updateHistoryList(newHistory); // inform observable
+        await dispatch("selectCurrentHistory", newHistory.id);
+        return newHistory;
+    },
+
+    async deleteHistory({ state }, { history, purge } = { purge: false }) {
+        await deleteHistoryById(history.id, purge);
+        deleteHistoryFromList(history); // inform observable
+        return history;
+    },
+
+    async deleteCurrentHistory({ getters, dispatch }, { purge } = { purge: false }) {
+        const history = getters.currentHistory;
+        if (history) {
+            dispatch("deleteHistory", { history, purge });
+        }
+        return dispatch("selectNextHistory");
+    },
+
+    async makeHistoryPrivate({ getters, dispatch }, { history }) {
+        return await makePrivate(history.id);
+    },
+
+    async updateHistoryFields(context, { history, fields }) {
+        const updatedHistory = await updateHistoryFields(history, fields);
+        updateHistoryList(updatedHistory); // inform observable
+        return updatedHistory;
+    },
+
+    //#endregion
+
+
+    //#region Search Params
+  
     setSearchParams({ commit }, params) {
+        // Search parameters for a given history
+        // Controls output and query contents
         commit("setSearchParams", params.clone());
     },
 
     //#endregion
 
-    //#region Content Loading
+
+    //#region Content Loading, observable generation
     
     loadContent({ commit }, historyId) {
         if (!loaderSubscriptions.has(historyId)) {
@@ -173,6 +227,7 @@ export const actions = {
     },
 
     //#endregion
+
 
     //#region Content selection
 
@@ -209,7 +264,8 @@ export const actions = {
 
     //#endregion
 
-    //#region Content Operations
+
+    //#region Content CRUD and operations
 
     async showAllHiddenContent({ getters }) {
         return await showAllHiddenContent(getters.currentHistory);

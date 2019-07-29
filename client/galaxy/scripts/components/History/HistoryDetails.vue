@@ -9,8 +9,8 @@
                         tooltip-placement="topleft" />
                     <icon-menu-item id="historyDownloadMenu" title="Downloads" icon="download"
                         tooltip-placement="topleft" />
-                    <icon-menu-item title="Raw History Data (Debugging)" icon="eye" @click="showRaw = !showRaw"
-                        tooltip-placement="topleft" />
+                    <!-- <icon-menu-item title="Raw History Data (Debugging)" icon="eye" @click="showRaw = !showRaw"
+                        tooltip-placement="topleft" /> -->
                     <icon-menu-item id="historyOperationsIcon" title="Current History Operations" icon="cog"
                         tooltip-placement="topleft" />
                 </icon-menu>

@@ -1,47 +1,86 @@
 <template>
     <icon-menu>
 
-        <!-- _renderDisplayButton -->
-        <icon-menu-item v-if="showDisplayButton" :title="displayButtonTitle" :disabled="displayButtonDisabled"
-            class="display-btn" icon="eye" @click.stop="viewData" tooltip-placement="topleft" />
-
-        <!-- _renderEditButton -->
-        <icon-menu-item v-if="showEditButton" :title="editButtonTitle" :disabled="editButtonDisabled" icon="pencil"
-            @click.stop="editAttributes" tooltip-placement="topleft" />
-
         <!-- _renderErrButton
         Render icon-button to report an error on this
         dataset to the galaxy admin. -->
-        <icon-menu-item v-if="showErrorButton" title="View or report this error" icon="bug" @click.stop="reportError"
+        <icon-menu-item v-if="showErrorButton" 
+            title="View or report this error" 
+            icon="bug" 
+            @click.stop="reportError"
             tooltip-placement="topright" />
 
         <!-- _renderDownloadButton -->
-        <icon-menu-item v-if="showDownloads && hasMetaData" title="Download" icon="floppy-o" :href="getUrl('download')"
+        <icon-menu-item v-if="showDownloads && !hasMetaData" 
+            title="Download" icon="floppy-o" 
+            :href="getUrl('download')"
             tooltip-placement="topright" />
-        <icon-menu-item v-if="showDownloads && hasMetaData" id="metafileDownloadButton" title="Download" icon="floppy-o"
+        <icon-menu-item v-if="showDownloads && hasMetaData" 
+            id="metafileDownloadButton" 
+            title="Download" 
+            icon="floppy-o"
             tooltip-placement="topright" />
 
         <!-- _renderShowParamsButton -->
         <!-- Render icon-button to show the input and output (stdout/err) for
         the job that created this. -->
-        <icon-menu-item v-if="showJobParamsButton" title="View Details" icon="info-circle"
-            @click.stop="displayJobParams" tooltip-placement="topright" />
+        <icon-menu-item v-if="showJobParamsButton" 
+            title="View Details" 
+            icon="info-circle"
+            @click.stop="displayJobParams" 
+            tooltip-placement="topright" />
 
         <!-- _renderRerunButton -->
-        <icon-menu-item v-if="showRerunButton" title="Run this job again" icon="refresh" @click.stop="rerun"
-            :href="dataset.urls.rerun" tooltip-placement="topright" />
+        <icon-menu-item v-if="showRerunButton" 
+            title="Run this job again" 
+            icon="refresh" 
+            @click.stop="rerun"
+            :href="dataset.urls.rerun" 
+            tooltip-placement="topright" />
 
         <!-- _renderVisualizationsButton -->
-        <icon-menu-item v-if="showVisualizeButton" id="vizButton" title="Visualize this data" icon="bar-chart"
-            :href="visualizeUrl" @click.stop="visualize" tooltip-placement="topright" />
+        <icon-menu-item v-if="showVisualizeButton"  
+            id="vizButton" 
+            title="Visualize this data" 
+            icon="bar-chart"
+            :href="visualizeUrl" 
+            @click.stop="visualize" 
+            tooltip-placement="topright" />
 
         <!-- _renderToolHelpButton -->
-        <icon-menu-item v-if="showToolHelpButton" title="Tool Help" icon="question" href="#"
-            @click.stop="toggleToolHelp" tooltip-placement="topright" />
+        <icon-menu-item v-if="showToolHelpButton" 
+            title="Tool Help"
+            icon="question"
+            href="#"
+            @click.stop="toggleToolHelp"
+            tooltip-placement="topright" />
+
+            
+        <!-- _renderDisplayButton -->
+        <icon-menu-item v-if="showDisplayButton" 
+            :title="displayButtonTitle" 
+            :disabled="displayButtonDisabled"
+            class="display-btn" icon="eye" 
+            @click.stop="viewData" 
+            tooltip-placement="topleft" />
+
+        <!-- _renderEditButton -->
+        <icon-menu-item v-if="showEditButton" 
+            :title="editButtonTitle" 
+            :disabled="editButtonDisabled" 
+            icon="pencil"
+            @click.stop="editAttributes" 
+            tooltip-placement="topleft" />
 
         <!-- _renderDeleteButton  -->
-        <icon-menu-item v-if="showDeleteButton" :title="deleteButtonTitle" :disabled="deleteButtonDisabled" icon="times"
-            @click.stop="deleteDataset" tooltip-placement="topleft" />
+        <icon-menu-item v-if="showDeleteButton" 
+            :title="deleteButtonTitle"
+            :disabled="deleteButtonDisabled" 
+            icon="trash"
+            @click.stop="deleteDataset" 
+            tooltip-placement="topleft" />
+
+        <!-- #region dropdown menus -->
 
         <b-popover v-if="showDownloads && hasMetaData" ref="downloadMenu" target="metafileDownloadButton"
             placement="bottomleft" triggers="click blur">
@@ -66,6 +105,8 @@
                 </div>
             </gear-menu>
         </b-popover>
+
+        <!-- #endregion -->
 
     </icon-menu>
 </template>
@@ -250,8 +291,8 @@ export default {
                 STATES.NOT_VIEWABLE
             ]);
             return this.dataset
-                && !badStates.has(this.state)
                 && this.dataset.rerunnable
+                && !badStates.has(this.state)
                 && Boolean(this.dataset.creating_job);
         },
 
