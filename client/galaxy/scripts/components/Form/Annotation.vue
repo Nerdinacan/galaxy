@@ -14,7 +14,7 @@
         <template v-slot:default="{ toggleEdit, placeholder, stateValidator }">
             <debounced-input v-model="annotation" :delay="1000">
                 <template v-slot:default="inputScope">
-                    <b-form-textarea size="sm" tabindex="0"
+                    <b-form-textarea size="sm" tabindex="-1"
                         rows="1" max-rows="5"
                         :value="inputScope.value"
                         @input="inputScope.input"

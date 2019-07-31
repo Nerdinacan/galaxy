@@ -1,14 +1,15 @@
 <template>
     <component v-if="content"
-        class="content-item" :data-state="content.state"
+        class="content-item"
         :is="contentItemComponent"
         :content="content"
-        :class="contentClassName" />
+        :class="displayClasses" />
 </template>
 
 
 <script>
 
+import { mapGetters } from "vuex";
 import { DatasetItem } from "../Dataset";
 import { DatasetCollectionItem } from "../DatasetCollection";
 import dasherize from "underscore.string/dasherize";
@@ -22,11 +23,31 @@ export default {
         "dataset_collection": DatasetCollectionItem
     },
     computed: {
+
+        ...mapGetters("history", [
+            "contentIsSelected"
+        ]),
+
+        selected() {
+            return this.contentIsSelected(this.content)
+        },
+
+        displayClasses() {
+            const typeName = dasherize(this.content.history_content_type);
+            return {
+                [typeName]: true,
+                selected: this.selected
+            }
+        },
+
         contentItemComponent() {
             return this.content.history_content_type;
         },
-        contentClassName() {
-            return dasherize(this.content.history_content_type);
+        
+    },
+    methods: {
+        focusMe() {
+            this.$el.focus();
         }
     }
 }
@@ -36,13 +57,54 @@ export default {
 
 <style lang="scss" scoped>
 
+@import "theme/blue.scss";
+@import "scss/mixins.scss";
+
 .content-item {
     outline: none;
     border-style: none;
     border-width: none;
-    &.selected{
-        border-style: solid;
-        border-left-width: 6px;
+    &:focus,
+    &:focus-within {
+        box-shadow: inset 0 0 1em 0.25em rgba(255,255,255,0.25);
+    }
+
+    &.collapsed /deep/ header h4 {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+}
+
+.content-item /deep/ {
+
+    & > header {
+        h4,
+        h4 a {
+            display: block;
+            color: $text-color;
+            outline: none;
+        }
+    }
+
+    .content-top-menu {
+        cursor: pointer;
+
+        .hid {
+            color: adjust-color($text-color, $alpha: -0.6);
+            font-weight: 800;
+            font-size: 90%;
+            user-select: none;
+            position: relative;
+            span {
+                display: block;
+                position: absolute;
+                top: 52%;
+                left: 0%;
+                transform: translateY(-50%);
+                margin-left: 4px;
+            }
+        }
     }
 }
 

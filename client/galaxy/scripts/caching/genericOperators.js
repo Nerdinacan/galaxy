@@ -1,5 +1,7 @@
 import { of, combineLatest, pipe, from, defer } from "rxjs";
-import { tap, filter, mergeMap, retryWhen, catchError, pluck, take, finalize } from "rxjs/operators";
+import { tap, filter, mergeMap, retryWhen, catchError, pluck, take } from "rxjs/operators";
+import { tag } from "rxjs-spy/operators";
+
 
 
 
@@ -58,32 +60,13 @@ export const getItem = (collection$, debug = false) => pipe(
 export const setItem = (collection$, debug = false) => pipe(
     withLatestFromDb(collection$),
     mergeMap(([ item, coll ]) => {
-
-        if (debug) {
-            console.groupCollapsed("CACHING", coll.name, item.id, item.name);
-            console.log("item", item);
-            console.groupEnd();
-        }
-
-        const save$ = defer(() => {
-            const p = coll.upsert(item);
-            return from(p);
-        });
-        
-        return save$.pipe(
+        return from(coll.upsert(item)).pipe(
             retryWhen(err => err.pipe(
-                pluck('status'),
-                filter(status => status == 409),
-                tap(err => {
-                    if (debug) {
-                        console.warn("setItem upsert 409 error");
-                        console.log(item);
-                        console.log(err);
-                    }
-                }),
+                filter(err => err.name == "conflict"),
+                tag('setItem 409 error'),
                 take(1)
             )),
-            catchError(err => {
+            catchError((err, caught) => {
                 console.warn("setItem upsert error", err);
                 return of(null);
             })

@@ -16,7 +16,7 @@
             :href="getUrl('download')"
             tooltip-placement="topright" />
         <icon-menu-item v-if="showDownloads && hasMetaData" 
-            id="metafileDownloadButton" 
+            ref="metafileDownloadButton"
             title="Download" 
             icon="floppy-o"
             tooltip-placement="topright" />
@@ -82,7 +82,8 @@
 
         <!-- #region dropdown menus -->
 
-        <b-popover v-if="showDownloads && hasMetaData" ref="downloadMenu" target="metafileDownloadButton"
+        <b-popover v-if="showDownloads && hasMetaData" ref="downloadMenu" 
+            target="$refs['metafileDownloadButton']"
             placement="bottomleft" triggers="click blur">
             <gear-menu #default="{ go }">
                 <div @click.stop="$refs.downloadMenu.$emit('close')">

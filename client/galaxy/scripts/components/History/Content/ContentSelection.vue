@@ -31,10 +31,12 @@
                 <icon-menu-item title="Filter History Content" 
                     icon="filter" 
                     @click="toggle('showFilter')"
+                    :active="showFilter"
                     tooltip-placement="topleft" />
                 <icon-menu-item title="Operations on multiple datasets" 
                     icon="check-square-o"
                     @click="toggle('showSelection')" 
+                    :active="showSelection"
                     tooltip-placement="topleft" />
                 <icon-menu-item id="datasetMenuGear" 
                     title="Dataset Operations" 
@@ -202,7 +204,7 @@ export default {
         },
 
         hasSelection() {
-            return this.currentSelection.size;
+            return this.currentSelection.length;
         },
 
         historyId() {

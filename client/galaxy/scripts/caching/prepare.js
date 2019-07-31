@@ -75,6 +75,7 @@ export function prepareDataset(raw) {
 const conformDsc = conformToSchema(datasetCollectionSchema);
 
 export function prepareDatasetCollection(raw) {
+
     const dsc = conformDsc(raw);
 
     dsc.isDeleted = raw.deleted;
@@ -86,6 +87,11 @@ export function prepareDatasetCollection(raw) {
     if (!raw.update_time) {
         dsc.update_time = (new Date()).toISOString();
     }
+
+    console.group("prepareDatasetCollection")
+    console.log("raw", raw);
+    console.log("dsc", dsc);
+    console.groupEnd();
 
     return dsc;
 }

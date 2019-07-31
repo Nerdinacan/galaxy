@@ -94,7 +94,32 @@ export const history$ = initCollection({
 export const historyContent$ = initCollection({
     name: "historycontent",
     schema: historyContentSchema,
-    methods
+    methods: {
+        ...methods,
+
+        title() {
+            const { name, isDeleted, visible, purged } = this;
+
+            let result = name;
+
+            const itemStates = [];
+            if (isDeleted) {
+                itemStates.push("Deleted");
+            }
+            if (visible == false) {
+                itemStates.push("Hidden");
+            }
+            if (purged) {
+                itemStates.push("Purged");
+            }
+            if (itemStates.length) {
+                result += ` (${itemStates.join(", ")})`;
+            }
+
+            return result;
+        },
+
+    }
 })
 
 export const dataset$ = initCollection({

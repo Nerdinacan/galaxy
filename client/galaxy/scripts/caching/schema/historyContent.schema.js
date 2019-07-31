@@ -22,6 +22,7 @@ export default {
         purged: { type: "boolean" },
         visible: { type: "boolean" },
         accessible: { type: "boolean" },
-        state: { type: "string" }
+        state: { type: "string" },
+        populated_state: { type: "string" }
     }
 }

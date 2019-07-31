@@ -1,18 +1,53 @@
 <template>
-    <div :class="{ expanded, collapsed: !expanded }">
+    <div :data-state="content.populated_state"
+        @keydown.self="onKeydown" @mouseover="focusMe">
         
-        <!-- <nav class="dataset-top-menu d-flex justify-content-between" 
-                @click="toggleDetails"></nav> -->
-        
-        <header>
-            <h4><a href="#" @click="toggleDetails">{{ title }}</a></h4>
+        <nav class="content-top-menu d-flex justify-content-between">
+
+            <icon-menu class="status-menu">
+                <icon-menu-item v-if="showSelection"
+                    :active="selected"
+                    icon="check"
+                    @click.stop="selected = !selected" />
+            </icon-menu>
+            
+            <div class="hid flex-grow-1">
+                <span>{{ content.hid }} {{ content.populated_state }}</span>
+            </div>
+
+            <icon-menu>
+                <icon-menu-item ref="deleteButton"
+                    title="Delete"
+                    icon="trash"
+                    tooltip-placement="topleft" />
+            </icon-menu>
+        </nav>
+
+        <header class="px-3 py-2">
+            <h4><a href="#" @click.stop="selectCollection">{{ content.name }}</a></h4>
         </header>
 
-        <transition name="shutterfade">
-            <div v-if="expanded" class="details px-3 pb-3">
-                {{ dsc }}
-            </div>
-        </transition>
+
+        <b-popover ref="deleteMenu"
+            :target="() => $refs['deleteButton']"
+            placement="bottomleft" 
+            triggers="click blur">
+
+            <gear-menu #default="{ go }">
+                <div @click.stop="$refs.downloadMenu.$emit('close')">
+                    <a class="dropdown-item" href="#">
+                        {{ 'Delete Collection' | localize }}
+                    </a>
+                    <a class="dropdown-item" href="#">
+                        {{ 'Delete Collection' | localize }}
+                    </a>
+                    <a class="dropdown-item" href="#">
+                        {{ 'Delete Collection' | localize }}
+                    </a>
+                </div>
+            </gear-menu>
+
+        </b-popover>
 
     </div>
 </template>
@@ -20,79 +55,87 @@
 
 <script>
 
-import { mapState, mapMutations } from "vuex";
-import { DatasetCollection$ } from "../Dataset/model/Dataset$";
+import { mapGetters, mapActions } from "vuex";
+import { IconMenu, IconMenuItem } from "components/IconMenu";
+import GearMenu from "components/GearMenu";
 import { eventHub } from "components/eventHub";
 
 export default {
+    components: {
+        GearMenu,
+        IconMenu, 
+        IconMenuItem
+    },
     props: {
         content: { type: Object, required: true }
     },
     data() {
         return {
-            dsc: null,
-            expand: false
+            showSelection: false
         }
     },
     computed: {
-        title() {
-            const { hid, name } = this.content;
-            return `${hid}: ${name}`;
+
+        ...mapGetters("history", [
+            "contentIsSelected"
+        ]),
+
+        selected: {
+            get() {
+                return this.contentIsSelected(this.content)
+            },
+            set(newValue) {
+                const { content } = this;
+                if (newValue) {
+                    this.selectContentItem({ content });
+                } else {
+                    this.unselectContentItem({ content });
+                }
+            }
         },
-        expanded() {
-            return this.dsc && this.expand;
-        }
     },
     methods: {
 
-        // ...mapMutations("dsc", [ "setCurrentCollectionId" ]),
-        
-        toggle(paramName, forceVal) {
-            if (!(paramName in this)) {
-                console.warn("Missing toggle parameter", paramName);
-                return;
-            }
-            if (forceVal === undefined) {
-                this[paramName] = !this[paramName];
-            } else {
-                this[paramName] = forceVal;
-            }
+        ...mapActions("history", [
+            "selectContentItem",
+            "unselectContentItem",
+            "setCurrentCollection"
+        ]),
+
+        selectCollection() {
+            this.setCurrentCollection(this.content);
         },
 
-        toggleDetails() {
-            this.toggle('expand');
+        displaySelection(val) {
+            this.showSelection = val;
         },
 
-        collapse() {
-            this.toggle('expand', false);
-        },
-
-        load() {
-            if (!this.dscSub) {
-                console.log("subscribing to live dataset observable");
-                const sub = this.$subscribeTo(
-                    DatasetCollection$(this.content),
-                    dsc => this.dsc = dsc,
-                    err => console.warn("DatasetCollection observable err", err),
-                    () => console.log("DatasetCollection observable complete")
-                );
-                this.dscSub = sub;
+        onKeydown(evt) {
+            switch (evt.code) {
+                case "Space":
+                    if (this.showSelection) {
+                        this.selected = !this.selected;
+                    } else {
+                        this.selectCollection();
+                    }
+                    evt.preventDefault();
+                    evt.stopPropagation();
+                    break;
             }
         },
 
-    },
-    watch: {
-        expand(newVal) {
-            if (newVal) {
-                this.load();
-            }
+        focusMe() {
+            this.$el.focus();
         }
+
     },
+
     created() {
-        eventHub.$on('collapseAllContent', this.collapse);
+        eventHub.$on('toggleShowSelection', this.displaySelection);
     },
+
     beforeDestroy() {
-        eventHub.$off('collapseAllContent', this.collapse);
+        eventHub.$off('toggleShowSelection', this.displaySelection);
     }
 }
 

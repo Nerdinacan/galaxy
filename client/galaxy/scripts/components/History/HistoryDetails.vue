@@ -5,7 +5,10 @@
             <h6>{{ niceSize | localize }}</h6>
             <slot name="menu">
                 <icon-menu class="no-border">
-                    <icon-menu-item title="Edit History Tags" icon="tags" @click="toggle('showTags')"
+                    <icon-menu-item title="Edit History Tags" 
+                        icon="tags" 
+                        :active="showTags"
+                        @click="toggle('showTags')"
                         tooltip-placement="topleft" />
                     <icon-menu-item id="historyDownloadMenu" title="Downloads" icon="download"
                         tooltip-placement="topleft" />

@@ -1,18 +1,25 @@
 <template>
-    <div :class="{ expanded, collapsed: !expanded, selected }">
+    <div :class="{ expanded, collapsed: !expanded, selected }" 
+        :data-state="content.state"
+        @keydown.self="onKeydown" @mouseover="focusMe">
 
-        <!-- #region dataset top button bar -->
-        <nav class="dataset-top-menu d-flex justify-content-between" 
-            @click="toggleDetails">
+        <nav class="content-top-menu d-flex justify-content-between" 
+            @click="toggle('expand')">
 
             <icon-menu class="status-menu">
+                <icon-menu-item v-if="showSelection"
+                    :active="selected"
+                    icon="check"
+                    @click.stop="toggle('selected')" />
                 <icon-menu-item :active="expanded"
                     :icon="expanded ? 'chevron-up' : 'chevron-down'"
-                    @click.stop="toggleDetails" />
-                <!-- <icon-menu-item icon="clock-o" />
+                    @click.stop="toggle('expand')" />
+                <!--
+                <icon-menu-item icon="clock-o" />
                 <icon-menu-item icon="eye-slash" />
                 <icon-menu-item icon="pause" />
-                <icon-menu-item icon="exclamation" /> -->
+                <icon-menu-item icon="exclamation" />
+                -->
             </icon-menu>
             
             <div class="hid flex-grow-1">
@@ -20,42 +27,27 @@
             </div>
 
             <dataset-menu :content="content" :dataset="dataset" />
-
         </nav>
-        <!-- #endregion -->
 
-        <!-- #region dataset header always visible -->
-        <header :class="expanded ? 'p-3' : 'px-3 py-2'">
- 
-            <div class="d-flex">
-                <content-selection-box 
-                    class="content-select-box" 
-                    :content="content" />
-                <div>
-                    <h4 v-if="!expanded">
-                        <a href="#" @click.stop="toggleDetails">
-                            {{ title(content) }}
-                        </a>
-                    </h4>
-                    <click-to-edit v-if="expanded && datasetName" 
-                        tagName="h4" v-model="datasetName" />
-                </div>
-            </div>
+        <header v-if="!expanded" class="px-3 py-2" >
+            <h4>
+                <a href="#" @click.stop="toggle('expand')">
+                    {{ content.title() }}
+                </a>
+            </h4>
+            <nametags :tags="content.tags" :storeKey="tagStoreName" />
+        </header>
 
-            <annotation v-if="expanded" class="mt-1"
+        <header v-if="expanded" class="p-3" @mouseover.stop>
+            <click-to-edit v-if="datasetName" 
+                tagName="h4" v-model="datasetName" />
+            <annotation class="mt-1"
                 tooltip-placement="left"
                 v-model="annotation" />
-
-            <!-- tags visible as nametags in collapsed, editor in expanded -->
-            <nametags v-if="!expanded" :tags="content.tags"
-                :storeKey="tagStoreName" />
-            <dataset-tags v-if="expanded" :dataset="dataset"
+            <dataset-tags :dataset="dataset"
                 :historyId="dataset.history_id" />
-
         </header>
-        <!-- #endregion -->
 
-        <!-- #region expanded section -->
         <transition name="shutterfade">
             <div v-if="expanded" class="details px-3 pb-3">
 
@@ -87,7 +79,6 @@
 
             </div>
         </transition>
-        <!-- #endregion -->
 
     </div>
 </template>
@@ -95,10 +86,11 @@
 
 <script>
 
-import { mapGetters } from "vuex";
+import { mapGetters, mapActions } from "vuex";
 import { capitalize, camelize } from "underscore.string";
-import { Dataset$, updateDatasetFields } from "./model/Dataset$";
-import { loadToolFromDataset } from "./model/queries";
+
+import { Dataset$, updateDatasetFields } from "../model/Dataset$";
+import { loadToolFromDataset } from "../model/queries";
 import { eventHub } from "components/eventHub";
 import STATES from "mvc/dataset/states";
 
@@ -108,13 +100,8 @@ import { IconMenu, IconMenuItem } from "components/IconMenu";
 import { Nametags } from "components/Nametags";
 import DatasetTags from "./DatasetTags";
 import DatasetMenu from "./DatasetMenu";
-import ContentSelectionBox from "../Content/ContentSelectionBox";
 import { Discarded, Empty, Error, New, NotViewable, Ok, Paused, 
     Queued, Running, SettingMetadata, Upload } from "./Summary";
-
-// import { create } from "rxjs-spy";
-// import { tag } from "rxjs-spy/operators";
-// window.spy = create();
 
 
 export default {
@@ -126,13 +113,19 @@ export default {
         IconMenu,
         IconMenuItem,
         Nametags,
-        ContentSelectionBox,
 
         // summaries
-        Discarded, Empty, Error,
-        New, NotViewable, Ok,
-        Paused, Queued, Running,
-        SettingMetadata, Upload
+        Discarded,
+        Empty,
+        Error,
+        New,
+        NotViewable,
+        Ok,
+        Paused,
+        Queued,
+        Running,
+        SettingMetadata,
+        Upload
     },
     props: {
         content: { type: Object, required: true }
@@ -145,15 +138,28 @@ export default {
             showTags: false,
             showToolHelp: false,
             showRaw: false,
-            toolHelp: null
+            toolHelp: null,
+            showSelection: false
         }
     },
     computed: {
 
-        ...mapGetters("history", ["contentIsSelected"]),
+        ...mapGetters("history", [
+            "contentIsSelected",
+        ]),
 
-        selected() {
-            return this.contentIsSelected(this.content);
+        selected: {
+            get() {
+                return this.contentIsSelected(this.content)
+            },
+            set(newValue) {
+                const { content } = this;
+                if (newValue) {
+                    this.selectContentItem({ content });
+                } else {
+                    this.unselectContentItem({ content });
+                }
+            }
         },
 
         unViewable() {
@@ -212,6 +218,15 @@ export default {
     },
     methods: {
 
+        ...mapActions("history", [
+            "selectContentItem",
+            "unselectContentItem"
+        ]),
+
+        displaySelection(val) {
+            this.showSelection = val;
+        },
+ 
         load() {
             if (!this.datasetSub) {
                 this.datasetSub = this.$subscribeTo(
@@ -256,16 +271,8 @@ export default {
             }
         },
 
-        toggleDetails() {
-            this.toggle('expand');
-        },
-
         collapse() {
             this.toggle('expand', false);
-        },
-
-        toggleTags() {
-            this.toggle('showTags');
         },
 
         async toggleToolHelp(ds) {
@@ -285,28 +292,33 @@ export default {
             return ds.id == this.content.id;
         },
 
-        title(data) {
-            const { name, isDeleted, visible, purged } = data;
+        onKeydown(evt) {
+            switch (evt.code) {
+                case "Space":
+                    if (this.showSelection) {
+                        this.toggle('selected');
+                    } else {
+                        this.toggle('expand');
+                    }
+                    evt.preventDefault();
+                    evt.stopPropagation();
+                    break;
+                case "ArrowUp":
+                    this.toggle('expand', false);
+                    evt.preventDefault();
+                    evt.stopPropagation();
+                    break;
+                case "ArrowDown":
+                    this.toggle('expand', true);
+                    evt.preventDefault();
+                    evt.stopPropagation();
+                    break;
+            }
+        },
 
-            let result = name;
-
-            const itemStates = [];
-            if (isDeleted) {
-                itemStates.push("Deleted");
-            }
-            if (visible == false) {
-                itemStates.push("Hidden");
-            }
-            if (purged) {
-                itemStates.push("Purged");
-            }
-            if (itemStates.length) {
-                result += ` (${itemStates.join(", ")})`;
-            }
-
-            return result;
+        focusMe() {
+            this.$el.focus();
         }
-
     },
     watch: {
         expand(newVal) {
@@ -316,10 +328,12 @@ export default {
     created() {
         eventHub.$on('collapseAllContent', this.collapse);
         eventHub.$on('toggleToolHelp', this.toggleToolHelp);
+        eventHub.$on('toggleShowSelection', this.displaySelection);
     },
     beforeDestroy() {
         eventHub.$off('collapseAllContent', this.collapse);
         eventHub.$off('toggleToolHelp', this.toggleToolHelp);
+        eventHub.$off('toggleShowSelection', this.displaySelection);
     }
 }
 
@@ -331,47 +345,12 @@ export default {
 @import "theme/blue.scss";
 @import "~scss/mixins.scss";
 
-.hid {
-    color: adjust-color($text-color, $alpha: -0.6);
-    font-weight: 800;
-    font-size: 90%;
-    user-select: none;
-    position: relative;
-    span {
-        display: block;
-        position: absolute;
-        top: 52%;
-        left: 0%;
-        transform: translateY(-50%);
-        margin-left: 4px;
-    }
+/* enlarge input to match h4 */
+header /deep/ .clickToEdit input {
+    font-size: $h4-font-size;
+    font-weight: 500;
 }
 
-header {
-
-    h4,
-    h4 a {
-        display: block;
-        color: $text-color;
-        outline: none;
-    }
-
-    /* enlarge input to match h4 */
-    /deep/ .clickToEdit input {
-        font-size: $h4-font-size;
-        font-weight: 500;
-    }
-}
-
-.collapsed header h4 {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-
-.dataset-top-menu {
-    cursor: pointer;
-}
 
 /* there's a quirk in flexbox containers, we need the strange
 min-width setting to make the peek overflow properly */
@@ -387,7 +366,5 @@ min-width setting to make the peek overflow properly */
         display: inline-block;
     }
 }
-
-
 
 </style>

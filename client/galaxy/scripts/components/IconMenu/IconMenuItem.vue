@@ -1,7 +1,7 @@
 <template>
     <a ref="link" :class="iconClasses"
-        :tabindex="tabindex"
         :title="title | localize"
+        :tabindex="tabindex"
         @click.prevent.stop="onClick">
         <span>{{ title }}</span>
         <b-tooltip v-if="useTooltip"
@@ -26,7 +26,7 @@ export default {
         useTooltip: { type: Boolean, required: false, default: true },
         disabled: { type: Boolean, required: false, default: false },
         active: { type: Boolean, required: false, default: false },
-        tabindex: { type: Number, required: false, default: 0 }
+        tabindex: { type: Number, required: false, default: -1 }
     },
     computed: {
         iconClasses() {
@@ -59,9 +59,6 @@ export default {
 @import "theme/blue.scss";
 @import "scss/mixins.scss";
 
-$icon-btn-color: $btn-default-color;
-$icon-btn-bg: rgba(255,255,255,0.5); /* $btn-default-bg */
-
 a {
     /* center icon */
     position: relative;
@@ -70,14 +67,18 @@ a {
     }
 
     /* sizing */
-    height: 1.5rem;
-    width: 1.5rem;
-    /* line-height: 1.25rem;
-    font-size: 125%; */
+    height: 1.25rem;
+    width: 1.25rem;
+    font-size: 125%;
 
     text-decoration: none;
     cursor: pointer;
     outline: 0;
+
+    margin-left: 1px;
+    &:first-child {
+        margin-left: 0;
+    }
 
     span {
         @include forScreenReader();
@@ -86,17 +87,17 @@ a {
 
 /* coloring */
 a {
-    color: $icon-btn-color;
-    background-color: $icon-btn-bg;
+    color: $btn-default-color;
+    background-color: rgba(255,255,255,0.4);
 
     &.disabled {
         color: #bbb;
     }
     &.active {
         color: white;
-        background-color: $icon-btn-color;
+        background-color: adjust-color($btn-default-color, $alpha: -0.5);
     }
-    &:focus, &:hover {
+    &:hover {
         color: white;
         background-color: $brand-info;
     }

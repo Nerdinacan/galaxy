@@ -21,12 +21,13 @@ export default {
         },
         collection_type: { type: "string" },
         url: { type: "string" },
-        model_class: { type: "string" },
+        model_class: nullableString,
         hid: { type: "integer" },
         element_count: { type: "integer" },
         id: { type: "string", primary: true },
         populated_state: { type: "string" },
-        update_time: { type: "string" }
+        update_time: { type: "string" },
+        purged: { type: "boolean" }
     },
     definitions: {
 

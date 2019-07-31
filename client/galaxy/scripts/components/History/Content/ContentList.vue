@@ -3,7 +3,7 @@
 
         <transition name="fade">
             <div v-if="content.length" class="scrollContainer" ref="scrollContainer">
-                <ol ref="scrollContent">
+                <ol ref="scrollContent" @keydown.tab.once="selectFirstItem">
                     <li v-for="(c, index) in content" :key="c.type_id" class="mb-1">
                         <div class="sensor" v-if="showSensor(index)" 
                             v-observe-visibility="updatePageRange(c.hid)"></div>
@@ -163,8 +163,11 @@ export default {
 
         showSensor(index) {
             return true;
-        }
+        },
 
+        selectFirstItem() {
+            console.log("selectFirstItem");
+        }
     },
 
     watch: {

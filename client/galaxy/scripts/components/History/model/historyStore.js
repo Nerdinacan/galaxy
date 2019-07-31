@@ -1,14 +1,18 @@
 import VuexPersistence from "vuex-persist";
 import { ContentLoader } from "./ContentLoader";
 import { Histories$, updateHistoryList, deleteHistoryFromList, 
-    CurrentHistoryId$, setCurrentHistoryId } from "./History";
+    CurrentHistoryId$, setCurrentHistoryId
+} from "./History";
 import { updateHistoryFields, createHistory, cloneHistory, 
     deleteHistoryById, makePrivate, showAllHiddenContent, 
     deleteAllHiddenContent, purgeDeletedContent, 
-    deleteContent, bulkUpdate } from "./queries";
+    deleteContent, bulkUpdate, createDatasetCollection
+} from "./queries";
 import { SearchParams } from "./SearchParams";
-import { flushCachedDataset, cacheContent, createPromiseFromOperator } from "caching";
+import { flushCachedDataset, cacheContent, cacheDatasetCollection, 
+    createPromiseFromOperator } from "caching";
 import { sortBy } from "underscore";
+
 
 // Holds subscriptions to ContentLoaders
 // history.id -> subscription
@@ -30,40 +34,51 @@ export const state = {
 
     // history.id -> Set of type_ids
     contentSelection: {},
+
+    // history.id -> type_id
+    currentCollection: {}
 }
+
 
 export const mutations = {
 
-    setCurrentHistoryId: (state, id) => {
+    setCurrentHistoryId(state, id) {
         state.currentHistoryId = id;
     },
 
-    setHistories: (state, list = []) => {
-        const newList = sortBy(list, "name");
-        state.histories = newList;
+    setHistories(state, list = []) {
+        state.histories = sortBy(list, "name");
     },
 
-    setSearchParams: (state, params) => {
+    setSearchParams(state, params) {
         state.params = {
             ...state.params,
             [params.historyId]: params
         };
     },
 
-    setHistoryContents: (state, { historyId, contents }) => {
+    setHistoryContents(state, { historyId, contents }) {
         state.contents = {
             ...state.contents,
             [historyId]: contents
         }
     },
 
-    setContentSelection: (state, { historyId, typeIds }) => {
+    setContentSelection(state, { historyId, typeIds }) {
         state.contentSelection = {
             ...state.contentSelection,
             [historyId]: new Set(typeIds)
         }
-    }
+    },
+
+    setCurrentCollection(state, { history_id, type_id }) {
+        state.currentCollection = {
+            ...state.currentCollection,
+            [history_id]: type_id
+        }
+    },
 }
+
 
 export const getters = {
 
@@ -71,32 +86,25 @@ export const getters = {
         return getters.getHistory(state.currentHistoryId);
     },
 
-    histories: state => {
-        return state.histories;
+    histories: state => state.histories,
+
+    getHistory: state => historyId => {
+        return state.histories.find(h => h.id == historyId);
     },
 
-    getHistory: state => id => {
-        return state.histories.find(h => h.id == id);
-    },
-
-    searchParams: (state, getters) => id => {
-        if (!(id in state.params)) {
-            const history = getters.getHistory(id);
-            if (history) {
-                return SearchParams.createForHistory(history);
-            } else {
-                debugger;
-                return null;
-            }
+    searchParams: (state, getters) => historyId => {
+        if (!(historyId in state.params)) {
+            const history = getters.getHistory(historyId);
+            return history ? SearchParams.createForHistory(history) : null;
         }
-        return state.params[id];
+        return state.params[historyId];
     },
 
-    historyContent: state => id => {
-        if (!(id in state.contents)) {
+    historyContent: state => historyId => {
+        if (!(historyId in state.contents)) {
             return [];
         }
-        return state.contents[id];
+        return state.contents[historyId];
     },
 
     //#region selection
@@ -118,10 +126,19 @@ export const getters = {
     contentIsSelected: (_, getters) => contentItem => {
         const selection = getters.contentSelectionSet(contentItem.history_id);
         return selection.has(contentItem.type_id);
-    }
+    },
 
     //#endregion selection
+
+    //#region Current Collection
+
+    currentCollection: state => historyId => {
+        return state.currentCollection[historyId] || null;
+    }
+    
+    //#endregion
 }
+
 
 export const actions = {
 
@@ -148,7 +165,6 @@ export const actions = {
     },
 
     //#endregion
-
 
     //#region History CRUD & operations
 
@@ -192,7 +208,6 @@ export const actions = {
 
     //#endregion
 
-
     //#region Search Params
   
     setSearchParams({ commit }, params) {
@@ -202,7 +217,6 @@ export const actions = {
     },
 
     //#endregion
-
 
     //#region Content Loading, observable generation
     
@@ -227,7 +241,6 @@ export const actions = {
     },
 
     //#endregion
-
 
     //#region Content selection
 
@@ -263,7 +276,6 @@ export const actions = {
     },
 
     //#endregion
-
 
     //#region Content CRUD and operations
 
@@ -309,9 +321,25 @@ export const actions = {
         for (const item of updates) {
             await cacheFn(item);
         }
-    }
+    },
 
     //#endregion
+
+    //#region Dataset CRUD
+
+    async createCollection(context, { history, selection }) {
+        const ajaxResult = await createDatasetCollection(history, selection);
+        const cacheFn = createPromiseFromOperator(cacheDatasetCollection, true);
+        return await cacheFn(ajaxResult);
+    },
+
+    //#endregion
+
+    setCurrentCollection({ commit }, { history_id, type_id }) {
+        // more pointless Vuex boilerplate
+        commit("setCurrentCollection", { history_id, type_id });
+    },
+
 };
 
 
@@ -337,8 +365,6 @@ export const historyPersist = new VuexPersistence({
 
     // only save some of the history module
     saveState(key, { history }, storage) {
-        
-        // console.log("saveState", history);
         
         const { currentHistoryId, histories, params } = history;
         
@@ -398,7 +424,6 @@ export const observeHistory = ({ commit }) => {
 
     CurrentHistoryId$.subscribe({
         next: id => {
-            // console.log("CurrentHistoryId", id);
             commit("history/setCurrentHistoryId", id);
         },
         error: err => console.warn("CurrentHistory$ error", err),
@@ -407,7 +432,6 @@ export const observeHistory = ({ commit }) => {
 
     Histories$.subscribe({
         next: list => {
-            // console.log("Histories$", list);
             commit("history/setHistories", list);
         },
         error: err => console.warn("Histories$, error", err),

@@ -2,11 +2,12 @@
 
 import { Validator } from "jsonschema";
 import schema from "./datasetCollection.schema";
-import testData from "../testdata/datasetCollection.json";
+// import testData from "../testdata/datasetCollection.json";
+import testData from "../testdata/broke.json";
 
 describe("datasetCollection schema", () => {
     
-    let v = new Validator();
+    const v = new Validator();
 
     it("should validate some test data", () => {
         assert(v);

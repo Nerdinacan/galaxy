@@ -4,13 +4,13 @@
 .shutterfade-enter,
 .shutterfade-leave-to {
     opacity: 0;
-    max-height: 0;
+    max-height: 0%;
 }
 
 .shutterfade-enter-to,
 .shutterfade-leave {
     opacity: 1.0;
-    max-height: 250px;
+    max-height: 100%;
 }
 
 .shutterfade-enter-active,

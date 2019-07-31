@@ -210,4 +210,4 @@ export class SearchParams {
 
 // make this number pretty big to avoid a lot of repeated
 // trips to the server
-SearchParams.pageSize = 100;
+SearchParams.pageSize = 50;

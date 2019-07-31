@@ -1,37 +1,38 @@
 <template>
-    <section v-if="dscDoc" class="current-dataset-collection">
+    <section class="current-dataset-collection">
         <header>
-            <h1>Dataset Collection</h1>
+            <h4>{{ typeId }}</h4>
             <a @click="close">Close</a>
         </header>
-        <div>
-            <textarea :value="dscDoc.toJSON()"></textarea>
-        </div>
+        <pre>{{ dsc }}</pre>
     </section>
 </template>
 
+
 <script>
 
-import { mapMutations } from "vuex";
-import { pluck, startWith } from "rxjs/operators";
-import { getCachedDatasetCollection } from "caching";
+import { mapActions } from "vuex";
+import { DatasetCollection$ } from "../model/Dataset$";
 
 export default {
     props: {
-        collectionId: { type: String, required: false, default: null }
+        historyId: { type: String, required: true },
+        typeId: { type: String, required: true }
     },
     subscriptions() {
-        const dscDoc = this.$watchAsObservable("collectionId", { immediate: true }).pipe(
-            pluck("newValue"),
-            getCachedDatasetCollection(),
-            startWith(null)
-        );
-        return { dscDoc };
+        return {
+            dsc: DatasetCollection$(this.typeId)
+        }
     },
     methods: {
-        ...mapMutations("dsc", ["setCurrentCollectionId"]),
+        ...mapActions("history", [
+            "setCurrentCollection"
+        ]),
         close() {
-            this.setCurrentCollectionId(null);
+            this.setCurrentCollection({
+                history_id: this.historyId, 
+                type_id: null
+            });
         }
     }
 }
