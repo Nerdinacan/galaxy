@@ -26,14 +26,14 @@ def downgrade(migrate_engine):
 
 
 def install_update_trigger(migrate_engine):
-    """Installs trigger on database table to update history table
+    """Installs trigger on dataset table to update history table
     when contents have changed. Installs a function and a trigger
     for postgres, other sql variants only require the trigger def
     """
 
     if migrate_engine.name in ['postgres', 'postgresql']:
         pg_create_trigger = DDL("""
-            
+
             CREATE FUNCTION update_hda_update_time()
                 RETURNS trigger
                 LANGUAGE 'plpgsql'
@@ -64,9 +64,15 @@ def install_update_trigger(migrate_engine):
                 FOR EACH ROW
                 EXECUTE PROCEDURE update_hda_update_time();
 
-            CREATE TRIGGER trigger_dataset_aidur
+            CREATE TRIGGER trigger_hda_aidur
                 AFTER INSERT OR DELETE OR UPDATE
                 ON history_dataset_association
+                FOR EACH ROW
+                EXECUTE PROCEDURE update_history_update_time();
+
+            CREATE TRIGGER trigger_hdac_aidur
+                AFTER INSERT OR DELETE OR UPDATE
+                ON history_dataset_collection_association
                 FOR EACH ROW
                 EXECUTE PROCEDURE update_history_update_time();
         """)
@@ -84,8 +90,9 @@ def drop_update_trigger(migrate_engine):
 
     if migrate_engine.name in ['postgres', 'postgresql']:
         pg_drop_trigger = DDL("""
-            DROP TRIGGER IF EXISTS update_hda_update_time ON dataset;
-            DROP TRIGGER IF EXISTS update_history_update_time ON history_dataset_association;
+            DROP TRIGGER IF EXISTS trigger_hdac_aidur ON history_dataset_collection_association;
+            DROP TRIGGER IF EXISTS trigger_hda_aidur ON history_dataset_association;
+            DROP TRIGGER IF EXISTS trigger_dataset_aidur ON dataset;
             DROP FUNCTION IF EXISTS update_hda_update_time();
             DROP FUNCTION IF EXISTS update_history_update_time();
         """)
@@ -118,6 +125,16 @@ def build_trigger(op):
                 SET update_time = current_timestamp
                 WHERE id = {rowset}.history_id;
             END;
+
+        CREATE TRIGGER trigger_hdac_a{op_initial}r
+            AFTER {operation}
+            ON history_dataset_collection_association
+            FOR EACH ROW
+            BEGIN
+                UPDATE history
+                SET update_time = current_timestamp
+                WHERE id = {rowset}.history_id;
+            END;
     """
     rs = 'OLD' if op == 'DELETE' else 'NEW'
     sql = create_trigger_template.format(operation=op, rowset=rs, op_initial=op.lower()[0])
@@ -127,6 +144,7 @@ def build_trigger(op):
 def build_drop_trigger(op):
     drop_template = """
         DROP TRIGGER IF EXISTS trigger_dataset_a{op_initial}r;
+        DROP TRIGGER IF EXISTS trigger_hdac_a{op_initial}r;
         DROP TRIGGER IF EXISTS trigger_hda_a{op_initial}r;
     """
     sql = drop_template.format(op_initial=op.lower()[0])

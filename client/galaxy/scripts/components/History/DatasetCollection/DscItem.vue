@@ -1,6 +1,7 @@
 <template>
     <div :data-state="content.populated_state"
-        @keydown.self="onKeydown" @mouseover="focusMe">
+        @keydown.self="onKeydown"
+        @mouseover="focusMe">
         
         <nav class="content-top-menu d-flex justify-content-between">
 
@@ -23,10 +24,10 @@
             </icon-menu>
         </nav>
 
-        <header class="px-3 py-2">
-            <h4><a href="#" @click.stop="selectCollection">{{ content.name }}</a></h4>
+        <header class="px-3 py-2" @click.stop="selectCollection">
+            <h4>{{ content.name }}</h4>
+            <p class="m-0">a {{ collectionType | localize }} {{ collectionCount | localize }}</p>
         </header>
-
 
         <b-popover ref="deleteMenu"
             :target="() => $refs['deleteButton']"
@@ -36,13 +37,13 @@
             <gear-menu #default="{ go }">
                 <div @click.stop="$refs.downloadMenu.$emit('close')">
                     <a class="dropdown-item" href="#">
-                        {{ 'Delete Collection' | localize }}
+                        {{ 'Collection Only' | localize }}
                     </a>
                     <a class="dropdown-item" href="#">
-                        {{ 'Delete Collection' | localize }}
+                        {{ 'Delete Datasets' | localize }}
                     </a>
                     <a class="dropdown-item" href="#">
-                        {{ 'Delete Collection' | localize }}
+                        {{ 'Permanently Delete Datasets' | localize }}
                     </a>
                 </div>
             </gear-menu>
@@ -93,6 +94,24 @@ export default {
                 }
             }
         },
+
+        collectionType() {
+            switch(this.content.collection_type) {
+                case "list":
+                    return "list"
+                case "paired":
+                    return "dataset pair"
+                case "list:paired":
+                    return "list of pairs";
+                default:
+                    return "nested list";
+            }
+        },
+
+        collectionCount() {
+            const count = this.content.element_count;
+            return count == 1 ? "with 1 item" : `with ${count} items`;
+        }
     },
     methods: {
 
@@ -140,3 +159,20 @@ export default {
 }
 
 </script>
+
+
+function collectionDescription(collection) {
+    var elementCount = collection.get("element_count");
+
+    var itemsDescription = `a ${collectionTypeDescription(collection)}`;
+    if (elementCount) {
+        var countDescription;
+        if (elementCount == 1) {
+            countDescription = "with 1 item";
+        } else if (elementCount) {
+            countDescription = `with ${elementCount} items`;
+        }
+        itemsDescription = `${itemsDescription} ${_l(countDescription)}`;
+    }
+    return itemsDescription;
+}

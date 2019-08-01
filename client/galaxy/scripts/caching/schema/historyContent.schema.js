@@ -23,6 +23,9 @@ export default {
         visible: { type: "boolean" },
         accessible: { type: "boolean" },
         state: { type: "string" },
-        populated_state: { type: "string" }
+        populated_state: { type: "string" },
+
+        element_count: { type: "integer" },
+        collection_type: { type: "string" }
     }
 }

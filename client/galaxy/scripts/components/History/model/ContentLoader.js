@@ -106,7 +106,7 @@ export const getParamsFromHistoryId = (config = {}) => {
     return pipe(
         map(id => (_, getters) => getters["history/searchParams"](id)),
         watchVuexSelector(store),
-        
+        filter(Boolean),
         filter(p => p.validRange()),
         tap(p => debug ? p.report(label) : null)
     );

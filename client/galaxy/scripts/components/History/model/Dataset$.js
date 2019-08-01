@@ -93,15 +93,42 @@ function buildUpdateUrl([ content, item = null ]) {
 }
 
 
-export function updateDatasetFields(dataset, fields = {}) {
 
-    const { history_id, id } = dataset;
-    const url = prependPath(`/api/histories/${history_id}/contents/${id}?view=detailed`);
-    const request = { method: "PUT", url, body: fields };
+export function updateContentFields(content, fields = {}) {
+
+    const { history_id, id } = content;
+    const body = {
+        ...fields,
+        type: content.history_content_type
+    }
+    const url = prependPath(`/api/histories/${history_id}/contents/${id}`);
+    const request = { method: "PUT", url, body };
 
     return ajax(request).pipe(
         filter(ajaxResponse => ajaxResponse.status == 200),
-        pluck('response'),
-        cacheDataset(true)
+        pluck('response')
     );
 }
+
+
+
+
+// TODO: maybe don't bother caching the response since polling should pick it up?
+
+// export function updateDatasetFields(ds, fields = {}) {
+//     return updateContentFields(ds, fields).pipe(
+//         cacheDataset(true)
+//     );
+// }
+
+// export function updateCollectionFields(dsc, fields = {}) {
+//     return updateContentFields(dsc, fields).pipe(
+//         // for whatever incompetent reasons, the api is inconsistent here
+//         // the dataset collection response does not include the requested view
+//         // in the same way the exact same call with a dataset does. Need to go
+//         // get the values again.
+//         tap(response => {
+//             console.log("updated collection fields", response)
+//         })
+//     )
+// }

@@ -1,10 +1,10 @@
 import { merge, pipe, of } from "rxjs";
 import { tap, map, mergeMap } from "rxjs/operators";
-import { history$, historyContent$, dataset$, 
+import { history$, historyContent$, dataset$,
     datasetCollection$, paramDateCollection$ } from "./db";
-import { prepareHistory, prepareContentSummary, 
+import { prepareHistory, prepareContentSummary,
     prepareDataset, prepareDatasetCollection } from "./prepare";
-import { getItem, setItem, deleteItem } from "./genericOperators";
+import { getItem, setItem, deleteItem, getItemQuery } from "./genericOperators";
 
 // import { create } from "rxjs-spy";
 // import { tag } from "rxjs-spy/operators";
@@ -104,3 +104,24 @@ export function flushCachedDataset(ds) {
         () => console.log("flushCachedDataset complete")
     );
 }
+
+
+
+/* update existing docs, start with key */
+
+// function updateDataset(ds, fields) {
+
+//     // get doc
+//     return of(ds).pipe(
+//         pluck('id'),
+//         getCachedDataset(),
+//         mergeMap(async (doc) => {
+//             let result = await doc.update({
+//                 $set: fields
+//             })
+//             return result;
+//         })
+//     )
+
+
+// }

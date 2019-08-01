@@ -1,6 +1,6 @@
 import { TagService } from "components/Tags/tagService";
 import { createTag } from "components/Tags/model";
-import { updateDatasetFields } from "../../model/Dataset$";
+import { updateContentFields } from "../../model/Dataset$";
 
 
 // TODO: refactor Tags (again). Not liking this service injection
@@ -39,7 +39,7 @@ export class DatasetTagService extends TagService {
         const body = {
             tags: JSON.stringify(Array.from(rawTags))
         };
-        return await updateDatasetFields(this.dataset, body).toPromise();
+        return await updateContentFields(this.dataset, body).toPromise();
     }
 
 }

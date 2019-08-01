@@ -9,9 +9,8 @@
                             v-observe-visibility="updatePageRange(c.hid)"></div>
                         <content-item :content="c" :tabindex="index" />
                     </li>
-                    <div v-observe-visibility="updatePageRange(nextPage)">
-                        <!-- Load until: {{ nextPage }} -->
-                    </div>
+                    <!-- <div v-observe-visibility="updatePageRange(nextPage)">
+                    </div> -->
                 </ol>
             </div>
         </transition>
@@ -51,11 +50,12 @@ export default {
         HistoryEmpty
     },
     props: {
-        history: { type: Object, required: true }
+        historyId: { type: String, required: true },
+        content: { type: Array, required: false, default: [] }
     },
     data() {
         return {
-            loading: false,
+            loading: true,
             
             // actually the top content entry since
             // query returns in hid descending
@@ -69,39 +69,27 @@ export default {
     computed: {
 
         ...mapGetters("history", [
-            "historyContent",
             "searchParams"
         ]),
 
         params() {
-            if (this.history) {
-                return this.searchParams(this.history.id);
-            }
-            return null;
+            return this.searchParams(this.historyId);
         },
 
-        content() {
-            if (this.history) {
-                return this.historyContent(this.history.id);
-            }
-            return [];
-        },
-
+        /*
         minHid() {
             const hids = this.content.map(c => c.hid);
             return Math.min(this.history.hid_counter, ...hids);
         },
-
         nextPage() {
             return Math.max(this.minHid - SearchParams.pageSize, 0);
         }
+        */
     },
 
     methods: {
 
         ...mapActions("history", [
-            "loadContent",
-            "unsubLoader",
             "setSearchParams",
             "setContentSelection"
         ]),
@@ -171,29 +159,11 @@ export default {
     },
 
     watch: {
-
         content() {
             this.loading = false;
-            this.end = this.content.hid_counter;
+            this.end = Number.NEGATIVE_INFINITY;
             this.start = Number.POSITIVE_INFINITY;
-        },
-
-        params() {
-            this.loading = true;
-        },
-
-        // Subscribe to polling updates and content output observable
-        history: {
-            handler(history, oldHistory) {
-                if (oldHistory && (history.id !== oldHistory.id)) {
-                    this.unsubLoader(oldHistory.id);
-                }
-                this.loading = true;
-                this.loadContent(history.id);
-            },
-            immediate: true
-        },
-
+        }
     },
 
     created() {
@@ -202,10 +172,12 @@ export default {
             pluck('newValue'),
             distinctUntilChanged()
         );
+
         const end$ = this.$watchAsObservable('end').pipe(
             pluck('newValue'),
             distinctUntilChanged()
         );
+
         const range$ = combineLatest(start$, end$).pipe(
             filter(([ start, end ]) => {
                 return (start < Number.POSITIVE_INFINITY)
@@ -216,13 +188,6 @@ export default {
         );
 
         this.$subscribeTo(range$, this.updateParamRange);
-
-        // init the pagination
-        // this.sendParams(this.params);
-    },
-
-    beforeDestroy() {
-        this.unsubLoader(this.history.id);
     }
 }
 

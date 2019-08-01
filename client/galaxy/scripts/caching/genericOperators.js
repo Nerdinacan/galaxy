@@ -1,5 +1,5 @@
 import { of, combineLatest, pipe, from, defer } from "rxjs";
-import { tap, filter, mergeMap, retryWhen, catchError, pluck, take } from "rxjs/operators";
+import { tap, map, filter, mergeMap, retryWhen, catchError, pluck, take } from "rxjs/operators";
 import { tag } from "rxjs-spy/operators";
 
 
@@ -10,13 +10,13 @@ import { tag } from "rxjs-spy/operators";
  * used with a standard combineLatest/withLatest from, but seem to work when
  * explicitly invoked using this method. Use this when you would normally use
  * withLatestFrom on a database collection.
- * 
+ *
  * I think this should work, but it hangs for some reason
  * export const withLatestFromDb = withLatestFrom;
- * 
- * @param {*} rxDbCollection$ 
+ *
+ * @param {*} rxDbCollection$
  */
-export const withLatestFromDb = rxDbCollection$ => 
+export const withLatestFromDb = rxDbCollection$ =>
     mergeMap(src => combineLatest(of(src), rxDbCollection$))
 
 
@@ -39,16 +39,20 @@ export const createPromiseFromOperator = (operator, ...config) => item => {
  */
 export const getItem = (collection$, debug = false) => pipe(
     filter(Boolean),
+    getItemQuery(collection$, debug),
+    mergeMap(query => query.$)
+)
+
+export const getItemQuery = (collection$, debug = false) => pipe(
     withLatestFromDb(collection$),
     tap(([ key, coll ]) => {
         if (debug) {
             console.log("getCachedItem", coll.name, key)
         }
     }),
-    mergeMap(([ key, coll ]) => {
+    map(([ key, coll ]) => {
         const keyField = coll.schema.primaryPath;
-        const query = coll.findOne().where(keyField).eq(key);
-        return query.$;
+        return coll.findOne().where(keyField).eq(key);
     })
 )
 
@@ -89,3 +93,4 @@ export const deleteItem = collection$ => pipe(
         return await query.remove();
     })
 )
+

@@ -76,7 +76,7 @@ export function initCollection(config) {
 
 // common date utilities
 
-const methods = {
+const dateMethods = {
     getUpdateDate() {
         return moment.utc(this.update_time);
     }
@@ -88,14 +88,16 @@ const methods = {
 export const history$ = initCollection({
     name: "history",
     schema: historySchema,
-    methods
+    methods: { 
+        ...dateMethods
+    }
 })
 
 export const historyContent$ = initCollection({
     name: "historycontent",
     schema: historyContentSchema,
     methods: {
-        ...methods,
+        ...dateMethods,
 
         title() {
             const { name, isDeleted, visible, purged } = this;
@@ -127,7 +129,7 @@ export const dataset$ = initCollection({
     schema: datasetSchema,
     methods: {
 
-        ...methods,
+        ...dateMethods,
 
         getUrl(urlType) {
             const { id, file_ext } = this;
@@ -162,7 +164,9 @@ export const dataset$ = initCollection({
 export const datasetCollection$ = initCollection({
     name: "datasetcollection",
     schema: datasetCollectionSchema,
-    methods
+    methods: { 
+        ...dateMethods
+    }
 })
 
 export const paramDateCollection$ = initCollection({

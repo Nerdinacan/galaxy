@@ -89,7 +89,7 @@
 import { mapGetters, mapActions } from "vuex";
 import { capitalize, camelize } from "underscore.string";
 
-import { Dataset$, updateDatasetFields } from "../model/Dataset$";
+import { Dataset$, updateContentFields } from "../model/Dataset$";
 import { loadToolFromDataset } from "../model/queries";
 import { eventHub } from "components/eventHub";
 import STATES from "mvc/dataset/states";
@@ -252,7 +252,7 @@ export default {
         async updateDataset(fields) {
             try {
                 this.loading = true;
-                await updateDatasetFields(this.dataset, fields).toPromise();
+                await updateContentFields(this.dataset, fields).toPromise();
             } catch(err) {
                 this.loading = false;
                 console.warn("boo", err);
