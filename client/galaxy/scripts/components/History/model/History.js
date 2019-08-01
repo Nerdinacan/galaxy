@@ -1,7 +1,7 @@
 import { of, merge, pipe } from "rxjs";
 import { tap, map, filter, mapTo, switchMap, switchMapTo,
     share, pluck, withLatestFrom, mergeMap } from "rxjs/operators";
-import { createInputFunction, split, firstItem, ajaxGet } from "utils/observable";
+import { createInputFunction, split, ajaxGet } from "utils/observable";
 import { history$ as hColl$, withLatestFromDb, cacheHistory,
     deleteHistory as clearCachedHistory } from "caching";
 import { CurrentUserId$ } from "components/User/model/CurrentUser$";
@@ -54,18 +54,16 @@ const loadedCurrentHistoryId$ = CurrentUserId$.pipe(
 
 export const setCurrentHistoryId = createInputFunction();
 
-// save for server for reasons unknown
+// save current history back to server for reasons unknown
 const manualCurrentHistoryId = setCurrentHistoryId.$.pipe(
     mergeMap(selectCurrentHistory),
     pluck("id")
 );
 
-
 export const CurrentHistoryId$ = merge(loadedCurrentHistoryId$, manualCurrentHistoryId).pipe(
     filter(Boolean),
     share()
 );
-
 
 export const CurrentHistory$ = CurrentHistoryId$.pipe(
     withLatestFrom(Histories$),
@@ -87,52 +85,3 @@ export const CurrentHistory$ = CurrentHistoryId$.pipe(
     }),
     filter(Boolean)
 );
-
-
-/* Updates to History server data */
-
-export const historyUpdate = debug => pipe(
-    tap(h => {
-        if (debug) {
-            console.log("historyUpdate", h);
-        }
-    }),
-    map(buildHistoryUrl(debug)),
-    ajaxGet(),
-    tap(results => {
-        if (debug) {
-            console.log("historyUpdate retrieved results", results.length);
-        }
-    }),
-    firstItem(),
-    tap(h => {
-        if (debug) {
-            console.log("historyUpdate retrieved history", h);
-        }
-    }),
-    cacheHistory(debug),
-    tap(h => {
-        if (debug) {
-            console.log("historyUpdate cached history", h);
-        }
-    })
-)
-
-
-// Requests a history with same id but newer update time. Triggers on
-// server should update the history so this will show up with no results
-// unless something's been updated.
-
-const buildHistoryUrl = debug => history => {
-    const base = "/api/histories?view=detailed&keys=size,non_ready_jobs,contents_active,hid_counter";
-    const idCriteria = `q=encoded_id-in&qv=${history.id}`;
-    const updateCriteria = `q=update_time-gt&qv=${history.update_time}`;
-    const parts = [base, idCriteria, updateCriteria];
-    const url = parts.filter(o => o.length).join("&");
-    if (debug) {
-        console.groupCollapsed("buildHistoryUrl");
-        console.log("history", history);
-        console.groupEnd();
-    }
-    return url;
-}

@@ -74,17 +74,26 @@ export class SearchParams {
         return dummyP.stateKey;
     }
 
-    removeLimits() {
-        this.end = null;
-        this.start = null;
-        return this;
-    }
 
     validRange() {
         const result = this.end < Number.POSITIVE_INFINITY
             && this.start > Number.NEGATIVE_INFINITY
             && this.end >= this.start;
         return result;
+    }
+
+
+    // These operations return a new params instance
+
+    clone() {
+        return new SearchParams(this);
+    }
+
+    removeLimits() {
+        const noLimits = this.clone();
+        noLimits.end = null;
+        noLimits.start = null;
+        return noLimits;
     }
 
     chunkEnd() {
@@ -104,62 +113,12 @@ export class SearchParams {
     nextPage() {
         const newParams = this.clone();
         newParams.end = newParams.end - SearchParams.pageSize;
-        // newParams.report("NEXT");
         return newParams;
     }
 
 
-
-
-    /**
-     * Generates request url for a given set of request parameters.
-     */
-    get contentUrl() {
-
-        const base = `/api/histories/${this.historyId}/contents?v=dev&view=summary&keys=accessible`;
-        const order = "order=hid-dsc";
-        
-        let endClause = "";
-        if (this.end && this.end < Number.POSITIVE_INFINITY) {
-            endClause = `q=hid-le&qv=${this.end}`;
-        }
-        
-        const limitClause = `limit=${SearchParams.pageSize}`;
-        
-        // if (this.start == null) {
-        //     limitClause = `limit=${SearchParams.pageSize}`;
-        // } else {
-        //     startClause = `q=hid-ge&qv=${this.start}`;
-        // }
-
-        // const since = this.lastCalled;
-        // const updateClause = since ? `q=update_time-gt&qv=${since.toISOString()}` : "";
-        const updateClause = "";
-
-        let deletedClause = "", purgedClause = "";
-        if (!this.showDeleted) {
-            // limit to non-deleted
-            deletedClause = `q=deleted&qv=False`;
-            purgedClause = `q=purged&qv=False`;
-        }
-
-        let visibleClause = "";
-        if (!this.showHidden) {
-            // limit to visible
-            visibleClause = `q=visible&qv=True`;
-        }
-
-        const textFilter = this.textFilter ? `q=name-contains&qv=${textFilter}` : "";
-
-        const parts = [ base, endClause, limitClause,
-            deletedClause, purgedClause, visibleClause, textFilter, 
-            updateClause, order ];
-
-        return parts.filter(o => o.length).join("&");
-    }
-
-
     // debugging
+
     report(label = "params") {
         const { lastCalled, start, end, showDeleted, showHidden, filterText, historyId } = this;
         console.groupCollapsed(label, `${end} -> ${start}`);
@@ -174,17 +133,9 @@ export class SearchParams {
         console.groupEnd();
     }
 
-    clone() {
-        return new SearchParams(this);
-    }
-
     static equals(a, b) {
         const result = JSON.stringify(a) == JSON.stringify(b);
         return result;
-    }
-
-    static different(instance, otherInstance) {
-        return !SearchParams.equals(instance, otherInstance);
     }
 
     // creates a new params for a history, applies limits
@@ -197,15 +148,6 @@ export class SearchParams {
         });
     }
 
-    // gets all content for indicated history regardless of
-    // endpoints or other filters, just a history id
-    static entireHistory(historyId) {
-        return new SearchParams({
-            historyId,
-            showDeleted: true,
-            showHidden: true
-        });
-    }
 }
 
 // make this number pretty big to avoid a lot of repeated

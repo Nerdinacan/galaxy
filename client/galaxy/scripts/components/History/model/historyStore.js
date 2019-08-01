@@ -1,15 +1,15 @@
 import VuexPersistence from "vuex-persist";
 import { ContentLoader } from "./ContentLoader";
-import { Histories$, updateHistoryList, deleteHistoryFromList, 
+import { Histories$, updateHistoryList, deleteHistoryFromList,
     CurrentHistoryId$, setCurrentHistoryId
 } from "./History";
-import { updateHistoryFields, createHistory, cloneHistory, 
-    deleteHistoryById, makePrivate, showAllHiddenContent, 
-    deleteAllHiddenContent, purgeDeletedContent, 
+import { updateHistoryFields, createHistory, cloneHistory,
+    deleteHistoryById, makePrivate, showAllHiddenContent,
+    deleteAllHiddenContent, purgeDeletedContent,
     deleteContent, bulkUpdate, createDatasetCollection
 } from "./queries";
 import { SearchParams } from "./SearchParams";
-import { flushCachedDataset, cacheContent, cacheDatasetCollection, 
+import { flushCachedDataset, cacheContent, cacheDatasetCollection,
     createPromiseFromOperator } from "caching";
 import { sortBy } from "underscore";
 
@@ -135,7 +135,7 @@ export const getters = {
     currentCollection: state => historyId => {
         return state.currentCollection[historyId] || null;
     }
-    
+
     //#endregion
 }
 
@@ -143,7 +143,7 @@ export const getters = {
 export const actions = {
 
     //#region History selection
-    
+
     // Select a new current history from the available options, must
     // alert server because it is monitoring this for no clear reason
 
@@ -209,7 +209,7 @@ export const actions = {
     //#endregion
 
     //#region Search Params
-  
+
     setSearchParams({ commit }, params) {
         // Search parameters for a given history
         // Controls output and query contents
@@ -219,7 +219,7 @@ export const actions = {
     //#endregion
 
     //#region Content Loading, observable generation
-    
+
     loadContent({ commit }, historyId) {
         if (!loaderSubscriptions.has(historyId)) {
             const sub = ContentLoader(historyId).subscribe({
@@ -245,8 +245,8 @@ export const actions = {
     //#region Content selection
 
     setContentSelection({ commit }, { history, selection = [] }) {
-        commit("setContentSelection", { 
-            historyId: history.id, 
+        commit("setContentSelection", {
+            historyId: history.id,
             typeIds: selection.map(c => c.type_id)
         });
     },
@@ -255,7 +255,7 @@ export const actions = {
         dispatch("setContentSelection", { history });
     },
 
-    selectContentItem({ getters, commit }, { content }) {        
+    selectContentItem({ getters, commit }, { content }) {
         const existingSelection = getters.contentSelectionSet(content.history_id);
         const newSelection = new Set(existingSelection);
         newSelection.add(content.type_id);
@@ -265,7 +265,7 @@ export const actions = {
         })
     },
 
-    unselectContentItem({ getters, commit }, { content }) {        
+    unselectContentItem({ getters, commit }, { content }) {
         const existingSelection = getters.contentSelectionSet(content.history_id);
         const newSelection = new Set(existingSelection);
         newSelection.delete(content.type_id);
@@ -358,16 +358,16 @@ export default {
  * yet, since it has some loading issues.
  */
 export const historyPersist = new VuexPersistence({
-    
+
     key: "vuex-state-history",
     storage: sessionStorage,
     modules: ["history"],
 
     // only save some of the history module
     saveState(key, { history }, storage) {
-        
+
         const { currentHistoryId, histories, params } = history;
-        
+
         const payload = {
             history: {
                 currentHistoryId,
@@ -396,7 +396,7 @@ export const historyPersist = new VuexPersistence({
             const frozenState = storage[key];
             const frozen = JSON.parse(frozenState);
             payload = Object.assign(payload, frozen);
-    
+
             // hydrate SearchParams
             const oldParams = payload.history.params;
             payload.history.params = Object.keys(oldParams)
@@ -404,7 +404,7 @@ export const historyPersist = new VuexPersistence({
                     ...result,
                     [id]: new SearchParams(oldParams[id])
                 }), {});
-            
+
         } catch(err) {
             console.warn("history store unable to restore", err);
         }

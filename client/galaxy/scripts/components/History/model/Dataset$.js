@@ -1,14 +1,14 @@
 import { of, zip, concat, pipe } from "rxjs";
-import { tap, filter, map, pluck, share, take, switchMap } from "rxjs/operators";
+import { filter, map, pluck, share, take } from "rxjs/operators";
 import { ajax } from "rxjs/ajax";
 import { getCachedContent, getCachedDataset, cacheDataset, getCachedDatasetCollection, cacheDatasetCollection } from "caching";
 import { firstItem, ajaxGet } from "utils/observable";
 import { prependPath } from "utils/redirect";
+import { buildUpdateUrl } from "./ContentLoader/buildUpdateUrl";
 
-
-import { create } from "rxjs-spy";
-import { tag } from "rxjs-spy/operators";
-window.spy = create();
+// import { create } from "rxjs-spy";
+// import { tag } from "rxjs-spy/operators";
+// window.spy = create();
 
 
 // returns a dataset observable based on passed content item
@@ -19,7 +19,7 @@ export function Dataset$(content) {
         pluck('id'),
         getCachedDataset()
     )
-    
+
     return of(content).pipe(
         getFresh(getExistingDataset, cacheDataset)
     )
@@ -28,14 +28,12 @@ export function Dataset$(content) {
 
 export function DatasetCollection$(type_id) {
 
-    console.log("DatsetCollection$", type_id);
-
     const getExistingCollection = () => pipe(
         pluck('id'),
         getCachedDatasetCollection(),
         take(1)
     )
-    
+
     // get content by passed type_id
     const content$ = of(type_id).pipe(
         getCachedContent(),
@@ -49,7 +47,7 @@ export function DatasetCollection$(type_id) {
 
 
 export const getFresh = (loader, cacher) => c$ => {
-    
+
     const content$ = c$.pipe(
         share()
     );
@@ -75,21 +73,11 @@ export const getFresh = (loader, cacher) => c$ => {
         firstItem(),
         cacher(true)
     )
-    
+
     // if server lookup never emits, take original value
     return concat(retrievedVersion$, existing$).pipe(
         take(1)
     )
-}
-
-
-function buildUpdateUrl([ content, item = null ]) {
-    const { history_id, type_id } = content;
-    const base = `/api/histories/${history_id}/contents?v=dev&view=detailed`;
-    const hidClause = `q=type_id-in&qv=${type_id}`;
-    const updateClause = item ? `q=update_time-gt&qv=${item.update_time}` : "";
-    const parts = [ base, hidClause, updateClause ];
-    return parts.filter(o => o.length).join("&");
 }
 
 

@@ -1,6 +1,6 @@
 import { TagService } from "components/Tags/tagService";
 import { createTag } from "components/Tags/model";
-import { updateContentFields } from "../../model/Dataset$";
+import { updateContentFields } from "../model/Dataset$";
 
 
 // TODO: refactor Tags (again). Not liking this service injection

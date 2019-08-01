@@ -9,7 +9,7 @@
 <script>
 
 import { Tags } from "components/Tags";
-import { DatasetTagService } from "./model/DatasetTagService";
+import { DatasetTagService } from "./DatasetTagService";
 
 export default {
     components: {

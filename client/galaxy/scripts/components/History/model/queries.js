@@ -160,7 +160,6 @@ export async function bulkUpdate({ id }, payload) {
 }
 
 
-
 // Some of our current endpoints don't accpet JSON, so we need
 // to send an old-school form post
 function formData(fields = {}) {
@@ -173,8 +172,6 @@ function formData(fields = {}) {
 
 
 export async function createDatasetCollection(history, inputs = {}) {
-
-    console.log("createDatasetCollection", history, inputs);
 
     const template = {
         "collection_type": "list",
