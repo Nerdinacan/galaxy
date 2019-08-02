@@ -1,11 +1,11 @@
 <template>
-    <section class="current-dataset-collection d-flex flex-column">
+    <section class="history current-dataset-collection d-flex flex-column">
 
         <header class="flex-grow-0">
             <section class="history-details p-3">
 
                 <header class="d-flex justify-content-between">
-                    <h6>{{ path }}</h6>
+                    <h6>{{ breadcrumbs }}</h6>
                     <icon-menu class="no-border">
                         <icon-menu-item title="Download Collection"
                             icon="floppy-o"
@@ -19,7 +19,6 @@
 
                 <click-to-edit v-model="collectionName"
                     tag-name="h2" class="history-title mt-4"
-                    :state-validator="validateName"
                     ref="nameInput">
                     <template v-slot:tooltip>
                         <b-tooltip placement="bottom" :target="() => $refs.nameInput"
@@ -34,13 +33,13 @@
         </header>
 
         <div class="history-contents flex-grow-1">
-            <div class="scrollContainer">
-                <ol class="mb-1">
-                    <li>
-                        <div class="content-item collapsed dataset">Dataset?</div>
-                    </li>
-                </ol>
-            </div>
+            <transition name="fade">
+                <scroller v-if="content.length" :items="content" keyProp="id">
+                    <template #default="{ item, index }">
+                        <content-item :content="item" :tabindex="index" />
+                    </template>
+                </scroller>
+            </transition>
         </div>
 
     </section>
@@ -49,17 +48,23 @@
 
 <script>
 
-import { mapActions } from "vuex";
-import { DatasetCollection$, updateDataset } from "../model/Dataset$";
+import { mapActions, mapGetters } from "vuex";
+import { tap } from "rxjs/operators";
+import { DatasetCollection$, updateDataset } from "components/History/model/Dataset$";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
 import ClickToEdit from "components/Form/ClickToEdit";
+import Scroller from "components/Form/Scroller";
+import ContentItem from "components/History/Content/ContentItem";
+import DscElement from "./DscElement";
 
 export default {
 
     components: {
         ClickToEdit,
         IconMenu,
-        IconMenuItem
+        IconMenuItem,
+        Scroller,
+        ContentItem
     },
 
     props: {
@@ -67,19 +72,47 @@ export default {
         typeId: { type: String, required: true }
     },
 
-    data() {
-        return {
-            path: []
-        }
-    },
-
     subscriptions() {
         return {
-            dsc: DatasetCollection$(this.typeId)
+            dsc: DatasetCollection$(this.typeId).pipe(
+                tap(val => console.log("dsc", val))
+            )
         }
     },
 
     computed: {
+
+        ...mapGetters("history", [
+            "currentCollectionList"
+        ]),
+
+        breadcrumbs() {
+            return this.currentCollectionList(this.historyId);
+        },
+
+        // convert the incompetent dataset collection contents format back
+        // to something that looks vaguely like existing content objects
+        // with a wrapper object
+        rootElements() {
+            const elements = this.dsc ? this.dsc.elements : [];
+            return elements.map(el => new DscElement(this.historyId, el));
+        },
+
+        content() {
+
+            // drilldowns
+            const path = this.breadcrumbs.length ? this.breadcrumbs.slice(1) : [];
+
+            return path.reduce((acc, selectedId) => {
+                const selected = acc.filter(el => el.type_id == selectedId);
+                if (selected.length) {
+                    if (selected[0].children.length) {
+                        return selected[0].children;
+                    }
+                }
+                return [];
+            }, this.rootElements);
+        },
 
         collectionName: {
             get() {
@@ -96,7 +129,8 @@ export default {
     methods: {
 
         ...mapActions("history", [
-            "setCurrentCollection"
+            "selectCollection",
+            "unselectCollection"
         ]),
 
         updateModel(fields) {
@@ -109,17 +143,9 @@ export default {
         },
 
         close() {
-            this.setCurrentCollection({
-                history_id: this.historyId,
-                type_id: null
+            this.unselectCollection({
+                history_id: this.historyId
             });
-        },
-
-        validateName(val, origVal) {
-            if (val === origVal) {
-                return null;
-            }
-            return val.length > 0;
         }
 
     }

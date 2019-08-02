@@ -95,8 +95,8 @@ import { pluck, startWith, tap } from "rxjs/operators";
 import { capitalize, camelize } from "underscore.string";
 import { eventHub } from "components/eventHub";
 
-import { loadToolFromDataset } from "../model/queries";
-import { Dataset$, updateDataset } from "../model/Dataset$";
+import { Dataset$, updateDataset } from "components/History/model/Dataset$";
+import { loadToolFromDataset } from "components/History/model/queries";
 import STATES from "mvc/dataset/states";
 
 import Annotation from "components/Form/Annotation";

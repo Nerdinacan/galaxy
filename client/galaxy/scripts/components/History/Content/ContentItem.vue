@@ -10,9 +10,12 @@
 <script>
 
 import { mapGetters } from "vuex";
-import { DatasetItem } from "../Dataset";
-import { DatasetCollectionItem } from "../DatasetCollection";
+import { tap, pluck } from "rxjs/operators";
+import { getCachedContent } from "caching";
+import { DatasetItem } from "./Dataset";
+import { DatasetCollectionItem } from "./DatasetCollection";
 import dasherize from "underscore.string/dasherize";
+
 
 export default {
     props: {
@@ -20,7 +23,8 @@ export default {
     },
     components: {
         "dataset": DatasetItem,
-        "dataset_collection": DatasetCollectionItem
+        "dataset_collection": DatasetCollectionItem,
+        "hda": DatasetItem // for collection non-standard
     },
     computed: {
 
@@ -29,10 +33,13 @@ export default {
         ]),
 
         selected() {
-            return this.contentIsSelected(this.content)
+            return this.content ? this.contentIsSelected(this.content) : false;
         },
 
         displayClasses() {
+            if (!this.content) {
+                return {};
+            }
             const typeName = dasherize(this.content.history_content_type);
             return {
                 [typeName]: true,
@@ -41,7 +48,7 @@ export default {
         },
 
         contentItemComponent() {
-            return this.content.history_content_type;
+            return this.content ? this.content.history_content_type : null;
         },
 
     },

@@ -67,7 +67,11 @@ let buildconfig = {
                     cacheDirectory: true,
                     cacheCompression: false,
                     presets: [["@babel/preset-env", { modules: false }]],
-                    plugins: ["transform-vue-template", "@babel/plugin-syntax-dynamic-import"],
+                    plugins: [
+                        "transform-vue-template",
+                        "@babel/plugin-syntax-dynamic-import",
+                        "@babel/plugin-proposal-class-properties"
+                    ],
                     ignore: ["i18n.js", "utils/localization.js", "nls/*"]
                 }
             },

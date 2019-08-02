@@ -47,7 +47,7 @@ export default {
     computed: {
         annotation: {
             get() {
-                return this.value;
+                return this.value || "";
             },
             set(newVal, oldVal) {
                 if (newVal !== oldVal) {

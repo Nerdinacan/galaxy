@@ -28,13 +28,13 @@ export const state = {
     // history.id -> SearchParams object
     params: {},
 
-    // history.id -> array of contentItems (datasets/collections)
+    // history.id -> array of type_id
     contents: {},
 
     // history.id -> Set of type_ids
     contentSelection: {},
 
-    // history.id -> type_id
+    // history.id -> [type_id]
     currentCollection: {}
 }
 
@@ -70,10 +70,10 @@ export const mutations = {
         }
     },
 
-    setCurrentCollection(state, { history_id, type_id }) {
+    setCurrentCollection(state, { history_id, list }) {
         state.currentCollection = {
             ...state.currentCollection,
-            [history_id]: type_id
+            [history_id]: [ ...list ]
         }
     },
 }
@@ -131,8 +131,13 @@ export const getters = {
 
     //#region Current Collection
 
-    currentCollection: state => historyId => {
-        return state.currentCollection[historyId] || null;
+    currentCollectionList: state => historyId => {
+        return state.currentCollection[historyId] || [];
+    },
+
+    currentCollection: (state, getters) => historyId => {
+        const list = getters.currentCollectionList(historyId);
+        return list.length ? list[list.length - 1] : null;
     }
 
     //#endregion
@@ -336,10 +341,24 @@ export const actions = {
 
     //#region Dataset Collection
 
-    setCurrentCollection({ commit }, { history_id, type_id }) {
-        // more pointless Vuex boilerplate
-        commit("setCurrentCollection", { history_id, type_id });
-    }
+    clearCollection({ commit }, { history_id }) {
+        const list = [];
+        commit("setCurrentCollection", { history_id, list });
+    },
+
+    selectCollection({ commit, getters }, { history_id, type_id }) {
+        const existingList = getters.currentCollectionList(history_id);
+        const list = [ ...existingList, type_id ];
+        commit("setCurrentCollection", { history_id, list });
+    },
+
+    unselectCollection({ commit, getters }, { history_id }) {
+        const existingList = getters.currentCollectionList(history_id);
+        if (existingList.length) {
+            const list = existingList.slice(0, -1);
+            commit("setCurrentCollection", { history_id, list });
+        }
+    },
 
     //#endregion
 

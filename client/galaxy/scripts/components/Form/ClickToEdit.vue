@@ -1,6 +1,6 @@
 <template>
     <div class="clickToEdit">
-        
+
         <component :is="tagName" v-if="!editing" @click="toggleEdit(true)">
             <span class="editable"></span>
             <span>{{ displayValue }}</span>
@@ -10,14 +10,14 @@
         <component :is="tagName" v-if="editing">
             <slot :toggleEdit="toggleEdit"
                 :editing="editing"
-                :placeholder="placeholder" 
+                :placeholder="placeholder"
                 :stateValidator="stateValidator">
 
                 <debounced-input v-model="localValue" :delay="debounceDelay">
                     <template v-slot:default="inputScope">
-                        <b-form-input :value="inputScope.value" 
+                        <b-form-input :value="inputScope.value"
                             @input="inputScope.input"
-                            @blur="toggleEdit(false)" 
+                            @blur="toggleEdit(false)"
                             :autofocus="true"
                             :placeholder="placeholder"
                             :state="stateValidator(inputScope.value, localValue)" />
@@ -63,7 +63,7 @@ export default {
             return this.localValue || this.placeholder;
         },
         localValue: {
-            get() { 
+            get() {
                 return this.value
             },
             set(newVal, oldVal) {
@@ -101,4 +101,3 @@ export default {
 }
 
 </style>
-        

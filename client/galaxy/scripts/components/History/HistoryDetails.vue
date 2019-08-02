@@ -1,6 +1,7 @@
 <template>
     <section>
 
+        <!-- top menu -->
         <header class="d-flex justify-content-between">
             <h6>{{ niceSize | localize }}</h6>
             <slot name="menu">
@@ -12,15 +13,15 @@
                         tooltip-placement="topleft" />
                     <icon-menu-item id="historyDownloadMenu" title="Downloads" icon="download"
                         tooltip-placement="topleft" />
-                    <!-- <icon-menu-item title="Raw History Data (Debugging)" icon="eye" @click="showRaw = !showRaw"
-                        tooltip-placement="topleft" /> -->
                     <icon-menu-item id="historyOperationsIcon" title="Current History Operations" icon="cog"
                         tooltip-placement="topleft" />
                 </icon-menu>
             </slot>
         </header>
 
-        <click-to-edit v-model="historyName" tag-name="h2" class="history-title mt-4" :state-validator="nameInputState"
+        <!-- title -->
+        <click-to-edit v-model="historyName"
+            tag-name="h2" class="history-title mt-4"
             ref="historyNameInput">
             <template v-slot:tooltip>
                 <b-tooltip placement="left" :target="() => $refs.historyNameInput"
@@ -28,11 +29,15 @@
             </template>
         </click-to-edit>
 
+        <!-- description -->
         <annotation class="history-annotation mt-1" v-model="annotation" />
 
+        <!-- tags -->
         <transition name="shutterfade">
             <history-tags v-if="showTags" class="history-tags mt-2" :history="history" />
         </transition>
+
+        <!-- #region menus and modals -->
 
         <b-popover ref="downloadMenu" target="historyDownloadMenu" placement="bottomleft" triggers="click blur">
             <gear-menu #default="{ go }">
@@ -89,6 +94,8 @@
             <p>{{ messages.makePrivatePrompt | localize }}</p>
         </b-modal>
 
+        <!-- #endregion -->
+
     </section>
 </template>
 
@@ -111,6 +118,7 @@ const messages = {
 };
 
 export default {
+
     components: {
         HistoryTags,
         IconMenu,
@@ -120,21 +128,23 @@ export default {
         Annotation,
         ClickToEdit
     },
+
     // As always, when dealing with an inadequate observable
     // system like Vuex, we run into problems. This history
     // prop does not update from the outside
     props: {
         history: { type: Object, required: true }
     },
+
     data() {
         return {
             showTags: false,
             showCopyModal: false,
             editAnnotation: false,
-            messages,
-            showRaw: false
+            messages
         }
     },
+
     computed: {
 
         annotation: {
@@ -142,7 +152,9 @@ export default {
                 return this.history.annotation || "";
             },
             set(annotation) {
-                this.updateFields({ annotation });
+                if (annotation.length && annotation !== this.history.annotation) {
+                    this.updateFields({ annotation });
+                }
             }
         },
 
@@ -151,7 +163,7 @@ export default {
                 return this.history.name;
             },
             set(name) {
-                if (name.length) {
+                if (name.length && name !== this.history.name) {
                     this.updateFields({ name });
                 }
             }
@@ -164,6 +176,7 @@ export default {
         }
 
     },
+
     methods: {
 
         ...mapActions("history", [
@@ -192,23 +205,7 @@ export default {
         },
 
 
-        // History name validation
-        // controls good/bad appearance of the input
-
-        nameInputState(val, origVal) {
-            if (val === origVal) {
-                return null;
-            }
-            return val.length > 0;
-        },
-
-
-
         // Current History Operations (moved here from endless gear menu)
-
-        // we could just put the links in the markup but
-        // these function include the galaxy.root
-        // into the target/url and also help with testing
 
         openCopyModal() {
             this.showCopyModal = true;
@@ -223,9 +220,6 @@ export default {
                 });
         },
 
-        // need clarification about what should be difference between
-        // purge and delete. requirements seem super-murky and insconsistent
-        // in the implementation in the current backbone catastrophe
         purgeHistory(evt) {
             evt.preventDefault();
             this.deleteCurrentHistory({ purge: true })

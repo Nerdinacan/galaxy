@@ -2,7 +2,7 @@ import { of, zip, pipe, combineLatest, forkJoin, from } from "rxjs";
 import { tap, filter, map, pluck, share, take } from "rxjs/operators";
 import { getCachedContent, getCachedDataset, getCachedDatasetCollection,
     cacheDataset, cacheDatasetCollection, updateDocFields } from "caching";
-import { firstItem, ajaxGet } from "utils/observable";
+import { ajaxGet } from "utils/observable";
 import { safeAssign } from "utils/safeAssign";
 import { updateContentFields } from "./queries";
 
@@ -46,12 +46,21 @@ export function DatasetCollection$(type_id) {
         take(1)
     );
 
+    // need to generate a type_id since the api doesn't return one
+    const storeFn = () => pipe(
+        map(dsc => ({
+            ...dsc,
+            type_id: `${dsc.history_content_type}-${dsc.id}`
+        })),
+        cacheDatasetCollection()
+    )
+
     return of(type_id).pipe(
         getCachedContent(),
         tap(checkForUpdates({
             debug: false,
             lookupFn,
-            storeFn: cacheDatasetCollection
+            storeFn
         })),
         pluck("id"),
         getCachedDatasetCollection(),
@@ -72,55 +81,46 @@ const checkForUpdates = config => c => {
 
     const content$ = of(c);
 
-    // dataset or collection
-    const ds$ = content$.pipe(
+    const existingCachedData$ = content$.pipe(
         lookupFn(debug)
     );
 
-    const stale$ = zip(content$, ds$).pipe(
+    const stale$ = zip(content$, existingCachedData$).pipe(
         filter(([ content, item ]) => {
             if (!item) return true;
             return item.getUpdateDate().isBefore(content.getUpdateDate());
-        })
+        }),
+        map(inputs => inputs[0])
     )
 
     const retrievedVersion$ = stale$.pipe(
-        map(buildDatasetUpdateUrl),
+        pluck('url'),
         ajaxGet(),
-        firstItem(),
         storeFn(debug)
     )
 
     retrievedVersion$.subscribe({
         next: item => console.log("checkForUpdates", item),
-        error: err => console.warn("checkForUpdates", err),
-        // complete: () => console.log("checkForUpdates complete")
+        error: err => console.warn("checkForUpdates", err)
     });
-}
-
-function buildDatasetUpdateUrl([ content, item = null ]) {
-    const { history_id, type_id } = content;
-    const base = `/api/histories/${history_id}/contents?v=dev&view=detailed`;
-    const hidClause = `q=type_id-in&qv=${type_id}`;
-    const parts = [ base, hidClause ];
-    return parts.filter(o => o.length).join("&");
 }
 
 
 // This function actually works for both datasets and collections
 
-export function updateDataset(dataset, inputFields) {
+export function updateDataset(data, inputFields) {
 
-    const dataset$ = of(dataset);
+    const data$ = of(data);
 
-    const content$ = dataset$.pipe(
+    const content$ = data$.pipe(
         pluck('type_id'),
         getCachedContent(),
-        take(1)
+        take(1),
+        share()
     );
 
     // ajax call to update fields
-    const savePromise = updateContentFields(dataset, inputFields);
+    const savePromise = updateContentFields(data, inputFields);
     const savedFields$ = from(savePromise).pipe(
         map(updated => safeAssign(inputFields, updated)),
         take(1),
@@ -128,17 +128,15 @@ export function updateDataset(dataset, inputFields) {
     );
 
     // cache in dataset/datasetCollection rxdb collection
-    const cachedDataset$ = combineLatest(dataset$, savedFields$).pipe(
+    const cachedData$ = combineLatest(data$, savedFields$).pipe(
         updateDocFields()
     );
 
     // cache in content summary
     const cachedContent$ = combineLatest(content$, savedFields$).pipe(
-        updateDocFields()
+        updateDocFields(),
     );
 
-    // wait for all thats
-    return forkJoin([ cachedDataset$, cachedContent$ ]);
+    // wait for both updates
+    return forkJoin([ cachedData$, cachedContent$ ]);
 }
-
-

@@ -1,0 +1,71 @@
+{
+  "element_index": 0,
+  "element_identifier": "M117-bl",
+  "object": {
+    "update_time": "2019-03-22T05:16:00.207826",
+    "populated_state_message": null,
+    "populated": true,
+    "element_count": 2,
+    "create_time": "2019-03-22T05:16:00.207748",
+    "collection_type": "paired",
+    "id": "2a56795cad3c7db3",
+    "elements": [
+      {
+        "element_index": 0,
+        "element_identifier": "forward",
+        "object": {
+          "history_content_type": "dataset",
+          "update_time": "2019-06-07T21:51:25.814275",
+          "name": "M117-bl_1.fq",
+          "extension": "fastqsanger",
+          "type_id": "dataset-e89067bb68bee7a0",
+          "deleted": true,
+          "history_id": "ba751ee0539fff04",
+          "tags": [],
+          "id": "e89067bb68bee7a0",
+          "visible": true,
+          "state": "ok",
+          "create_time": "2019-03-22T05:09:26.004405",
+          "hid": 1,
+          "url": "/api/histories/ba751ee0539fff04/contents/e89067bb68bee7a0",
+          "dataset_id": "e89067bb68bee7a0",
+          "type": "file",
+          "purged": true
+        },
+        "element_type": "hda",
+        "model_class": "DatasetCollectionElement",
+        "id": "ff5476bcf6c921fa"
+      },
+      {
+        "element_index": 1,
+        "element_identifier": "reverse",
+        "object": {
+          "history_content_type": "dataset",
+          "update_time": "2019-06-07T21:51:25.848835",
+          "name": "M117-bl_2.fq",
+          "extension": "fastqsanger",
+          "type_id": "dataset-0c5ffef6d88a1e97",
+          "deleted": true,
+          "history_id": "ba751ee0539fff04",
+          "tags": [],
+          "id": "0c5ffef6d88a1e97",
+          "visible": true,
+          "state": "ok",
+          "create_time": "2019-03-22T05:09:28.005307",
+          "hid": 2,
+          "url": "/api/histories/ba751ee0539fff04/contents/0c5ffef6d88a1e97",
+          "dataset_id": "0c5ffef6d88a1e97",
+          "type": "file",
+          "purged": true
+        },
+        "element_type": "hda",
+        "model_class": "DatasetCollectionElement",
+        "id": "79966582feb6c081"
+      }
+    ],
+    "populated_state": "ok"
+  },
+  "element_type": "dataset_collection",
+  "model_class": "DatasetCollectionElement",
+  "id": "c24141d7e4e77705"
+}

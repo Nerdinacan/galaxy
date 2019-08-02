@@ -12,8 +12,9 @@
         </header>
 
         <content-list class="history-contents flex-grow-1"
+            :params="params"
             :content="content"
-            :history-id="history.id" />
+            @paramChange="setSearchParams" />
 
     </section>
 </template>
@@ -38,23 +39,37 @@ export default {
         historyId: { type: String, required: true }
     },
     computed: {
+
         ...mapGetters("history", [
             "getHistory",
-            "historyContent"
+            "historyContent",
+            "searchParams"
         ]),
-        content() {
-            return this.historyContent(this.historyId);
+
+        params() {
+            return this.searchParams(this.historyId);
         },
+
+        content() {
+            const newContent = this.historyContent(this.historyId);
+            // console.log("new content", newContent);
+            return newContent;
+        },
+
         history() {
             return this.getHistory(this.historyId);
         }
+
     },
+
     methods: {
         ...mapActions("history", [
             "loadContent",
             "unsubLoader",
+            "setSearchParams",
         ])
     },
+
     watch: {
         historyId: {
             handler(newId, oldId) {

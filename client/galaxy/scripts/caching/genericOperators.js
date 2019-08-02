@@ -86,8 +86,18 @@ export const deleteItem = collection$ => pipe(
  * Update a few fields in a document
  */
 export const updateDocFields = () => pipe(
-    mergeMap(async ([ doc, updated ]) => {
-        await doc.atomicUpdate(old => safeAssign(old, updated));
-        return doc;
-    })
+    mergeMap(([ doc, changedFields ]) => {
+        const p = doc.update({ $set: changedFields })
+            .then(result => {
+                // am not sure why this doesn't return anything
+                // useful from the promise, but we'll return the
+                // RxDB document.
+                return doc;
+            });
+        return from(p);
+    }),
+    retryWhen(err => err.pipe(
+        filter(err => err.name == "conflict"),
+        take(1)
+    )),
 )

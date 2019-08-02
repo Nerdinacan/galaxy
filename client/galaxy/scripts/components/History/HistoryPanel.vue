@@ -16,7 +16,7 @@
 import { mapState, mapGetters } from "vuex";
 import History from "./History";
 import HistoryTopNav from "./HistoryTopNav";
-import DatasetCollectionPanel from "./DatasetCollection/Panel";
+import DatasetCollectionPanel from "./Content/DatasetCollection/Panel";
 
 export default {
     components: {

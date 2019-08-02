@@ -15,11 +15,14 @@
 import { Subject } from "rxjs";
 import { tap } from "rxjs/operators";
 
-
-export function createInputFunction() {
+export function createInputFunction(debug = false) {
     const sub = new Subject();
     const monitor = sub.pipe(
-        tap(val => console.log("createInputFunction", val))
+        tap(val => {
+            if (debug) {
+                console.log("createInputFunction monitor", val);
+            }
+        })
     );
     const updateFn = sub.next.bind(sub);
     updateFn.$ = monitor.asObservable();

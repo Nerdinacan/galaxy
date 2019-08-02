@@ -15,7 +15,7 @@ export default {
         visible: { type: "boolean" },
         job_source_id: nullableString,
         job_source_type: nullableString,
-        elements: { 
+        elements: {
             type: "array",
             items: { "$ref": "#/definitions/treenode" }
         },
@@ -27,7 +27,8 @@ export default {
         id: { type: "string", primary: true },
         populated_state: { type: "string" },
         update_time: { type: "string" },
-        purged: { type: "boolean" }
+        purged: { type: "boolean" },
+        type_id: { type: "string" }
     },
     definitions: {
 
@@ -47,7 +48,7 @@ export default {
             }
         },
 
-        treeleaf: { 
+        treeleaf: {
             type: "object",
             properties: {
                 misc_blurb: { type: "string" },
@@ -71,12 +72,12 @@ export default {
                 model_class: { type: "string" },
                 metadata_dbkey: { type: "string" },
                 purged: { type: "boolean" },
-                elements: { 
+                elements: {
                     type: "array",
                     items: { "$ref": "#/definitions/treenode" }
                 }
             }
         }
-        
+
     }
 }

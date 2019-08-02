@@ -11,6 +11,7 @@
   },
   "license": "AFL-3.0",
   "dependencies": {
+    "@babel/plugin-proposal-class-properties": "^7.5.5",
     "@babel/polyfill": "^7.4.0",
     "@handsontable/vue": "^2.0.0-beta1",
     "@johmun/vue-tags-input": "^2.0.1",

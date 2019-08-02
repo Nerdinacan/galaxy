@@ -3,7 +3,7 @@
         :data-state="content.populated_state"
         @keydown.self="onKeydown"
         @mouseover="focusMe"
-        @click.stop="selectCollection">
+        @click.stop="drillDown">
 
         <nav class="content-top-menu d-flex justify-content-between">
 
@@ -14,7 +14,7 @@
                     @click.stop="selected = !selected" />
             </icon-menu>
 
-            <div class="hid flex-grow-1">
+            <div class="hid flex-grow-1" v-if="content.hid">
                 <span>{{ content.hid }}</span>
             </div>
 
@@ -26,7 +26,7 @@
             </icon-menu>
         </nav>
 
-        <header class="px-3 py-2">
+        <header class="px-3 py-2" v-if="content">
             <h4><a href="#">{{ content.name }}</a></h4>
             <p class="m-0">a {{ collectionType | localize }} {{ collectionCount | localize }}</p>
         </header>
@@ -59,6 +59,8 @@
 <script>
 
 import { mapGetters, mapActions } from "vuex";
+import { tap, pluck } from "rxjs/operators";
+import { getCachedContent } from "caching";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
 import GearMenu from "components/GearMenu";
 import { eventHub } from "components/eventHub";
@@ -121,11 +123,12 @@ export default {
         ...mapActions("history", [
             "selectContentItem",
             "unselectContentItem",
-            "setCurrentCollection"
+            "selectCollection"
         ]),
 
-        selectCollection() {
-            this.setCurrentCollection(this.content);
+        drillDown() {
+            const { history_id, type_id } = this.content;
+            this.selectCollection({ history_id, type_id });
         },
 
         displaySelection(val) {
@@ -138,7 +141,7 @@ export default {
                     if (this.showSelection) {
                         this.selected = !this.selected;
                     } else {
-                        this.selectCollection();
+                        this.drillDown();
                     }
                     evt.preventDefault();
                     evt.stopPropagation();

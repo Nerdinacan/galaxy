@@ -2,18 +2,16 @@
     <div>
 
         <transition name="fade">
-            <div v-if="content.length" class="scrollContainer" ref="scrollContainer">
-                <ol ref="scrollContent" @keydown.tab.once="selectFirstItem">
-                    <li v-for="(c, index) in content" :key="c.type_id" class="mb-1">
-                        <div class="sensor" v-if="showSensor(index)"
-                            v-observe-visibility="updatePageRange(c.hid)"></div>
-                        <content-item :content="c" :tabindex="index" />
-                    </li>
-                    <!--
-                    <li v-observe-visibility="updatePageRange(nextPage)"></li>
-                    -->
-                </ol>
-            </div>
+            <scroller v-if="content.length" :items="content" keyProp="hid"
+                @itemIsVisible="onIsVisible"
+                @itemIsAboveWindow="onIsAboveWindow"
+                @itemIsBelowWindow="onIsBelowWindow">
+                <template #default="{ item, index }">
+                    <keep-alive>
+                        <content-item :content="item" :tabindex="index" />
+                    </keep-alive>
+                </template>
+            </scroller>
         </transition>
 
         <transition name="fade">
@@ -36,23 +34,27 @@
 
 import { combineLatest } from "rxjs";
 import { pluck, filter, debounceTime, distinctUntilChanged } from "rxjs/operators";
-import { mapGetters, mapActions } from "vuex";
-import { ObserveVisibility } from "vue-observe-visibility";
+import { mapGetters } from "vuex";
 import { SearchParams } from "../model/SearchParams";
-import ContentItem from "./ContentItem";
 import HistoryEmpty from "./HistoryEmpty";
+import Scroller from "components/Form/Scroller";
 
 export default {
-    directives: {
-        ObserveVisibility
-    },
     components: {
-        ContentItem,
-        HistoryEmpty
+        // ContentItem, // globally registered to avoid recursion issue
+        HistoryEmpty,
+        Scroller
     },
     props: {
-        historyId: { type: String, required: true },
-        content: { type: Array, required: false, default: [] }
+        content: {
+            type: Array,
+            required: false,
+            default: () => []
+        },
+        params: {
+            type: SearchParams,
+            required: true
+        }
     },
     data() {
         return {
@@ -67,95 +69,27 @@ export default {
         }
     },
 
-    computed: {
-
-        ...mapGetters("history", [
-            "searchParams"
-        ]),
-
-        params() {
-            return this.searchParams(this.historyId);
-        },
-
-        /*
-        minHid() {
-            const hids = this.content.map(c => c.hid);
-            return Math.min(this.history.hid_counter, ...hids);
-        },
-        nextPage() {
-            return Math.max(this.minHid - SearchParams.pageSize, 0);
-        }
-        */
-    },
-
     methods: {
 
-        ...mapActions("history", [
-            "setSearchParams",
-            "setContentSelection"
-        ]),
-
-        updatePageRange(hid) {
-
-            function handler(isVisible, entry) {
-
-                // this one came into view
-                if (isVisible) {
-                    this.start = Math.min(this.start, hid);
-                    this.end = Math.max(this.end, hid);
-                    return;
-                }
-
-                // item left view
-                const containerRect = this.getContainerRect();
-                if (containerRect) {
-                    if (this.isAboveWindow(containerRect, entry)) {
-                        // ran off the top
-                        this.end = Math.min(this.end, hid - 1);
-                    } else if(this.isBelowWindow(containerRect, entry)) {
-                        // ran off the bottom
-                        this.start = Math.max(this.start, hid + 1);
-                    }
-                }
-            }
-
-            return handler.bind(this);
+        onIsVisible({ hid }) {
+            this.start = Math.min(this.start, hid);
+            this.end = Math.max(this.end, hid);
         },
 
-        getContainerRect() {
-            try {
-                return this.$refs.scrollContainer.getBoundingClientRect();
-            } catch(err) {
-                return null;
-            }
+        onIsAboveWindow({ hid }) {
+            this.end = Math.min(this.end, hid - 1);
         },
 
-        isAboveWindow(containerRect, { boundingClientRect }) {
-            return boundingClientRect.bottom < containerRect.top;
-        },
-
-        isBelowWindow(containerRect, { boundingClientRect }) {
-            return boundingClientRect.top > containerRect.bottom;
+        onIsBelowWindow({ hid }) {
+            this.start = Math.max(this.start, hid + 1);
         },
 
         updateParamRange([ start, end ]) {
             const newParams = this.params.clone();
             newParams.start = start;
             newParams.end = end;
-            this.sendParams(newParams);
-        },
-
-        sendParams(newParams) {
-            this.setSearchParams(newParams);
+            this.$emit("paramChange", newParams);
             this.loading = true;
-        },
-
-        showSensor(index) {
-            return true;
-        },
-
-        selectFirstItem() {
-            console.log("selectFirstItem");
         }
     },
 
@@ -193,39 +127,3 @@ export default {
 }
 
 </script>
-
-
-<style lang="scss" scoped>
-
-@import "scss/mixins.scss";
-@import "scss/transitions.scss";
-
-.scrollContainer {
-    position: relative;
-    overflow-x: hidden;
-    overflow-y: auto;
-    height: 100%;
-}
-
-ol {
-    @include list_reset();
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    padding-bottom: 100px;
-}
-
-ol li {
-    position: relative;
-}
-
-.sensor {
-    position: absolute;
-    height: 1px;
-    width: 1px;
-    bottom: 0;
-    left: 0;
-}
-
-</style>
