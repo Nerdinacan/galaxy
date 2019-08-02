@@ -5,12 +5,13 @@
             <div v-if="content.length" class="scrollContainer" ref="scrollContainer">
                 <ol ref="scrollContent" @keydown.tab.once="selectFirstItem">
                     <li v-for="(c, index) in content" :key="c.type_id" class="mb-1">
-                        <div class="sensor" v-if="showSensor(index)" 
+                        <div class="sensor" v-if="showSensor(index)"
                             v-observe-visibility="updatePageRange(c.hid)"></div>
                         <content-item :content="c" :tabindex="index" />
                     </li>
-                    <!-- <div v-observe-visibility="updatePageRange(nextPage)">
-                    </div> -->
+                    <!--
+                    <li v-observe-visibility="updatePageRange(nextPage)"></li>
+                    -->
                 </ol>
             </div>
         </transition>
@@ -56,7 +57,7 @@ export default {
     data() {
         return {
             loading: true,
-            
+
             // actually the top content entry since
             // query returns in hid descending
             end: Number.NEGATIVE_INFINITY,
@@ -196,8 +197,8 @@ export default {
 
 <style lang="scss" scoped>
 
-@import "~scss/mixins.scss";
-@import "~scss/transitions.scss";
+@import "scss/mixins.scss";
+@import "scss/transitions.scss";
 
 .scrollContainer {
     position: relative;

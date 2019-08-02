@@ -43,8 +43,6 @@
             </div>
         </div>
 
-        <!-- <pre>{{ dsc }}</pre> -->
-
     </section>
 </template>
 
@@ -52,41 +50,48 @@
 <script>
 
 import { mapActions } from "vuex";
-import { DatasetCollection$, updateContentFields } from "../model/Dataset$";
+import { DatasetCollection$, updateDataset } from "../model/Dataset$";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
 import ClickToEdit from "components/Form/ClickToEdit";
 
 export default {
+
     components: {
         ClickToEdit,
         IconMenu,
         IconMenuItem
     },
+
     props: {
         historyId: { type: String, required: true },
         typeId: { type: String, required: true }
     },
+
     data() {
         return {
             path: []
         }
     },
+
     subscriptions() {
         return {
             dsc: DatasetCollection$(this.typeId)
         }
     },
+
     computed: {
+
         collectionName: {
             get() {
                 return this.dsc ? this.dsc.name : "";
             },
             set(name) {
                 if (name !== this.dsc.name) {
-                    this.updateDsc({ name });
+                    this.updateModel({ name });
                 }
             }
         },
+
     },
     methods: {
 
@@ -94,15 +99,13 @@ export default {
             "setCurrentCollection"
         ]),
 
-        async updateDsc(fields) {
-            let result;
-            try {
-                let response = await updateContentFields(this.dsc, fields).toPromise();
-                result = await this.dsc.update({ $set: response });
-            } catch(err) {
-                console.warn("error updating collection", err);
-            }
-            return result;
+        updateModel(fields) {
+            this.loading = true;
+            return updateDataset(this.dsc, fields)
+                .toPromise()
+                .finally(() => {
+                    this.loading = false;
+                })
         },
 
         close() {

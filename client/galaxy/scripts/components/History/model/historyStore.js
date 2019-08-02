@@ -14,8 +14,7 @@ import { flushCachedDataset, cacheContent, cacheDatasetCollection,
 import { sortBy } from "underscore";
 
 
-// Holds subscriptions to ContentLoaders
-// history.id -> subscription
+// Holds content loader subscriptions
 const loaderSubscriptions = new Map();
 
 
@@ -325,7 +324,7 @@ export const actions = {
 
     //#endregion
 
-    //#region Dataset CRUD
+    //#region Dataset
 
     async createCollection(context, { history, selection }) {
         const ajaxResult = await createDatasetCollection(history, selection);
@@ -335,10 +334,14 @@ export const actions = {
 
     //#endregion
 
+    //#region Dataset Collection
+
     setCurrentCollection({ commit }, { history_id, type_id }) {
         // more pointless Vuex boilerplate
         commit("setCurrentCollection", { history_id, type_id });
-    },
+    }
+
+    //#endregion
 
 };
 

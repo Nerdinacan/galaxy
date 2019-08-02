@@ -3,11 +3,11 @@
         :title="title | localize"
         :tabindex="tabindex"
         @click.prevent.stop="onClick">
-        <span>{{ title }}</span>
+        <span>{{ title | localize }}</span>
         <b-tooltip v-if="useTooltip"
             ref="tooltip"
             :target="() => $refs['link']"
-            :title="title"
+            :title="title | localize"
             :placement="tooltipPlacement"
             :delay="100"
             boundary="window"
@@ -15,7 +15,7 @@
     </a>
 </template>
 
- 
+
 <script>
 
 export default {

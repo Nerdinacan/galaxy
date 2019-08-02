@@ -1,8 +1,10 @@
 <template>
-    <div :data-state="content.populated_state"
+    <div :class="{ selected }"
+        :data-state="content.populated_state"
         @keydown.self="onKeydown"
-        @mouseover="focusMe">
-        
+        @mouseover="focusMe"
+        @click.stop="selectCollection">
+
         <nav class="content-top-menu d-flex justify-content-between">
 
             <icon-menu class="status-menu">
@@ -11,38 +13,38 @@
                     icon="check"
                     @click.stop="selected = !selected" />
             </icon-menu>
-            
+
             <div class="hid flex-grow-1">
-                <span>{{ content.hid }} {{ content.populated_state }}</span>
+                <span>{{ content.hid }}</span>
             </div>
 
             <icon-menu>
                 <icon-menu-item ref="deleteButton"
-                    title="Delete"
+                    title="Delete Collection"
                     icon="trash"
                     tooltip-placement="topleft" />
             </icon-menu>
         </nav>
 
-        <header class="px-3 py-2" @click.stop="selectCollection">
-            <h4>{{ content.name }}</h4>
+        <header class="px-3 py-2">
+            <h4><a href="#">{{ content.name }}</a></h4>
             <p class="m-0">a {{ collectionType | localize }} {{ collectionCount | localize }}</p>
         </header>
 
         <b-popover ref="deleteMenu"
             :target="() => $refs['deleteButton']"
-            placement="bottomleft" 
+            placement="bottomleft"
             triggers="click blur">
 
             <gear-menu #default="{ go }">
                 <div @click.stop="$refs.downloadMenu.$emit('close')">
-                    <a class="dropdown-item" href="#">
+                    <a href="#" class="dropdown-item" @click="deleteCollection">
                         {{ 'Collection Only' | localize }}
                     </a>
-                    <a class="dropdown-item" href="#">
+                    <a href="#" class="dropdown-item" @click="deleteDatasets" >
                         {{ 'Delete Datasets' | localize }}
                     </a>
-                    <a class="dropdown-item" href="#">
+                    <a href="#" class="dropdown-item" @click="deletePermanently">
                         {{ 'Permanently Delete Datasets' | localize }}
                     </a>
                 </div>
@@ -64,7 +66,7 @@ import { eventHub } from "components/eventHub";
 export default {
     components: {
         GearMenu,
-        IconMenu, 
+        IconMenu,
         IconMenuItem
     },
     props: {
@@ -112,6 +114,7 @@ export default {
             const count = this.content.element_count;
             return count == 1 ? "with 1 item" : `with ${count} items`;
         }
+
     },
     methods: {
 
@@ -145,14 +148,24 @@ export default {
 
         focusMe() {
             this.$el.focus();
+        },
+
+        deleteCollection() {
+            console.log("deleteCollection")
+        },
+
+        deleteDatasets() {
+            console.log("deleteDatsets");
+        },
+
+        deletePermanently() {
+            console.log("deletePermanently");
         }
 
     },
-
     created() {
         eventHub.$on('toggleShowSelection', this.displaySelection);
     },
-
     beforeDestroy() {
         eventHub.$off('toggleShowSelection', this.displaySelection);
     }
@@ -161,18 +174,10 @@ export default {
 </script>
 
 
-function collectionDescription(collection) {
-    var elementCount = collection.get("element_count");
+<style lang="scss" scoped>
 
-    var itemsDescription = `a ${collectionTypeDescription(collection)}`;
-    if (elementCount) {
-        var countDescription;
-        if (elementCount == 1) {
-            countDescription = "with 1 item";
-        } else if (elementCount) {
-            countDescription = `with ${elementCount} items`;
-        }
-        itemsDescription = `${itemsDescription} ${_l(countDescription)}`;
-    }
-    return itemsDescription;
+header, header * {
+    cursor: pointer;
 }
+
+</style>

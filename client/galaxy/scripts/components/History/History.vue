@@ -75,7 +75,7 @@ export default {
 
 <style lang="scss">
 
-@import "~scss/mixins.scss";
+@import "scss/mixins.scss";
 
 .history {
     @include resetHeaders();

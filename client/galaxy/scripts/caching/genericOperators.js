@@ -1,8 +1,7 @@
-import { of, combineLatest, pipe, from, defer } from "rxjs";
-import { tap, map, filter, mergeMap, retryWhen, catchError, pluck, take } from "rxjs/operators";
-import { tag } from "rxjs-spy/operators";
-
-
+import { of, combineLatest, pipe, from } from "rxjs";
+import { tap, map, filter, mergeMap, retryWhen, catchError, take } from "rxjs/operators";
+import { safeAssign } from "utils/safeAssign";
+// import { tag } from "rxjs-spy/operators";
 
 
 /**
@@ -37,23 +36,10 @@ export const createPromiseFromOperator = (operator, ...config) => item => {
  * observable primary key as a source observable
  * @param {Observable<RxCollection>} collection$
  */
-export const getItem = (collection$, debug = false) => pipe(
+export const getItem = collection$ => pipe(
     filter(Boolean),
-    getItemQuery(collection$, debug),
-    mergeMap(query => query.$)
-)
-
-export const getItemQuery = (collection$, debug = false) => pipe(
     withLatestFromDb(collection$),
-    tap(([ key, coll ]) => {
-        if (debug) {
-            console.log("getCachedItem", coll.name, key)
-        }
-    }),
-    map(([ key, coll ]) => {
-        const keyField = coll.schema.primaryPath;
-        return coll.findOne().where(keyField).eq(key);
-    })
+    mergeMap(([ key, coll ]) => coll.findOne(key).$)
 )
 
 
@@ -67,7 +53,7 @@ export const setItem = (collection$, debug = false) => pipe(
         return from(coll.upsert(item)).pipe(
             retryWhen(err => err.pipe(
                 filter(err => err.name == "conflict"),
-                tag('setItem 409 error'),
+                // tag('setItem 409 error'),
                 take(1)
             )),
             catchError((err, caught) => {
@@ -94,3 +80,14 @@ export const deleteItem = collection$ => pipe(
     })
 )
 
+
+
+/**
+ * Update a few fields in a document
+ */
+export const updateDocFields = () => pipe(
+    mergeMap(async ([ doc, updated ]) => {
+        await doc.atomicUpdate(old => safeAssign(old, updated));
+        return doc;
+    })
+)

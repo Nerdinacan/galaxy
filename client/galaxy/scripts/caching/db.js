@@ -1,10 +1,11 @@
 import RxDB from "rxdb";
 import idb from "pouchdb-adapter-idb";
 import { of } from "rxjs";
-import { tap, shareReplay, mergeMap, switchMapTo, retryWhen, take, delay } from "rxjs/operators";
-import { dbConfig, historySchema, historyContentSchema, datasetSchema, datasetCollectionSchema, paramDateSchema } from "./schema";
+import { tap, shareReplay, mergeMap, switchMapTo, retryWhen,
+    take, delay } from "rxjs/operators";
+import { dbConfig, historySchema, historyContentSchema, datasetSchema,
+    datasetCollectionSchema, paramDateSchema } from "./schema";
 import moment from "moment";
-
 
 RxDB.plugin(idb);
 
@@ -47,7 +48,7 @@ export const db$ = dbConfig$.pipe(
  */
 
 export function initCollection(config) {
-    
+
     const { name } = config;
 
     return db$.pipe(
@@ -88,7 +89,7 @@ const dateMethods = {
 export const history$ = initCollection({
     name: "history",
     schema: historySchema,
-    methods: { 
+    methods: {
         ...dateMethods
     }
 })
@@ -123,6 +124,7 @@ export const historyContent$ = initCollection({
 
     }
 })
+
 
 export const dataset$ = initCollection({
     name: "dataset",
@@ -161,13 +163,15 @@ export const dataset$ = initCollection({
     }
 })
 
+
 export const datasetCollection$ = initCollection({
     name: "datasetcollection",
     schema: datasetCollectionSchema,
-    methods: { 
+    methods: {
         ...dateMethods
     }
 })
+
 
 export const paramDateCollection$ = initCollection({
     name: "paramdatecollection",

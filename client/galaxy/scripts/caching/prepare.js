@@ -84,14 +84,11 @@ export function prepareDatasetCollection(raw) {
         dsc.purged = false;
     }
 
+    // dataset collections have no update time, so we keep track of it ourself
+    // TODO: add update_time to hdca table
     if (!raw.update_time) {
         dsc.update_time = (new Date()).toISOString();
     }
-
-    console.group("prepareDatasetCollection")
-    console.log("raw", raw);
-    console.log("dsc", dsc);
-    console.groupEnd();
 
     return dsc;
 }

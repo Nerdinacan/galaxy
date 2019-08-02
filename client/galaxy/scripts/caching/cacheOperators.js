@@ -4,7 +4,7 @@ import { history$, historyContent$, dataset$,
     datasetCollection$, paramDateCollection$ } from "./db";
 import { prepareHistory, prepareContentSummary,
     prepareDataset, prepareDatasetCollection } from "./prepare";
-import { getItem, setItem, deleteItem, getItemQuery } from "./genericOperators";
+import { getItem, setItem, deleteItem } from "./genericOperators";
 
 // import { create } from "rxjs-spy";
 // import { tag } from "rxjs-spy/operators";
@@ -55,7 +55,7 @@ export const cacheParamDate = debug => pipe(
 // when we cache a dataset, cache the corresponding content too
 
 export const cacheDataset = debug => pipe(
-    tap(input => of(input).pipe(
+    tap(ds => of(ds).pipe(
         cacheContent(debug)
     ).subscribe()),
     map(prepareDataset),
@@ -63,7 +63,7 @@ export const cacheDataset = debug => pipe(
 )
 
 export const cacheDatasetCollection = debug => pipe(
-    tap(input => of(input).pipe(
+    tap(dsc => of(dsc).pipe(
         cacheContent(debug)
     ).subscribe()),
     map(prepareDatasetCollection),
@@ -125,3 +125,12 @@ export function flushCachedDataset(ds) {
 
 
 // }
+
+
+export async function cacheDatasetFields(dataset, fields) {
+    console.log("cacheDatasetFields", dataset, fields);
+}
+
+export async function cacheDscFields(dsc, fields) {
+    console.log("cacheDscFields", dsc, fields);
+}

@@ -7,54 +7,31 @@
                 <a href="#" @click="toggle('showFilter')">
                     <span>{{ countShown }}/{{ history.hid_counter }}</span>
                 </a>
-                <!-- 
-                <span v-if="history.contents_active.hidden">
-                    <a v-if="!params.showHidden" href="#" @click="params.showHidden = true">
-                        {{ history.contents_active.hidden }} hidden
-                    </a>
-                    <a v-if="params.showHidden" href="#" @click="params.showHidden = false">
-                        hide hidden
-                    </a>
-                </span>
-                <span v-if="history.contents_active.deleted">
-                    <a v-if="!params.showDeleted" href="#" @click="params.showDeleted = true">
-                        {{ history.contents_active.deleted }} deleted
-                    </a>
-                    <a v-if="params.showDeleted" href="#" @click="params.showDeleted = false">
-                        hide deleted
-                    </a>
-                </span>
-                -->
             </h6>
-            <!-- #region Filter Menu Toggles -->
             <icon-menu class="no-border">
-                <icon-menu-item title="Filter History Content" 
-                    icon="filter" 
+                <icon-menu-item title="Filter History Content"
+                    icon="filter"
                     @click="toggle('showFilter')"
                     :active="showFilter"
                     tooltip-placement="topleft" />
-                <icon-menu-item title="Operations on multiple datasets" 
+                <icon-menu-item title="Operations on multiple datasets"
                     icon="check-square-o"
-                    @click="toggle('showSelection')" 
+                    @click="toggle('showSelection')"
                     :active="showSelection"
                     tooltip-placement="topleft" />
-                <icon-menu-item id="datasetMenuGear" 
-                    title="Dataset Operations" 
-                    icon="cog" 
+                <icon-menu-item id="datasetMenuGear"
+                    title="Dataset Operations"
+                    icon="cog"
                     :useTooltip="false" />
             </icon-menu>
-            <!-- #endregion -->
         </header>
 
-        <!-- #region search parameters -->
         <transition name="shutterfade">
-            <content-filters v-if="showFilter" 
-                class="content-filters mt-1" 
+            <content-filters v-if="showFilter"
+                class="content-filters mt-1"
                 v-model="params" :history="history" />
         </transition>
-        <!-- #endregion -->
 
-        <!-- #region dataset selection -->
         <transition name="shutterfade">
             <b-button-toolbar v-if="showSelection" class="content-selection justify-content-between mt-1">
                 <b-button-group>
@@ -64,8 +41,8 @@
                     <b-button size="sm" @click="clearSelection">
                         {{ 'Unselect All' | localize }}
                     </b-button>
-                    <!-- #region "With Selected" Dropdown -->
-                    <b-dropdown size="sm" text="With Selected" :disabled="!hasSelection" boundary="viewport">
+                    <b-dropdown size="sm" text="With Selected"
+                        :disabled="!hasSelection" boundary="viewport">
                         <b-dropdown-item @click="hideDatasets">
                             {{ 'Hide Datasets' | localize }}
                         </b-dropdown-item>
@@ -94,13 +71,10 @@
                             {{ 'Build Collection from Rules' | localize }}
                         </b-dropdown-item>
                     </b-dropdown>
-                    <!-- #endregion -->
                 </b-button-group>
             </b-button-toolbar>
         </transition>
-        <!-- #endregion -->
 
-        <!-- #region dataset operation menu -->
         <b-popover ref="datasetMenu" target="datasetMenuGear" placement="bottomleft" triggers="click blur">
 
             <gear-menu #default="{ go, backboneGo, iframeGo, eventHub }" @clicked="closeMenu('datasetMenu')">
@@ -129,9 +103,6 @@
                 </div>
             </gear-menu>
         </b-popover>
-        <!-- #endregion -->
-
-        <!-- #region modal boxes  -->
 
         <b-modal id="show-hidden-content" title="Show Hidden Datasets" title-tag="h2" @ok="showHidden">
             <p>{{ messages.unhideContent | localize }}</p>
@@ -144,11 +115,10 @@
         <b-modal id="purge-deleted-content" title="Purge Deleted Datasets" title-tag="h2" @ok="purgeDeleted">
             <p>{{ messages.purgeDeletedContent | localize }}</p>
         </b-modal>
-        
-        <!-- #endregion-->
 
     </section>
 </template>
+
 
 <script>
 
@@ -160,11 +130,11 @@ import { eventHub } from "components/eventHub";
 import { SearchParams } from "../model/SearchParams";
 
 // temporary adapters use old backbone modals until I rewrite them
-import { 
-    datasetListModal, 
-    datasetPairModal, 
-    listOfPairsModal, 
-    collectionFromRulesModal 
+import {
+    datasetListModal,
+    datasetPairModal,
+    listOfPairsModal,
+    collectionFromRulesModal
 } from "../adapters/backboneListModals";
 
 
@@ -265,8 +235,6 @@ export default {
             }
         },
 
-        //#region content selection
-
         selectAllVisibleContent() {
             this.updateSelection(this.content);
         },
@@ -281,10 +249,6 @@ export default {
                 selection: content
             })
         },
-
-        //#endregion
-
-        //#region Bulk Operations
 
         showHidden(evt) {
             this.showAllHiddenContent()
@@ -347,13 +311,11 @@ export default {
         purgeDatasets() {
             console.log("purgeDatasets");
         },
-        //#endregion
 
-        //#region Legacy backbone modals for collection assembly 
         async buildDatasetList() {
             const modalSelection = await datasetListModal(this.currentSelection);
-            const result = await this.createCollection({ 
-                history: this.history, 
+            const result = await this.createCollection({
+                history: this.history,
                 selection: modalSelection
             })
             console.log("buildDatasetList", result);
@@ -361,8 +323,8 @@ export default {
 
         async buildDatasetPair() {
             const modalSelection = await datasetPairModal(this.currentSelection)
-            const result = await this.createCollection({ 
-                history: this.history, 
+            const result = await this.createCollection({
+                history: this.history,
                 selection: modalSelection
             })
             console.log("buildDatasetPair", result);
@@ -370,8 +332,8 @@ export default {
 
         async buildListOfPairs() {
             const modalSelection = await listOfPairsModal(this.currentSelection)
-            const result = await this.createCollection({ 
-                history: this.history, 
+            const result = await this.createCollection({
+                history: this.history,
                 selection: modalSelection
             })
             console.log("buildListOfPairs", result);
@@ -379,16 +341,13 @@ export default {
 
         async buildCollectionFromRules() {
             const modalSelection = await collectionFromRulesModal(this.currentSelection)
-            const result = await this.createCollection({ 
-                history: this.history, 
+            const result = await this.createCollection({
+                history: this.history,
                 selection: modalSelection
             })
             console.log("buildCollectionFromRules", result);
         },
-        //#endregion
 
-        //#region Fixes for Bootstrap's many inadequacies
-        
         // need to do this because bootstrap's components never close
         // as advertised
         closeMenu(refName) {
@@ -396,8 +355,6 @@ export default {
                 this.$refs[refName].$emit('close');
             }
         }
-
-        //#endregion
 
     },
     watch: {
@@ -415,8 +372,8 @@ export default {
 
 <style lang="scss" scoped>
 
-@import "~scss/mixins.scss";
-@import "~scss/transitions.scss";
+@import "scss/mixins.scss";
+@import "scss/transitions.scss";
 
 section>header {
     @include flexRowHeader();

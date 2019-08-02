@@ -1,122 +1,144 @@
-import { of, zip, concat, pipe } from "rxjs";
-import { filter, map, pluck, share, take } from "rxjs/operators";
-import { ajax } from "rxjs/ajax";
-import { getCachedContent, getCachedDataset, cacheDataset, getCachedDatasetCollection, cacheDatasetCollection } from "caching";
+import { of, zip, pipe, combineLatest, forkJoin, from } from "rxjs";
+import { tap, filter, map, pluck, share, take } from "rxjs/operators";
+import { getCachedContent, getCachedDataset, getCachedDatasetCollection,
+    cacheDataset, cacheDatasetCollection, updateDocFields } from "caching";
 import { firstItem, ajaxGet } from "utils/observable";
-import { prependPath } from "utils/redirect";
-import { buildUpdateUrl } from "./ContentLoader/buildUpdateUrl";
+import { safeAssign } from "utils/safeAssign";
+import { updateContentFields } from "./queries";
 
 // import { create } from "rxjs-spy";
 // import { tag } from "rxjs-spy/operators";
 // window.spy = create();
 
 
-// returns a dataset observable based on passed content item
-export function Dataset$(content) {
+/**
+ * Generates a datset observable from source content. Updates self if dataset
+ * data is too stale.
+ * @param {*} content$
+ */
+export function Dataset$(content$) {
 
-    // load local dataset based from content
-    const getExistingDataset = () => pipe(
+    // lookup function that takes content and
+    // finds the dataset we're looking for,
+    // typically one of the "getCachedX" functions
+    const lookupFn = debug => pipe(
         pluck('id'),
-        getCachedDataset()
-    )
+        getCachedDataset(debug),
+        take(1)
+    );
 
-    return of(content).pipe(
-        getFresh(getExistingDataset, cacheDataset)
+    return content$.pipe(
+        tap(checkForUpdates({
+            debug: false,
+            lookupFn,
+            storeFn: cacheDataset
+        })),
+        pluck("id"),
+        getCachedDataset(),
     )
 }
-
 
 export function DatasetCollection$(type_id) {
 
-    const getExistingCollection = () => pipe(
+    const lookupFn = debug => pipe(
         pluck('id'),
-        getCachedDatasetCollection(),
+        getCachedDatasetCollection(debug),
         take(1)
-    )
+    );
 
-    // get content by passed type_id
-    const content$ = of(type_id).pipe(
+    return of(type_id).pipe(
         getCachedContent(),
-        take(1)
-    )
-
-    return content$.pipe(
-        getFresh(getExistingCollection, cacheDatasetCollection)
+        tap(checkForUpdates({
+            debug: false,
+            lookupFn,
+            storeFn: cacheDatasetCollection
+        })),
+        pluck("id"),
+        getCachedDatasetCollection(),
     )
 }
 
 
-export const getFresh = (loader, cacher) => c$ => {
+/**
+ * Side effect, looks at the content, compares with a lookup dataset or dataset
+ * collection. If that collection is stale, retrieves a new version from server
+ * and caches it locally. Configuration allows for customization of the lookup
+ * and cache operators, but in practice it'll probably just be a combination of
+ * the standard cacheDataset/getDataset functions.
+ */
+const checkForUpdates = config => c => {
 
-    const content$ = c$.pipe(
-        share()
+    const { lookupFn, storeFn, debug = false } = config;
+
+    const content$ = of(c);
+
+    // dataset or collection
+    const ds$ = content$.pipe(
+        lookupFn(debug)
     );
 
-    // current dataset data in indexDB
-    const existing$ = content$.pipe(
-        loader()
-    );
-
-    // compare to content, if content is newer, that means polling picked
-    // up an update and we have to retrieve the new dataset
-    const stale$ = zip(content$, existing$).pipe(
+    const stale$ = zip(content$, ds$).pipe(
         filter(([ content, item ]) => {
             if (!item) return true;
             return item.getUpdateDate().isBefore(content.getUpdateDate());
         })
     )
 
-    // actual request
     const retrievedVersion$ = stale$.pipe(
-        map(buildUpdateUrl),
+        map(buildDatasetUpdateUrl),
         ajaxGet(),
         firstItem(),
-        cacher(true)
+        storeFn(debug)
     )
 
-    // if server lookup never emits, take original value
-    return concat(retrievedVersion$, existing$).pipe(
+    retrievedVersion$.subscribe({
+        next: item => console.log("checkForUpdates", item),
+        error: err => console.warn("checkForUpdates", err),
+        // complete: () => console.log("checkForUpdates complete")
+    });
+}
+
+function buildDatasetUpdateUrl([ content, item = null ]) {
+    const { history_id, type_id } = content;
+    const base = `/api/histories/${history_id}/contents?v=dev&view=detailed`;
+    const hidClause = `q=type_id-in&qv=${type_id}`;
+    const parts = [ base, hidClause ];
+    return parts.filter(o => o.length).join("&");
+}
+
+
+// This function actually works for both datasets and collections
+
+export function updateDataset(dataset, inputFields) {
+
+    const dataset$ = of(dataset);
+
+    const content$ = dataset$.pipe(
+        pluck('type_id'),
+        getCachedContent(),
         take(1)
-    )
-}
-
-
-
-export function updateContentFields(content, fields = {}) {
-
-    const { history_id, id } = content;
-    const body = {
-        ...fields,
-        type: content.history_content_type
-    }
-    const url = prependPath(`/api/histories/${history_id}/contents/${id}`);
-    const request = { method: "PUT", url, body };
-
-    return ajax(request).pipe(
-        filter(ajaxResponse => ajaxResponse.status == 200),
-        pluck('response')
     );
+
+    // ajax call to update fields
+    const savePromise = updateContentFields(dataset, inputFields);
+    const savedFields$ = from(savePromise).pipe(
+        map(updated => safeAssign(inputFields, updated)),
+        take(1),
+        share()
+    );
+
+    // cache in dataset/datasetCollection rxdb collection
+    const cachedDataset$ = combineLatest(dataset$, savedFields$).pipe(
+        updateDocFields()
+    );
+
+    // cache in content summary
+    const cachedContent$ = combineLatest(content$, savedFields$).pipe(
+        updateDocFields()
+    );
+
+    // wait for all thats
+    return forkJoin([ cachedDataset$, cachedContent$ ]);
 }
 
 
-
-
-// TODO: maybe don't bother caching the response since polling should pick it up?
-
-// export function updateDatasetFields(ds, fields = {}) {
-//     return updateContentFields(ds, fields).pipe(
-//         cacheDataset(true)
-//     );
-// }
-
-// export function updateCollectionFields(dsc, fields = {}) {
-//     return updateContentFields(dsc, fields).pipe(
-//         // for whatever incompetent reasons, the api is inconsistent here
-//         // the dataset collection response does not include the requested view
-//         // in the same way the exact same call with a dataset does. Need to go
-//         // get the values again.
-//         tap(response => {
-//             console.log("updated collection fields", response)
-//         })
-//     )
-// }

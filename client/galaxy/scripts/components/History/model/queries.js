@@ -183,7 +183,7 @@ export async function createDatasetCollection(history, inputs = {}) {
     }
 
     const url = prependPath(`/api/histories/${history.id}/contents?v=dev&view=summary&keys=accessible`);
-    const payload = safeAssign(Object.assign({}, template), inputs);
+    const payload = safeAssign(template, inputs);
 
     const response = await axios.post(url, payload);
     if (response.status != 200) {
@@ -192,7 +192,6 @@ export async function createDatasetCollection(history, inputs = {}) {
 
     return response.data;
 }
-
 
 
 export async function loadToolFromDataset(dataset) {
@@ -204,4 +203,22 @@ export async function loadToolFromDataset(dataset) {
     const toolResponse = await axios.get(toolUrl);
     const tool = toolResponse.data;
     return tool;
+}
+
+
+
+
+// Update specific fields on datasets and collections,
+// Need to update both content & main object, important that
+// we update right as this happens since the polling will not pick
+// update chagnes to the dataset collection data exposes no update_time
+
+export async function updateContentFields(content, body = {}) {
+    const { history_id, id, history_content_type: type } = content;
+    const url = prependPath(`/api/histories/${history_id}/contents/${type}s/${id}`);
+    const response = await axios.put(url, body);
+    if (response.status != 200) {
+        throw new Error(response);
+    }
+    return response.data;
 }

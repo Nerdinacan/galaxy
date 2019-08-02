@@ -43,7 +43,7 @@ export default {
         contentItemComponent() {
             return this.content.history_content_type;
         },
-        
+
     },
     methods: {
         focusMe() {
@@ -64,6 +64,7 @@ export default {
     outline: none;
     border-style: none;
     border-width: none;
+
     &:focus,
     &:focus-within {
         box-shadow: inset 0 0 1em 0.25em rgba(255,255,255,0.25);

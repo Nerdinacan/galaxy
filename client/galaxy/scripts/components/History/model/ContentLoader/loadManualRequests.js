@@ -1,7 +1,7 @@
 import { Subject, merge, from } from "rxjs";
 import { mergeMap, tap, pluck, share, map, withLatestFrom } from "rxjs/operators";
 import { ajaxGet, distinctInSet } from "utils/observable";
-import { SearchParams } from "./SearchParams";
+import { SearchParams } from "../SearchParams";
 
 
 // keeps a list of all previously requested urls since page-load

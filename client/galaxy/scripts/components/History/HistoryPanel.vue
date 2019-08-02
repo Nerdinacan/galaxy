@@ -1,17 +1,12 @@
 <template>
     <div class="d-flex flex-column ml-1 h-100">
         <history-top-nav class="px-3 pt-3 pb-0" />
-        
-        <transition name="fade">
-            <history v-if="currentHistoryId && !selectedCollection"
-                :history-id="currentHistoryId" />
-        </transition>
-
-        <transition name="fade">
-            <dataset-collection-panel v-if="currentHistoryId && selectedCollection" 
-                :history-id="currentHistoryId"
-                :type-id="selectedCollection" />
-        </transition>
+        <history v-if="currentHistoryId && !selectedCollection"
+            :history-id="currentHistoryId" />
+        <dataset-collection-panel
+            v-if="currentHistoryId && selectedCollection"
+            :history-id="currentHistoryId"
+            :type-id="selectedCollection" />
     </div>
 </template>
 
@@ -35,7 +30,12 @@ export default {
         selectedCollection() {
             return this.currentCollection(this.currentHistoryId)
         }
-    } 
+    }
 }
 
 </script>
+
+<style lang="scss">
+@import "scss/transitions.scss";
+</style>
+

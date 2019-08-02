@@ -1,15 +1,16 @@
 <template>
-    <div :class="{ expanded, collapsed: !expanded, selected }" 
+    <div :class="{ expanded, collapsed: !expanded, selected }"
         :data-state="content.state"
-        @keydown.self="onKeydown" @mouseover="focusMe">
+        @keydown.self="onKeydown"
+        @mouseover="focusMe">
 
-        <nav class="content-top-menu d-flex justify-content-between" 
+        <nav class="content-top-menu d-flex justify-content-between"
             @click="toggle('expand')">
 
             <icon-menu class="status-menu">
                 <icon-menu-item v-if="showSelection"
-                    :active="selected"
                     icon="check"
+                    :active="selected"
                     @click.stop="toggle('selected')" />
                 <icon-menu-item :active="expanded"
                     :icon="expanded ? 'chevron-up' : 'chevron-down'"
@@ -21,7 +22,7 @@
                 <icon-menu-item icon="exclamation" />
                 -->
             </icon-menu>
-            
+
             <div class="hid flex-grow-1">
                 <span>{{ content.hid }}</span>
             </div>
@@ -32,14 +33,14 @@
         <header v-if="!expanded" class="px-3 py-2" >
             <h4>
                 <a href="#" @click.stop="toggle('expand')">
-                    {{ content.title() }}
+                    {{ title }}
                 </a>
             </h4>
             <nametags :tags="content.tags" :storeKey="tagStoreName" />
         </header>
 
         <header v-if="expanded" class="p-3" @mouseover.stop>
-            <click-to-edit v-if="datasetName" 
+            <click-to-edit v-if="datasetName"
                 tagName="h4" v-model="datasetName" />
             <annotation class="mt-1"
                 tooltip-placement="left"
@@ -68,9 +69,12 @@
                     </div>
                 </div>
 
-                <pre v-if="dataset.peek" class="dataset-peek" v-html="dataset.peek"></pre>
+                <pre v-if="dataset.peek" class="dataset-peek"
+                    v-html="dataset.peek"></pre>
 
-                <div v-if="showToolHelp && toolHelp" v-html="toolHelp" class="toolhelp"></div>
+                <div v-if="showToolHelp && toolHelp" class="toolhelp"
+                    v-html="toolHelp"></div>
+
                 <div v-if="showToolHelp && !toolHelp" class="toolhelp">
                     <strong>Tool help is unavailable for this dataset.</strong>
                 </div>
@@ -87,11 +91,12 @@
 <script>
 
 import { mapGetters, mapActions } from "vuex";
+import { pluck, startWith, tap } from "rxjs/operators";
 import { capitalize, camelize } from "underscore.string";
-
-import { Dataset$, updateContentFields } from "../model/Dataset$";
-import { loadToolFromDataset } from "../model/queries";
 import { eventHub } from "components/eventHub";
+
+import { loadToolFromDataset } from "../model/queries";
+import { Dataset$, updateDataset } from "../model/Dataset$";
 import STATES from "mvc/dataset/states";
 
 import Annotation from "components/Form/Annotation";
@@ -100,7 +105,7 @@ import { IconMenu, IconMenuItem } from "components/IconMenu";
 import { Nametags } from "components/Nametags";
 import DatasetTags from "./DatasetTags";
 import DatasetMenu from "./DatasetMenu";
-import { Discarded, Empty, Error, New, NotViewable, Ok, Paused, 
+import { Discarded, Empty, Error, New, NotViewable, Ok, Paused,
     Queued, Running, SettingMetadata, Upload } from "./Summary";
 
 
@@ -132,7 +137,9 @@ export default {
     },
     data() {
         return {
+
             loading: false,
+
             dataset: null,
             expand: false,
             showTags: false,
@@ -176,22 +183,22 @@ export default {
 
         annotation: {
             get() {
-                return this.dataset.annotation || "";
+                return this.dataset ? this.dataset.annotation : "";
             },
-            set(annotation, oldAnnotation) {
-                if (annotation !== oldAnnotation) {
-                    this.updateDataset({ annotation });
+            set(annotation) {
+                if (annotation !== this.dataset.annotation) {
+                    this.updateModel({ annotation });
                 }
             }
         },
 
         datasetName: {
             get() {
-                return this.dataset.name;
+                return this.dataset ? this.dataset.name : "";
             },
-            set(name, oldName) {
-                if (name !== oldName) {
-                    this.updateDataset({ name });
+            set(name) {
+                if (name !== this.dataset.name) {
+                    this.updateModel({ name });
                 }
             }
         },
@@ -215,6 +222,10 @@ export default {
             return capitalize(camelize(state));
         },
 
+        title() {
+            return this.content.title();
+        }
+
     },
     methods: {
 
@@ -226,16 +237,20 @@ export default {
         displaySelection(val) {
             this.showSelection = val;
         },
- 
+
         load() {
             if (!this.datasetSub) {
+
+                const content$ = this.$watchAsObservable('content').pipe(
+                    pluck('newValue'),
+                    startWith(this.content)
+                );
+
                 this.datasetSub = this.$subscribeTo(
-                    Dataset$(this.content),
-                    ds => {
-                        this.loading = false;
-                        this.dataset = ds;
-                    },
-                    err => console.warn("Dataset observable err", err)
+                    Dataset$(content$),
+                    ds => this.dataset = ds,
+                    err => console.warn("datasetSub err", err),
+                    () => console.log("datasetSub complete")
                 )
             }
         },
@@ -243,20 +258,17 @@ export default {
         unload() {
             if (this.datasetSub) {
                 this.datasetSub.unsubscribe();
-                this.dataset = null;
-                this.loading = false;
                 this.datasetSub = null;
             }
         },
 
-        async updateDataset(fields) {
-            try {
-                this.loading = true;
-                await updateContentFields(this.dataset, fields).toPromise();
-            } catch(err) {
-                this.loading = false;
-                console.warn("boo", err);
-            }
+        updateModel(fields) {
+            this.loading = true;
+            return updateDataset(this.dataset, fields)
+                .toPromise()
+                .finally(() => {
+                    this.loading = false;
+                })
         },
 
         toggle(paramName, forceVal) {
@@ -343,9 +355,12 @@ export default {
 <style lang="scss" scoped>
 
 @import "theme/blue.scss";
-@import "~scss/mixins.scss";
+@import "scss/mixins.scss";
+@import "scss/transitions.scss";
+
 
 /* enlarge input to match h4 */
+
 header /deep/ .clickToEdit input {
     font-size: $h4-font-size;
     font-weight: 500;

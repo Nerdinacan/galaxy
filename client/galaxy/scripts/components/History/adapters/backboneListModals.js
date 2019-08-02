@@ -7,20 +7,20 @@
 import jQuery from "jquery";
 import atrocities from "mvc/collection/list-collection-creator";
 import warcrimes from "mvc/collection/pair-collection-creator";
-import republicans from "mvc/collection/list-of-pairs-collection-creator";
+import lawyers from "mvc/collection/list-of-pairs-collection-creator";
 
 export async function datasetListModal(selection) {
     const fn = _createCollectionModal(atrocities.createListCollection);
     return await fn(selection);
 }
 
-export async function datasetPairModal(selection) {    
+export async function datasetPairModal(selection) {
     const fn = _createCollectionModal(warcrimes.createPairCollection);
     return await fn(selection);
 }
 
 export async function listOfPairsModal(selection) {
-    const fn = _createCollectionModal(republicans.createListOfPairsCollection);
+    const fn = _createCollectionModal(lawyers.createListOfPairsCollection);
     return await fn(selection);
 }
 
@@ -40,11 +40,11 @@ const _createCollectionModal = modalHandler => async (selection) => {
         // result must be a $.Deferred object instead of a promise because
         // that's the kind of deprecated data format that backbone likes to use.
         createHDCA(
-            element_identifiers, 
-            collection_type, 
-            name, 
-            hide_source_items, 
-            copy_elements, 
+            element_identifiers,
+            collection_type,
+            name,
+            hide_source_items,
+            copy_elements,
             options = {}
         ) {
             const def = jQuery.Deferred();

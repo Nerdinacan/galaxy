@@ -106,7 +106,7 @@ export default {
     methods: {
 
         ...mapActions("history", [
-            "copyHistory", 
+            "copyHistory",
             "selectCurrentHistory"
         ]),
 
@@ -131,7 +131,6 @@ export default {
 
 </script>
 
-
 <style lang="scss">
-    @import "~scss/transitions.scss";
+@import "scss/transitions.scss";
 </style>

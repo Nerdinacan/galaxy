@@ -5,8 +5,8 @@
             <h6>{{ niceSize | localize }}</h6>
             <slot name="menu">
                 <icon-menu class="no-border">
-                    <icon-menu-item title="Edit History Tags" 
-                        icon="tags" 
+                    <icon-menu-item title="Edit History Tags"
+                        icon="tags"
                         :active="showTags"
                         @click="toggle('showTags')"
                         tooltip-placement="topleft" />
@@ -33,8 +33,6 @@
         <transition name="shutterfade">
             <history-tags v-if="showTags" class="history-tags mt-2" :history="history" />
         </transition>
-
-        <!-- #region menus and modals -->
 
         <b-popover ref="downloadMenu" target="historyDownloadMenu" placement="bottomleft" triggers="click blur">
             <gear-menu #default="{ go }">
@@ -90,8 +88,6 @@
         <b-modal id="make-private-modal" title="Make History Private" title-tag="h2" @ok="makePrivate">
             <p>{{ messages.makePrivatePrompt | localize }}</p>
         </b-modal>
-
-        <!-- #endregion -->
 
     </section>
 </template>
@@ -254,8 +250,8 @@ export default {
 <style lang="scss" scoped>
 
 @import "theme/blue.scss";
+@import "scss/transitions.scss";
 
-/* enlarge title input text to match h2 */
 .history-title /deep/ h2 input {
     font-size: $h2-font-size;
     font-weight: 500;

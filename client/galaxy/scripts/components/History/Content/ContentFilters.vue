@@ -8,12 +8,12 @@
 
         <b-input-group-append>
             <b-button size="sm" v-if="history.contents_active.deleted"
-                :variant="params.showDeleted ? 'info' : 'secondary'" 
+                :variant="params.showDeleted ? 'info' : 'secondary'"
                 @click="params.showDeleted = !params.showDeleted">
                 {{ 'Deleted' | localize }}
             </b-button>
             <b-button size="sm" v-if="history.contents_active.hidden"
-                :variant="params.showHidden ? 'info' : 'secondary'" 
+                :variant="params.showHidden ? 'info' : 'secondary'"
                 @click="params.showHidden = !params.showHidden">
                 {{ 'Hidden' | localize }}
             </b-button>

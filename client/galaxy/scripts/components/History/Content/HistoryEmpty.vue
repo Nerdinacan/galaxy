@@ -6,10 +6,9 @@
         </h4>
         <p class="m-0">
             <span v-localize>You can</span>
-            <a @click.prevent="openUploader" v-localize href="#">load your own data</a>
+            <a href="#" @click.prevent="openUploader" v-localize>load your own data</a>
             <span v-localize>or</span>
-            <a @click.prevent="getDataLink" v-localize href="#">get data from an
-            external source</a>.
+            <a href="#" @click.prevent="getDataLink" v-localize>get data from an external source</a>.
         </p>
     </div>
 </template>

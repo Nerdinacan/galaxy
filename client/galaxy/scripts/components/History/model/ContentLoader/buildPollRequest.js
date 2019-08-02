@@ -12,6 +12,8 @@ import moment from "moment";
 export const stopPolling = createInputFunction();
 
 
+
+
 /**
  * Generates an observable for a single poll request for a given history id
  * @param {string} id History Id
