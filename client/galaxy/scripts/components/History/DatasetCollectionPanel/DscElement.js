@@ -8,9 +8,11 @@
 // const _elementProps = new WeakMap();
 
 export default class DscElement {
+
     constructor(props) {
         Object.assign(this, props);
     }
+
 }
 
 // export default class DscElement {
@@ -59,32 +61,24 @@ export default class DscElement {
 //         _elementProps.set(this, newProps)
 //     }
 
-
-
 //     get history_content_type() {
 //         return this.elProps.element_type;
 //     }
-
 //     set history_content_type(val) {
 //         this.updateElProps("history_content_type", val);
 //     }
-
 //     get name() {
 //         return this.elProps.element_identifier;
 //     }
-
 //     set name(val) {
 //         this.updateElProps("name", val);
 //     }
-
 //     get type_id() {
 //         return `${this.history_content_type}-${this.id}`;
 //     }
-
 //     set type_id(val) {
 //         this.updateElProps("type_id", val);
 //     }
-
 //     get title() {
 //         return this.name;
 //     }

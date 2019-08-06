@@ -25,11 +25,7 @@
 
         <header class="px-3 py-2" v-if="content">
             <h4><a href="#">{{ content.name }}</a></h4>
-            <p class="m-0">
-                a {{ collectionType | localize }}
-                {{ collectionCount | localize }}
-            </p>
-            <a target="_new" :href="content.url">{{ content.id }}</a>
+            <collection-description class="m-0" :content="content" />
         </header>
 
         <b-popover ref="deleteMenu"
@@ -64,38 +60,19 @@ import { tap, pluck } from "rxjs/operators";
 import { getCachedContent } from "caching";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
 import GearMenu from "components/GearMenu";
+import CollectionDescription from "./CollectionDescription";
 
 export default {
     components: {
         GearMenu,
         IconMenu,
-        IconMenuItem
+        IconMenuItem,
+        CollectionDescription
     },
     props: {
         content: { type: Object, required: true },
         selected: { type: Boolean, required: false, default: false },
         showSelection: { type: Boolean, required: false, default: false }
-    },
-    computed: {
-
-        collectionType() {
-            switch(this.content.collection_type) {
-                case "list":
-                    return "list"
-                case "paired":
-                    return "dataset pair"
-                case "list:paired":
-                    return "list of pairs";
-                default:
-                    return "nested list";
-            }
-        },
-
-        collectionCount() {
-            const count = this.content.element_count;
-            return count == 1 ? "with 1 item" : `with ${count} items`;
-        }
-
     },
     methods: {
 

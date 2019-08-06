@@ -96,7 +96,7 @@ export default {
 </script>
 
 
-<style lang="scss" scoped>
+<style lang="scss">
 
 @import "theme/blue.scss";
 @import "scss/mixins.scss";
@@ -111,14 +111,14 @@ export default {
         box-shadow: inset 0 0 1em 0.25em rgba(255,255,255,0.25);
     }
 
-    &.collapsed /deep/ header h4 {
+    &.collapsed header h4 {
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
     }
 }
 
-.content-item /deep/ {
+.content-item {
 
     & > header {
         h4,

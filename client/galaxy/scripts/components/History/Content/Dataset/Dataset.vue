@@ -51,7 +51,7 @@
         <transition name="shutterfade">
             <div v-if="expanded" class="details px-3 pb-3">
 
-                <summary :dataset="dataset" class="summary" />
+                <dataset-summary :dataset="dataset" class="summary" />
 
                 <div class="display-applications">
                     <div class="display-application"
@@ -102,7 +102,7 @@ import { IconMenu, IconMenuItem } from "components/IconMenu";
 import { Nametags } from "components/Nametags";
 import DatasetTags from "./DatasetTags";
 import DatasetMenu from "./DatasetMenu";
-
+import Summary from "./Summary";
 
 
 export default {
@@ -113,7 +113,8 @@ export default {
         DatasetTags,
         IconMenu,
         IconMenuItem,
-        Nametags
+        Nametags,
+        "dataset-summary": Summary
     },
     props: {
         content: { type: Object, required: true },

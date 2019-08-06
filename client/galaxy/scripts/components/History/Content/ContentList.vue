@@ -8,9 +8,8 @@
                 @itemIsAboveWindow="onIsAboveWindow"
                 @itemIsBelowWindow="onIsBelowWindow"
                 #default="{ item, index }">
-                <keep-alive>
-                    <content-item :content="item" :tabindex="index" />
-                </keep-alive>
+                <content-item :content="item"
+                    :tabindex="index" />
             </scroller>
         </transition>
 
@@ -38,11 +37,13 @@ import { pluck, filter, debounceTime, distinctUntilChanged } from "rxjs/operator
 import { SearchParams } from "../model/SearchParams";
 import Scroller from "components/Form/Scroller";
 import HistoryEmpty from "./HistoryEmpty";
+import ContentItem from "./ContentItem";
 
 export default {
     components: {
         HistoryEmpty,
-        Scroller
+        Scroller,
+        ContentItem
     },
     props: {
         content: {

@@ -5,6 +5,8 @@
 <script>
 
 import { capitalize, camelize } from "underscore.string";
+import STATES from "mvc/dataset/states";
+
 import Discarded from "./Discarded";
 import Empty from "./Empty";
 import Error from "./Error";
@@ -41,7 +43,7 @@ export default {
                 state = STATES.OK;
             }
             return capitalize(camelize(state));
-        },
+        }
     }
 }
 </script>

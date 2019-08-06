@@ -11,9 +11,13 @@
                         :active="showTags"
                         @click="toggle('showTags')"
                         tooltip-placement="topleft" />
-                    <icon-menu-item id="historyDownloadMenu" title="Downloads" icon="download"
+                    <icon-menu-item id="historyDownloadMenu"
+                        title="Downloads"
+                        icon="download"
                         tooltip-placement="topleft" />
-                    <icon-menu-item id="historyOperationsIcon" title="Current History Operations" icon="cog"
+                    <icon-menu-item id="historyOperationsIcon"
+                        title="Current History Operations"
+                        icon="cog"
                         tooltip-placement="topleft" />
                 </icon-menu>
             </slot>

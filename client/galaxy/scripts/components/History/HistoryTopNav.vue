@@ -4,11 +4,14 @@
         <history-selector class="mr-3" v-model="historyId" />
 
         <icon-menu class="no-border">
-            <icon-menu-item title="Create New History"
-                icon="plus" @click="createHistory"
+            <icon-menu-item
+                title="Create New History"
+                icon="plus"
+                @click="createHistory"
                 tooltip-placement="bottom" />
             <icon-menu-item id="endlessMenuGear"
-                title="History Options" icon="cog"
+                title="History Options"
+                icon="cog"
                 tooltip-placement="bottom" />
         </icon-menu>
 
