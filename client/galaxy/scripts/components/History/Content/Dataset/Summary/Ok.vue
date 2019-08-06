@@ -1,28 +1,18 @@
-<template>
+<template functional>
     <div>
-        <div v-if="dataset.misc_blurb" class="blurb">
-            <span class="value">{{ dataset.misc_blurb }}</span>
+        <div v-if="props.dataset.misc_blurb" class="blurb">
+            <span class="value">{{ props.dataset.misc_blurb }}</span>
         </div>
-        <div v-if="dataset.file_ext" class="datatype">
+        <div v-if="props.dataset.file_ext" class="datatype">
             <label class="prompt">{{ 'format' | localize }}</label>
-            <span class="value">{{ dataset.file_ext }}</span>
+            <span class="value">{{ props.dataset.file_ext }}</span>
         </div>
-        <div v-if="dataset.metadata_dbkey" class="dbkey">
+        <div v-if="props.dataset.metadata_dbkey" class="dbkey">
             <label class="prompt">{{ 'database' | localize }}</label>
-            <span class="value">{{ dataset.metadata_dbkey }}</span>
+            <span class="value">{{ props.dataset.metadata_dbkey }}</span>
         </div>
-        <div v-if="dataset.misc_info">
-            <span>{{ dataset.misc_info }}</span>
+        <div v-if="props.dataset.misc_info">
+            <span>{{ props.dataset.misc_info }}</span>
         </div>
     </div>
 </template>
-
-<script>
-
-export default {
-    props: {
-        dataset: { type: Object, required: true }
-    }
-}
-
-</script>

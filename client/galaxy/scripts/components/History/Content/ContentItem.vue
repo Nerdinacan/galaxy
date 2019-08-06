@@ -3,28 +3,35 @@
         class="content-item"
         :is="contentItemComponent"
         :content="content"
-        :class="displayClasses" />
+        :class="displayClasses"
+        :showSelection="showSelection"
+        v-bind:selected.sync="selected"
+        @mouseover.native="focusItem" />
 </template>
 
 
 <script>
 
-import { mapGetters } from "vuex";
+import { mapGetters, mapActions } from "vuex";
 import { tap, pluck } from "rxjs/operators";
 import { getCachedContent } from "caching";
-import { DatasetItem } from "./Dataset";
-import { DatasetCollectionItem } from "./DatasetCollection";
+import Dataset from "./Dataset";
+import DatasetCollection from "./DatasetCollection";
 import dasherize from "underscore.string/dasherize";
-
+import { eventHub } from "components/eventHub";
 
 export default {
+    components: {
+        "dataset": Dataset,
+        "dataset_collection": DatasetCollection,
+    },
     props: {
         content: { type: Object, required: true }
     },
-    components: {
-        "dataset": DatasetItem,
-        "dataset_collection": DatasetCollectionItem,
-        "hda": DatasetItem // for collection non-standard
+    data() {
+        return {
+            showSelection: false
+        }
     },
     computed: {
 
@@ -32,8 +39,18 @@ export default {
             "contentIsSelected"
         ]),
 
-        selected() {
-            return this.content ? this.contentIsSelected(this.content) : false;
+        selected: {
+            get() {
+                return this.content ? this.contentIsSelected(this.content) : false;
+            },
+            set(newValue) {
+                const { content } = this;
+                if (newValue) {
+                    this.selectContentItem({ content });
+                } else {
+                    this.unselectContentItem({ content });
+                }
+            }
         },
 
         displayClasses() {
@@ -53,9 +70,26 @@ export default {
 
     },
     methods: {
-        focusMe() {
-            this.$el.focus();
+
+        ...mapActions("history", [
+            "selectContentItem",
+            "unselectContentItem"
+        ]),
+
+        displaySelection(val) {
+            this.showSelection = val;
+        },
+
+        focusItem({ currentTarget }) {
+            currentTarget.focus();
         }
+
+    },
+    created() {
+        eventHub.$on('toggleShowSelection', this.displaySelection);
+    },
+    beforeDestroy() {
+        eventHub.$off('toggleShowSelection', this.displaySelection);
     }
 }
 

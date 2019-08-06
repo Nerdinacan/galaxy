@@ -77,7 +77,6 @@ export default {
 <style lang="scss">
 
 @import "scss/mixins.scss";
-@import "scss/transitions.scss";
 
 .scrollContainer {
 

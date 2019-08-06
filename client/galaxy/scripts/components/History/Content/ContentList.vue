@@ -2,15 +2,15 @@
     <div>
 
         <transition name="fade">
-            <scroller v-if="content.length" :items="content" keyProp="hid"
+            <scroller v-if="content.length"
+                :items="content" keyProp="hid"
                 @itemIsVisible="onIsVisible"
                 @itemIsAboveWindow="onIsAboveWindow"
-                @itemIsBelowWindow="onIsBelowWindow">
-                <template #default="{ item, index }">
-                    <keep-alive>
-                        <content-item :content="item" :tabindex="index" />
-                    </keep-alive>
-                </template>
+                @itemIsBelowWindow="onIsBelowWindow"
+                #default="{ item, index }">
+                <keep-alive>
+                    <content-item :content="item" :tabindex="index" />
+                </keep-alive>
             </scroller>
         </transition>
 
@@ -32,16 +32,15 @@
 
 <script>
 
+import { mapGetters } from "vuex";
 import { combineLatest } from "rxjs";
 import { pluck, filter, debounceTime, distinctUntilChanged } from "rxjs/operators";
-import { mapGetters } from "vuex";
 import { SearchParams } from "../model/SearchParams";
-import HistoryEmpty from "./HistoryEmpty";
 import Scroller from "components/Form/Scroller";
+import HistoryEmpty from "./HistoryEmpty";
 
 export default {
     components: {
-        // ContentItem, // globally registered to avoid recursion issue
         HistoryEmpty,
         Scroller
     },

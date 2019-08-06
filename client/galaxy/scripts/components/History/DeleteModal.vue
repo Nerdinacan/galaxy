@@ -1,11 +1,12 @@
 <template>
-    <b-modal ref="deleteModal" 
+    <b-modal ref="deleteModal"
         title="Delete History"
-        v-model="showModal" 
+        v-model="showModal"
         title-tag="h2">
         <p>Delete?</p>
     </b-modal>
 </template>
+
 
 <script>
 

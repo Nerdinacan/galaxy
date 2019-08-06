@@ -1,13 +1,13 @@
 <template>
     <section v-if="history" class="history d-flex flex-column">
 
-        <header class="flex-grow-0">
+        <header class="flex-grow-0 px-3 pt-3 pb-2">
             <slot name="history-top-nav" :history="history"></slot>
-            <history-messages class="history-messages px-3 pt-3 pb-0"
+            <history-messages class="history-messages"
                 :history="history" />
-            <history-details class="history-details p-3"
+            <history-details class="history-details"
                 :history="history" />
-            <content-selection class="history-content-selection px-3 pb-2"
+            <content-selection class="history-content-selection"
                 :history="history" />
         </header>
 
@@ -52,7 +52,6 @@ export default {
 
         content() {
             const newContent = this.historyContent(this.historyId);
-            // console.log("new content", newContent);
             return newContent;
         },
 
@@ -87,13 +86,3 @@ export default {
 }
 
 </script>
-
-<style lang="scss">
-
-@import "scss/mixins.scss";
-
-.history {
-    @include resetHeaders();
-}
-
-</style>

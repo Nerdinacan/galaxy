@@ -85,6 +85,7 @@ export default {
 
 <style lang="scss" scoped>
 
+@import "theme/blue.scss";
 @import "~scss/mixins.scss";
 
 .clickToEdit {
@@ -98,6 +99,11 @@ export default {
         color: $brand-info;
         font-size: 0.8rem;
     }
+}
+
+h2 input {
+    font-size: $h2-font-size;
+    font-weight: 500;
 }
 
 </style>

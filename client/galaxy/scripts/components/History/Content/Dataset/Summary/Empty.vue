@@ -1,16 +1,5 @@
-<template>
+<template functional>
     <div>
-        <span v-localize>No data</span>: <i>{{ dataset.misc_blurb }}</i>
+        <span v-localize>No data</span>: <i>{{ props.dataset.misc_blurb }}</i>
     </div>
 </template>
-
-<script>
-
-export default {
-    props: {
-        dataset: { type: Object, required: true }
-    }
-}
-
-</script>
-        

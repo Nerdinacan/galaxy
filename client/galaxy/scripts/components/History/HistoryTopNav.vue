@@ -4,10 +4,12 @@
         <history-selector class="mr-3" v-model="historyId" />
 
         <icon-menu class="no-border">
-            <icon-menu-item title="Create New History" icon="plus" @click="createHistory" tooltip-placement="bottom" />
-            <icon-menu-item title="Stop Polling (Debugging)" icon="clock-o" @click="stopPolling"
+            <icon-menu-item title="Create New History"
+                icon="plus" @click="createHistory"
                 tooltip-placement="bottom" />
-            <icon-menu-item id="endlessMenuGear" title="History Options" icon="cog" tooltip-placement="bottom" />
+            <icon-menu-item id="endlessMenuGear"
+                title="History Options" icon="cog"
+                tooltip-placement="bottom" />
         </icon-menu>
 
         <b-popover ref="endlessMenu" target="endlessMenuGear" placement="bottomleft" triggers="click blur">
@@ -42,7 +44,7 @@ import { mapState, mapActions } from "vuex";
 import HistorySelector from "./HistorySelector";
 import GearMenu from "components/GearMenu";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
-import { stopPolling } from "./model/ContentLoader";
+// import { stopPolling } from "./model/ContentLoader";
 
 export default {
     components: {
@@ -81,7 +83,7 @@ export default {
             "deleteCurrentHistory",
         ]),
 
-        stopPolling,
+        // stopPolling,
 
         useLegacyHistoryPanel() {
             sessionStorage.removeItem('useBetaHistory');

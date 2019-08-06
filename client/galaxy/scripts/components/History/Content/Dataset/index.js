@@ -1,1 +1,2 @@
-export { default as DatasetItem } from "./DatasetItem";
+import Dataset from "./Dataset";
+export default Dataset;

@@ -53,6 +53,7 @@
     </b-modal>
 </template>
 
+
 <script>
 
 import { mapActions } from "vuex";
@@ -130,7 +131,3 @@ export default {
 }
 
 </script>
-
-<style lang="scss">
-@import "scss/transitions.scss";
-</style>

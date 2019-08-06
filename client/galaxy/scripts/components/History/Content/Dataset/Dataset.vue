@@ -1,8 +1,7 @@
 <template>
-    <div :class="{ expanded, collapsed: !expanded, selected }"
+    <div :class="{ expanded, collapsed: !expanded }"
         :data-state="content.state"
-        @keydown.self="onKeydown"
-        @mouseover="focusMe">
+        @keydown.self="onKeydown">
 
         <nav class="content-top-menu d-flex justify-content-between"
             @click="toggle('expand')">
@@ -11,7 +10,7 @@
                 <icon-menu-item v-if="showSelection"
                     icon="check"
                     :active="selected"
-                    @click.stop="toggle('selected')" />
+                    @click.stop="toggleSelection" />
                 <icon-menu-item :active="expanded"
                     :icon="expanded ? 'chevron-up' : 'chevron-down'"
                     @click.stop="toggle('expand')" />
@@ -52,8 +51,7 @@
         <transition name="shutterfade">
             <div v-if="expanded" class="details px-3 pb-3">
 
-                <component :is="summaryComponent" :dataset="dataset"
-                    class="summary" />
+                <summary :dataset="dataset" class="summary" />
 
                 <div class="display-applications">
                     <div class="display-application"
@@ -92,7 +90,6 @@
 
 import { mapGetters, mapActions } from "vuex";
 import { pluck, startWith, tap } from "rxjs/operators";
-import { capitalize, camelize } from "underscore.string";
 import { eventHub } from "components/eventHub";
 
 import { Dataset$, updateDataset } from "components/History/model/Dataset$";
@@ -105,8 +102,7 @@ import { IconMenu, IconMenuItem } from "components/IconMenu";
 import { Nametags } from "components/Nametags";
 import DatasetTags from "./DatasetTags";
 import DatasetMenu from "./DatasetMenu";
-import { Discarded, Empty, Error, New, NotViewable, Ok, Paused,
-    Queued, Running, SettingMetadata, Upload } from "./Summary";
+
 
 
 export default {
@@ -117,57 +113,25 @@ export default {
         DatasetTags,
         IconMenu,
         IconMenuItem,
-        Nametags,
-
-        // summaries
-        Discarded,
-        Empty,
-        Error,
-        New,
-        NotViewable,
-        Ok,
-        Paused,
-        Queued,
-        Running,
-        SettingMetadata,
-        Upload
+        Nametags
     },
     props: {
-        content: { type: Object, required: true }
+        content: { type: Object, required: true },
+        selected: { type: Boolean, required: false, default: false },
+        showSelection: { type: Boolean, required: false, default: false }
     },
     data() {
         return {
-
-            loading: false,
-
             dataset: null,
+            loading: false,
             expand: false,
             showTags: false,
             showToolHelp: false,
             showRaw: false,
-            toolHelp: null,
-            showSelection: false
+            toolHelp: null
         }
     },
     computed: {
-
-        ...mapGetters("history", [
-            "contentIsSelected",
-        ]),
-
-        selected: {
-            get() {
-                return this.contentIsSelected(this.content)
-            },
-            set(newValue) {
-                const { content } = this;
-                if (newValue) {
-                    this.selectContentItem({ content });
-                } else {
-                    this.unselectContentItem({ content });
-                }
-            }
-        },
 
         unViewable() {
             return !this.dataset || this.dataset.state === STATES.NOT_VIEWABLE;
@@ -214,29 +178,12 @@ export default {
             return result;
         },
 
-        summaryComponent() {
-            let state = this.dataset.state;
-            if (state == STATES.FAILED_METADATA) {
-                state = STATES.OK;
-            }
-            return capitalize(camelize(state));
-        },
-
         title() {
             return this.content.title();
         }
 
     },
     methods: {
-
-        ...mapActions("history", [
-            "selectContentItem",
-            "unselectContentItem"
-        ]),
-
-        displaySelection(val) {
-            this.showSelection = val;
-        },
 
         load() {
             if (!this.datasetSub) {
@@ -283,6 +230,14 @@ export default {
             }
         },
 
+        toggleSelection() {
+            this.$emit("update:selected", !this.selected);
+        },
+
+        open() {
+            this.toggle('expand', true);
+        },
+
         collapse() {
             this.toggle('expand', false);
         },
@@ -308,7 +263,7 @@ export default {
             switch (evt.code) {
                 case "Space":
                     if (this.showSelection) {
-                        this.toggle('selected');
+                        this.toggleSelection();
                     } else {
                         this.toggle('expand');
                     }
@@ -316,20 +271,16 @@ export default {
                     evt.stopPropagation();
                     break;
                 case "ArrowUp":
-                    this.toggle('expand', false);
+                    this.collapse();
                     evt.preventDefault();
                     evt.stopPropagation();
                     break;
                 case "ArrowDown":
-                    this.toggle('expand', true);
+                    this.open();
                     evt.preventDefault();
                     evt.stopPropagation();
                     break;
             }
-        },
-
-        focusMe() {
-            this.$el.focus();
         }
     },
     watch: {
@@ -340,12 +291,10 @@ export default {
     created() {
         eventHub.$on('collapseAllContent', this.collapse);
         eventHub.$on('toggleToolHelp', this.toggleToolHelp);
-        eventHub.$on('toggleShowSelection', this.displaySelection);
     },
     beforeDestroy() {
         eventHub.$off('collapseAllContent', this.collapse);
         eventHub.$off('toggleToolHelp', this.toggleToolHelp);
-        eventHub.$off('toggleShowSelection', this.displaySelection);
     }
 }
 
@@ -356,7 +305,6 @@ export default {
 
 @import "theme/blue.scss";
 @import "scss/mixins.scss";
-@import "scss/transitions.scss";
 
 
 /* enlarge input to match h4 */

@@ -239,16 +239,3 @@ export default {
 }
 
 </script>
-
-
-<style lang="scss" scoped>
-
-@import "theme/blue.scss";
-@import "scss/transitions.scss";
-
-.history-title /deep/ h2 input {
-    font-size: $h2-font-size;
-    font-weight: 500;
-}
-
-</style>

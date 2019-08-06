@@ -34,7 +34,7 @@ export const state = {
     // history.id -> Set of type_ids
     contentSelection: {},
 
-    // history.id -> [type_id]
+    // history.id -> [ type_id, type_id, ... ]
     currentCollection: {}
 }
 
@@ -70,11 +70,11 @@ export const mutations = {
         }
     },
 
-    setCurrentCollection(state, { history_id, list }) {
+    setCurrentCollection(state, { history_id, type_id = null }) {
         state.currentCollection = {
             ...state.currentCollection,
-            [history_id]: [ ...list ]
-        }
+            [history_id]: type_id
+        };
     },
 }
 
@@ -131,13 +131,8 @@ export const getters = {
 
     //#region Current Collection
 
-    currentCollectionList: state => historyId => {
-        return state.currentCollection[historyId] || [];
-    },
-
-    currentCollection: (state, getters) => historyId => {
-        const list = getters.currentCollectionList(historyId);
-        return list.length ? list[list.length - 1] : null;
+    currentCollection: (state) => historyId => {
+        return state.currentCollection[historyId];
     }
 
     //#endregion
@@ -341,28 +336,16 @@ export const actions = {
 
     //#region Dataset Collection
 
-    clearCollection({ commit }, { history_id }) {
-        const list = [];
-        commit("setCurrentCollection", { history_id, list });
+    selectCollection({ commit }, { history_id, type_id }) {
+        commit("setCurrentCollection", { history_id, type_id });
     },
 
-    selectCollection({ commit, getters }, { history_id, type_id }) {
-        const existingList = getters.currentCollectionList(history_id);
-        const list = [ ...existingList, type_id ];
-        commit("setCurrentCollection", { history_id, list });
-    },
-
-    unselectCollection({ commit, getters }, { history_id }) {
-        const existingList = getters.currentCollectionList(history_id);
-        if (existingList.length) {
-            const list = existingList.slice(0, -1);
-            commit("setCurrentCollection", { history_id, list });
-        }
+    unselectCollection({ commit }, { history_id }) {
+        commit("setCurrentCollection", { history_id });
     },
 
     //#endregion
-
-};
+}
 
 
 export default {

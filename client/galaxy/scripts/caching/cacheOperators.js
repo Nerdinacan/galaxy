@@ -106,26 +106,7 @@ export function flushCachedDataset(ds) {
 }
 
 
-
 /* update existing docs, start with key */
-
-// function updateDataset(ds, fields) {
-
-//     // get doc
-//     return of(ds).pipe(
-//         pluck('id'),
-//         getCachedDataset(),
-//         mergeMap(async (doc) => {
-//             let result = await doc.update({
-//                 $set: fields
-//             })
-//             return result;
-//         })
-//     )
-
-
-// }
-
 
 export async function cacheDatasetFields(dataset, fields) {
     console.log("cacheDatasetFields", dataset, fields);

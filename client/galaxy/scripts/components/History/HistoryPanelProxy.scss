@@ -4,14 +4,7 @@
 
 // TODO: This file can die when we house the panel in a Vue app
 
-.history-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    .unified-panel-footer {
-        position: absolute;
-        right: 0;
-        bottom: 0;
-        z-index: 1;
-    }
+#right .unified-panel-footer {
+    position: absolute;
+    bottom: 0;
 }

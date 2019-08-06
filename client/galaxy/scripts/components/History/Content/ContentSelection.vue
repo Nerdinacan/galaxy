@@ -75,6 +75,8 @@
             </b-button-toolbar>
         </transition>
 
+        <!-- #region Menus and popovers -->
+
         <b-popover ref="datasetMenu" target="datasetMenuGear" placement="bottomleft" triggers="click blur">
 
             <gear-menu #default="{ go, backboneGo, iframeGo, eventHub }" @clicked="closeMenu('datasetMenu')">
@@ -115,6 +117,8 @@
         <b-modal id="purge-deleted-content" title="Purge Deleted Datasets" title-tag="h2" @ok="purgeDeleted">
             <p>{{ messages.purgeDeletedContent | localize }}</p>
         </b-modal>
+
+        <!-- #endregion -->
 
     </section>
 </template>
@@ -373,7 +377,6 @@ export default {
 <style lang="scss" scoped>
 
 @import "scss/mixins.scss";
-@import "scss/transitions.scss";
 
 section>header {
     @include flexRowHeader();

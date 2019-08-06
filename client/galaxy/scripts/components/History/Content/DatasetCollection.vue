@@ -1,12 +1,9 @@
 <template>
-    <div :class="{ selected }"
-        :data-state="content.populated_state"
+    <div :data-state="content.populated_state"
         @keydown.self="onKeydown"
-        @mouseover="focusMe"
         @click.stop="drillDown">
 
         <nav class="content-top-menu d-flex justify-content-between">
-
             <icon-menu class="status-menu">
                 <icon-menu-item v-if="showSelection"
                     :active="selected"
@@ -28,7 +25,11 @@
 
         <header class="px-3 py-2" v-if="content">
             <h4><a href="#">{{ content.name }}</a></h4>
-            <p class="m-0">a {{ collectionType | localize }} {{ collectionCount | localize }}</p>
+            <p class="m-0">
+                a {{ collectionType | localize }}
+                {{ collectionCount | localize }}
+            </p>
+            <a target="_new" :href="content.url">{{ content.id }}</a>
         </header>
 
         <b-popover ref="deleteMenu"
@@ -63,7 +64,6 @@ import { tap, pluck } from "rxjs/operators";
 import { getCachedContent } from "caching";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
 import GearMenu from "components/GearMenu";
-import { eventHub } from "components/eventHub";
 
 export default {
     components: {
@@ -72,32 +72,11 @@ export default {
         IconMenuItem
     },
     props: {
-        content: { type: Object, required: true }
-    },
-    data() {
-        return {
-            showSelection: false
-        }
+        content: { type: Object, required: true },
+        selected: { type: Boolean, required: false, default: false },
+        showSelection: { type: Boolean, required: false, default: false }
     },
     computed: {
-
-        ...mapGetters("history", [
-            "contentIsSelected"
-        ]),
-
-        selected: {
-            get() {
-                return this.contentIsSelected(this.content)
-            },
-            set(newValue) {
-                const { content } = this;
-                if (newValue) {
-                    this.selectContentItem({ content });
-                } else {
-                    this.unselectContentItem({ content });
-                }
-            }
-        },
 
         collectionType() {
             switch(this.content.collection_type) {
@@ -121,36 +100,16 @@ export default {
     methods: {
 
         ...mapActions("history", [
-            "selectContentItem",
-            "unselectContentItem",
             "selectCollection"
         ]),
+
+        toggleSelection() {
+            this.$emit("update:selected", !this.selected);
+        },
 
         drillDown() {
             const { history_id, type_id } = this.content;
             this.selectCollection({ history_id, type_id });
-        },
-
-        displaySelection(val) {
-            this.showSelection = val;
-        },
-
-        onKeydown(evt) {
-            switch (evt.code) {
-                case "Space":
-                    if (this.showSelection) {
-                        this.selected = !this.selected;
-                    } else {
-                        this.drillDown();
-                    }
-                    evt.preventDefault();
-                    evt.stopPropagation();
-                    break;
-            }
-        },
-
-        focusMe() {
-            this.$el.focus();
         },
 
         deleteCollection() {
@@ -163,14 +122,21 @@ export default {
 
         deletePermanently() {
             console.log("deletePermanently");
-        }
+        },
 
-    },
-    created() {
-        eventHub.$on('toggleShowSelection', this.displaySelection);
-    },
-    beforeDestroy() {
-        eventHub.$off('toggleShowSelection', this.displaySelection);
+        onKeydown(evt) {
+            switch (evt.code) {
+                case "Space":
+                    if (this.showSelection) {
+                        this.toggleSelection();
+                    } else {
+                        this.drillDown();
+                    }
+                    evt.preventDefault();
+                    evt.stopPropagation();
+                    break;
+            }
+        }
     }
 }
 

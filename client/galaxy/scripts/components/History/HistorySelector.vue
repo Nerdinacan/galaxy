@@ -38,12 +38,3 @@ export default {
 }
 
 </script>
-
-
-<style scoped>
-
-select {
-    background: none;
-}
-
-</style>
