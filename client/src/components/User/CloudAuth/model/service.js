@@ -3,7 +3,7 @@
  */
 
 import axios from "axios";
-import { Credential, IdentityProvider } from "./index";
+// import { Credential, IdentityProvider } from "./index";
 import { getRootFromIndexLink } from "onload";
 
 const getUrl = (path) => getRootFromIndexLink() + path;
@@ -14,7 +14,8 @@ export async function listCredentials() {
     if (response.status != 200) {
         throw new Error("Unexpected response from listing.");
     }
-    return response.data.map(Credential.create);
+    return response.data;
+    // return response.data.map(Credential.create);
 }
 
 export async function getCredential(id) {
@@ -23,7 +24,8 @@ export async function getCredential(id) {
     if (response.status != 200) {
         throw new Error("Unexpected response loading key.");
     }
-    return Credential.create(response.data);
+    return response.data;
+    // return Credential.create(response.data);
 }
 
 export async function saveCredential(newItem) {
@@ -32,7 +34,8 @@ export async function saveCredential(newItem) {
     if (response.status != 200) {
         throw new Error("Save failure.");
     }
-    return Credential.create(response.data);
+    return response.data;
+    // return Credential.create(response.data);
 }
 
 async function saveOrUpdate(model) {
@@ -42,15 +45,18 @@ async function saveOrUpdate(model) {
 }
 
 export async function deleteCredential(doomed) {
-    const model = Credential.create(doomed);
-    if (model.id) {
-        const url = getUrl(`api/cloud/authz/${doomed.id}`);
-        const response = await axios.delete(url);
-        if (response.status != 200) {
-            throw new Error("Delete failure.");
-        }
+    // const model = Credential.create(doomed);
+    if (!doomed.id) {
+        throw new Error("deleteCredential: missing credential id");
     }
-    return model;
+
+    const url = getUrl(`api/cloud/authz/${doomed.id}`);
+    const response = await axios.delete(url);
+    if (response.status != 200) {
+        throw new Error("Delete failure.");
+    }
+    return response;
+
 }
 
 // Memoize results (basically never changes)
@@ -66,7 +72,8 @@ export async function getIdentityProviders() {
         }
         // This should be idempotent (and safe).
         // eslint-disable-next-line require-atomic-updates
-        identityProviders = response.data.map(IdentityProvider.create);
+        identityProviders = response.data;
+        // identityProviders = response.data.map(IdentityProvider.create);
     }
     return identityProviders;
 }
