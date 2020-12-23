@@ -9,6 +9,12 @@ export const monitorDscQuery = toOperator("monitorDscQuery");
 export const monitorHistoryContent = toOperator("monitorHistoryContent");
 
 /**
+ * Monitor and aggregate cache by selector. Emits full current result sets.
+ */
+export const contentQuery = toOperator("contentQuery");
+export const dscQuery = toOperator("dscQuery");
+
+/**
  * Loaders
  */
 export const loadHistoryContents = toOperator("loadHistoryContents");

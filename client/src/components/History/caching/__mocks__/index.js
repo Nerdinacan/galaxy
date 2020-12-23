@@ -6,6 +6,8 @@ export {
     loadHistoryContents,
     loadDscContent,
     pollHistory,
+    contentQuery,
+    dscQuery,
     // promises
     cacheContent,
     getCachedContent,

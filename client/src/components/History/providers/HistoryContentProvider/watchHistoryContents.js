@@ -4,7 +4,8 @@ import { tag } from "rxjs-spy/operators/tag";
 import { chunk } from "../../caching/operators/chunk";
 import { monitorHistoryContent } from "../../caching";
 import { SearchParams } from "../../model/SearchParams";
-import { processContentUpdate, newUpdateMap, buildContentResult, getKeyForUpdateMap } from "../aggregation";
+import { createAggregator, newContainer } from "../../caching/aggregateQuery/skiplistAggregation";
+import { buildContentResult, getKeyForUpdateMap } from "../aggregationHelpers";
 
 /**
  * Monitor history in the region of the cursor for the provided inputs
@@ -35,7 +36,7 @@ export const watchHistoryContents = (cfg = {}) => input$ => {
     } = cfg;
 
     const getKey = getKeyForUpdateMap(keyField);
-    const aggregator = processContentUpdate({ getKey });
+    const aggregator = createAggregator({ getKey });
     const summarize = buildContentResult({ pageSize, keyDirection, getKey });
 
     const contentMap$ = input$.pipe(
@@ -57,7 +58,7 @@ export const watchHistoryContents = (cfg = {}) => input$ => {
                         pageSize: monitorPageSize
                     }),
                 )),
-                scan(aggregator, newUpdateMap()),
+                scan(aggregator, newContainer()),
             );
 
             return monitorOutput$;

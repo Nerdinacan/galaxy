@@ -11,6 +11,7 @@
 import { pipe } from "rxjs";
 import { content$, dscContent$ } from "./db/observables";
 import { monitorQuery } from "./db/monitorQuery";
+import { aggregateQuery } from "./aggregateQuery";
 
 export * from "./db/promises";
 
@@ -29,4 +30,15 @@ export const monitorContentQuery = (cfg = {}) => {
 export const monitorDscQuery = (cfg = {}) => {
     const monitorCfg = { db$: dscContent$, ...cfg };
     return pipe(monitorQuery(monitorCfg));
+};
+
+// send in a selector, get a complete result set back that updates over time
+export const contentQuery = (cfg = {}) => {
+    const monitorCfg = { db$: content$, ...cfg };
+    return pipe(aggregateQuery(monitorCfg));
+};
+
+export const dscQuery = (cfg = {}) => {
+    const monitorCfg = { db$: dscContent$, ...cfg };
+    return pipe(aggregateQuery(monitorCfg));
 };

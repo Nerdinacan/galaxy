@@ -3,7 +3,8 @@ import { map, switchMap, scan, distinctUntilChanged, catchError } from "rxjs/ope
 import { tag } from "rxjs-spy/operators/tag";
 import { chunk } from "../../caching/operators/chunk";
 import { monitorDscQuery } from "../../caching";
-import { processContentUpdate, newUpdateMap, buildContentResult, getKeyForUpdateMap } from "../aggregation";
+import { createAggregator, newContainer } from "../../caching/aggregateQuery/skiplistAggregation";
+import { buildContentResult, getKeyForUpdateMap } from "../aggregationHelpers";
 import { SearchParams } from "../../model";
 
 // prettier-ignore
@@ -20,7 +21,7 @@ export const watchCollectionCache = (cfg = {}) => input$ => {
     } = cfg;
 
     const getKey = getKeyForUpdateMap(keyField);
-    const aggregator = processContentUpdate({ getKey });
+    const aggregator = createAggregator({ getKey });
     const summarize = buildContentResult({ pageSize, keyDirection, getKey });
 
     const contentMap$ = input$.pipe(
@@ -48,7 +49,7 @@ export const watchCollectionCache = (cfg = {}) => input$ => {
 
             // aggregate results in a map for each set of id + params
             const updateMap$ = monitorOutput$.pipe(
-                scan(aggregator, newUpdateMap()),
+                scan(aggregator, newContainer()),
             );
 
             return updateMap$;
