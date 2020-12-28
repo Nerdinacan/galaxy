@@ -10,9 +10,8 @@
  * but we run both raw objects into a DatasetCollection model class.
  */
 
-import { of } from "rxjs";
-import { map, pluck, switchMap, distinctUntilChanged } from "rxjs/operators";
-import { whenAny } from "utils/observable/whenAny";
+import { of, combineLatest } from "rxjs";
+import { map, pluck, switchMap, distinctUntilChanged, debounceTime } from "rxjs/operators";
 import { monitorContentQuery, monitorDscQuery } from "../../caching";
 import { DatasetCollection } from "../../model/DatasetCollection";
 import deepEqual from "deep-equal";
@@ -49,16 +48,17 @@ export default {
     },
     // prettier-ignore
     created() {
-        const root$ = this.watch$("isRoot", true).pipe(
+        const root$ = this.watch$("isRoot").pipe(
             distinctUntilChanged()
         );
 
-        const id$ = this.watch$("collection", true).pipe(
+        const id$ = this.watch$("collection").pipe(
             pluck("_id"),
             distinctUntilChanged()
         );
 
-        const monitor$ = whenAny(id$, root$).pipe(
+        const monitor$ = combineLatest([id$, root$]).pipe(
+            debounceTime(0),
             switchMap((inputs) => {
                 const [_id, isRoot] = inputs;
                 const monitorOperator = isRoot ? monitorContentQuery : monitorDscQuery;

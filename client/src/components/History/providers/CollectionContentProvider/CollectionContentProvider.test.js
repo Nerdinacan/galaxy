@@ -1,5 +1,5 @@
 import { NEVER } from "rxjs";
-import { createLocalVue } from "@vue/test-utils";
+import { getLocalVue } from "jest/helpers";
 import { cacheContent, cacheCollectionContent, bulkCacheDscContent, wipeDatabase } from "../../caching";
 import { SearchParams } from "../../model/SearchParams";
 import CollectionContentProvider from "./CollectionContentProvider";
@@ -28,7 +28,7 @@ loadCollectionContents.mockImplementation((config) => (src$) => {
 //#endregion
 
 const mountProvider = async (Component, propsData) => {
-    const localVue = createLocalVue();
+    const localVue = getLocalVue();
     localVue.use(vueRxShortcutPlugin);
     const wrapper = mountRenderless(Component, localVue, propsData);
     await wrapper.vm.$nextTick();

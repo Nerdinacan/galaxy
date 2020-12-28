@@ -22,7 +22,6 @@ export const watchHistoryContents = (cfg = {}) => input$ => {
 
         // input and output throttling
         debouncePeriod = 250,
-        outputDebounce = debouncePeriod,
 
         // field and key order for the contents
         keyField = "hid",
@@ -41,12 +40,14 @@ export const watchHistoryContents = (cfg = {}) => input$ => {
     const contentMap$ = input$.pipe(
         switchMap(([{id}, params]) => {
 
-            // extremely wide chunking for the monitor since that's local
-            // and assembling a new monitor is expensive. New monitors will be
-            // created each time hid$ emits
-            const monitorInput$ = hid$.pipe(
+            // extremely wide chunking for the monitor since assembling a new
+            // monitor is expensive.
+            const monitorHid$ = hid$.pipe(
                 chunk(monitorChunk, true),
-                distinctUntilChanged(),
+                distinctUntilChanged()
+            );
+
+            const monitorInput$ = monitorHid$.pipe(
                 map(hid => [id, params, hid]),
                 tag('watchHistoryContents-monitorInputs'),
             );
@@ -66,7 +67,7 @@ export const watchHistoryContents = (cfg = {}) => input$ => {
 
     // take a slice out of that content map corresponding to the current hid
     const contentWindow$ = combineLatest([contentMap$, hid$]).pipe(
-        debounceTime(outputDebounce),
+        debounceTime(debouncePeriod),
         map(summarize),
         tag('watchHistoryContents-contentWindow'),
     );

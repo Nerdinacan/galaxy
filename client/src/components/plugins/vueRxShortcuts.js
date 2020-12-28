@@ -20,26 +20,40 @@ export const vueRxShortcuts = {
          * Watch any property, adds debugging tag and assumes you want newValue,
          * this is usually what we want and shorter than typing it every time
          *
-         * @param {string} propName Member to watch
-         * @param {boolean} immediate Check right now?
-         * @returns Observable of new value
+         * @param {String | Function} watchExpr Vue prop, data, computed or function to evaluate
+         * @param {Object} opts Vue watch options
+         *
+         * @returns {Observable} Observable of watchExpr
          */
-        watch$(propName, immediate = true) {
-            const opts = { immediate };
-            // prettier-ignore
-            return this.$watchAsObservable(propName, opts).pipe(
-                pluck("newValue")
-            );
+        watch$(watchExpr, opts = {}) {
+            const watchDefaults = { immediate: true };
+            const watchOpts = { ...watchDefaults, opts };
+            if (Array.isArray(watchExpr)) {
+                return this.watchAll$(watchExpr, watchOpts);
+            }
+            return this.$watchAsObservable(watchExpr, watchOpts).pipe(pluck("newValue"));
+        },
+
+        /**
+         * Same as watch$ but for an array of props or expressions
+         *
+         * @param {Array} watchExpressions Array of functions or prop names
+         * @param {Object} opts Vue watch options
+         *
+         * @return {Array} Array of observables
+         */
+        watchAll$(watchExpressions, opts = {}) {
+            return watchExpressions.map((watchExpr) => this.watch$(watchExpr, opts));
         },
 
         /**
          * Generic subscriber to an observable. Subscribes using provided
          * handler or default and disposes of subscription when component is destroyed.
          *
-         * @param   {Observable}  obs$  Observable to subscribe to
-         * @param   {Object | Function}  cfg   Configuration or next handler
+         * @param {Observable} obs$ Observable to subscribe to
+         * @param {Object | Function} cfg Configuration or next handler
          *
-         * @return  {Subscription}
+         * @return {Subscription}
          */
         listenTo(obs$, cfg = {}) {
             const config = cfg instanceof Function ? { next: cfg } : cfg;

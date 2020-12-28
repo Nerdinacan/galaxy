@@ -1,6 +1,6 @@
 import { pipe } from "rxjs";
 import { map } from "rxjs/operators";
-import { createLocalVue } from "@vue/test-utils";
+import { getLocalVue } from "jest/helpers";
 import { History } from "../../model/History";
 import { SearchParams } from "../../model/SearchParams";
 import HistoryContentProvider from "./HistoryContentProvider";
@@ -65,7 +65,7 @@ const payloadChange = async ({ vm, label = "payload change" }) => {
 };
 
 const mountProvider = async (Component, propsData) => {
-    const localVue = createLocalVue();
+    const localVue = getLocalVue();
     localVue.use(vueRxShortcutPlugin);
     const wrapper = mountRenderless(Component, localVue, propsData);
     await wrapper.vm.$nextTick();

@@ -1,42 +1,30 @@
 import Vue from "vue";
 import { vueRxShortcutPlugin } from "components/plugins";
-import { NEVER, BehaviorSubject } from "rxjs";
 import { SearchParams } from "../model/SearchParams";
+import { isFiniteNumber } from "./utils";
 
 Vue.use(vueRxShortcutPlugin);
 
-// dumb math util
-export const clamp = (val, [bottom, top]) => Math.max(bottom, Math.min(top, val));
-
-// simple comparators
-export const isDefined = (val) => val !== null && val !== undefined;
-
-// defined, number and finite
-export const isValidNumber = (val) => {
-    return isDefined(val) && !isNaN(val) && isFinite(val);
-};
-
-// validate output variables before rendering
-export const validPayload = ({ topRows, bottomRows, totalMatches }) => {
-    return isValidNumber(topRows) && isValidNumber(bottomRows) && isValidNumber(totalMatches);
-};
-
-// comparator for distinct() style operators inputs are an array of [id, SearchParams]
-export const inputsSame = ([a0, a1], [b0, b1]) => {
-    return a0 == b0 && SearchParams.equals(a1, b1);
-};
-
-export const scrollPosEquals = (a, b) => {
-    return a.cursor === b.cursor && a.key === b.key;
-};
-
 export const ContentProvider = {
     props: {
+        // base input, a history object, a collection, whatever the container
+        // for this content is. The "subclass" will characterize this property
+        // as a history or a collection.
         parent: { type: Object, required: true },
+
+        // size of the resulting content window
         pageSize: { type: Number, default: SearchParams.pageSize },
+
+        // delay between various things, reduces unnecessary operations in the streams
         debouncePeriod: { type: Number, default: 100 },
+
+        // disables cache watch (probably for testing)
         disableWatch: { type: Boolean, default: false },
+
+        // disables ajax loading & polling
         disableLoad: { type: Boolean, default: false },
+
+        // testing prop
         debug: { type: Boolean, default: false },
     },
 
@@ -50,15 +38,13 @@ export const ContentProvider = {
         return {
             payload: {},
             params: new SearchParams(),
+            scrollPos: { cursor: 0.0, key: null },
             loading: false,
             scrolling: false,
         };
     },
 
     created() {
-        this.initParams();
-        this.initScrollPos();
-
         const { cache$, loader$, loading$, scrolling$ } = this.initStreams();
 
         this.listenTo(scrolling$, (val) => (this.scrolling = val));
@@ -84,28 +70,27 @@ export const ContentProvider = {
     },
 
     methods: {
-        initParams() {
-            this.params$ = new BehaviorSubject(new SearchParams());
-            this.listenTo(this.params$, (val) => (this.params = val));
-        },
-
-        initScrollPos() {
-            this.scrollPos$ = new BehaviorSubject({ cursor: 0.0, key: null });
-        },
-
+        /**
+         * Initialize external rxjs querying and cache logic with inputs from
+         * the component, output should be an object containing 4 observables:
+         * cache$, loader$, loading$, scrolling$, which are subscribed to in the
+         * created lifecycle hook (above).
+         *
+         * @return  {Object}  Object with for observables
+         */
         initStreams() {
-            console.warn("Override initStreams in ContentProvider");
-            return { cache$: NEVER, loader$: NEVER, loading$: NEVER, scrolling$: NEVER };
+            throw new Error("Override initStreams in your provider component");
         },
 
         /**
          * Handler for the scroller to update its position, either by key or
          * cursor (0-1 value representing how far down it is)
-         * @param {object} Object consisting of key and cursor props
+         *
+         * @param {object} Object consisting of key and cursor location (0-1)
          */
         setScrollPos({ cursor = 0.0, key = null } = {}) {
-            if (isValidNumber(cursor)) {
-                this.scrollPos$.next({ cursor, key });
+            if (isFiniteNumber(cursor)) {
+                this.scrollPos = { cursor, key };
             }
         },
 
@@ -113,7 +98,9 @@ export const ContentProvider = {
          * After bulk operations there is a need to trigger a fresh load.
          */
         manualReload() {
-            this.setScrollPos(this.scrollPos$.value);
+            // TODO: figure out whether we really need this
+            console.warn("Calling, manual reload, was this really necessary?");
+            this.scrollPos = { ...this.scrollPos, manualTrigger: true };
         },
 
         /**

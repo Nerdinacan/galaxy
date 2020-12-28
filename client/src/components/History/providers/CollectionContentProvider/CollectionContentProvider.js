@@ -13,21 +13,14 @@
  *    page through the results.
  */
 
-import { NEVER, merge, combineLatest } from "rxjs";
-import { map, pluck, switchMap, distinctUntilChanged, share, shareReplay, mapTo, debounceTime } from "rxjs/operators";
-import { tag } from "rxjs-spy/operators/tag";
-import { whenAny } from "utils/observable/whenAny";
-import { activity } from "utils/observable/activity";
-import { chunk } from "../../caching/operators/chunk";
-
 import { DatasetCollection, SearchParams } from "../../model";
-import { watchCollectionCache } from "./watchCollectionCache";
-import { loadCollectionContents } from "./loadCollectionContents";
-import { ContentProvider, scrollPosEquals, inputsSame } from "../ContentProvider";
+import { ContentProvider } from "../ContentProvider";
+import { buildCollectionStreams } from "./streams";
+import { distinctUntilChanged } from "rxjs/operators";
+import { scrollPosEquals } from "../utils";
 
 export default {
     mixins: [ContentProvider],
-
     computed: {
         dsc() {
             if (this.parent instanceof DatasetCollection) {
@@ -36,154 +29,17 @@ export default {
             return new DatasetCollection(this.parent);
         },
     },
-
     methods: {
-        // prettier-ignore
         initStreams() {
-            const {
-                debouncePeriod,
-                pageSize,
-                params$,
-                scrollPos$: rawScrollPos$
-            } = this;
+            const { debouncePeriod, pageSize } = this;
+            const [rawDsc$, rawParams$, rawScrollPos$] = this.watch$(["dsc", "params", "scrollPos"]);
 
-            //#region Raw Inputs
+            const params$ = rawParams$.pipe(distinctUntilChanged(SearchParams.equals));
+            const dsc$ = rawDsc$.pipe(distinctUntilChanged(DatasetCollection.equals));
+            const scrollPos$ = rawScrollPos$.pipe(distinctUntilChanged(scrollPosEquals));
+            const obsArray = [dsc$, params$, scrollPos$];
 
-            const dsc$ = this.watch$("dsc", true).pipe(
-                distinctUntilChanged(DatasetCollection.equals),
-                tag("CollectionContentProvider-dsc"),
-                shareReplay(1),
-            );
-
-            const distinctParams$ = params$.pipe(
-                distinctUntilChanged(SearchParams.equals),
-            );
-
-            const inputs$ = whenAny(dsc$, distinctParams$).pipe(
-                shareReplay(1),
-            );
-
-            const totalMatches$ = dsc$.pipe(
-                pluck('totalElements'),
-                tag("CollectionContentProvider-totalMatches"),
-            );
-
-            //#endregion
-
-            //#region Scrolling
-
-            const scrolling$ = rawScrollPos$.pipe(
-                activity({ period: debouncePeriod }),
-                shareReplay(1),
-            );
-
-            const scrollStart$ = inputs$.pipe(
-                mapTo({ cursor: 0.0, key: null }),
-            );
-
-            const scrollPos$ = merge(scrollStart$, rawScrollPos$).pipe(
-                distinctUntilChanged(scrollPosEquals),
-                tag("CollectionContentProvider-scrollPos"),
-                shareReplay(1),
-            );
-
-            //#endregion
-
-            //#region Estimate element index from cursor + dsc
-
-            const calculatedIndex$ = combineLatest([scrollPos$, totalMatches$]).pipe(
-                debounceTime(0),
-                map(([pos, totalMatches]) => this.getIndexFromPos(pos, totalMatches)),
-                tag("CollectionContentProvider-calculatedIndex"),
-            );
-
-            const cursor$ = scrolling$.pipe(
-                switchMap(isScrolling => isScrolling ? NEVER : calculatedIndex$),
-                tag("CollectionContentProvider-cursor"),
-            );
-
-            //#endregion
-
-            //#region Loading
-
-            const loadCursor$ = cursor$.pipe(
-                chunk(pageSize),
-                tag('loadCursor'),
-            );
-
-            const loadInputs$ = whenAny(inputs$, loadCursor$).pipe(
-                tag('loadInputs'),
-                shareReplay(1),
-            );
-
-            const loadInputsThrottled$ = scrolling$.pipe(
-                switchMap(isScrolling => isScrolling ? NEVER : loadInputs$),
-                distinctUntilChanged(([inputsA, idxA], [inputsB, idxB]) => {
-                    return idxA == idxB && inputsSame(inputsA, inputsB);
-                }),
-                map(([inputs, idx]) => [...inputs, idx]),
-                tag('loadInputsThrottled'),
-                share(),
-            );
-
-            const loader$ = loadInputsThrottled$.pipe(
-                loadCollectionContents({ windowSize: 2 * pageSize }),
-                tag('loader'),
-                share(),
-            );
-
-            const loading$ = merge(loadInputsThrottled$, loader$).pipe(
-                activity({ period: debouncePeriod }),
-                tag('loading'),
-                shareReplay(1),
-            );
-
-            //#endregion
-
-            //#region Cache watcher
-
-            const cacheCursor$ = cursor$.pipe(
-                tag('cacheCursor'),
-                shareReplay(1),
-            );
-
-            const cacheFromMonitor$ = inputs$.pipe(
-                watchCollectionCache({
-                    cursor$: cacheCursor$,
-                    pageSize,
-                    debouncePeriod
-                }),
-                tag("cacheFromMonitor"),
-            );
-
-            const cache$ = combineLatest([cacheFromMonitor$, totalMatches$]).pipe(
-                debounceTime(0),
-                map((inputs) => this.buildPayload(...inputs)),
-                tag("cache"),
-            );
-
-            //#endregion
-
-            return { scrollPos$, loader$, cache$, scrolling$, loading$ };
-        },
-
-        getIndexFromPos(pos, totalMatches) {
-            const { cursor = null, key = null } = pos;
-            if (key !== null) {
-                return key;
-            }
-            if (cursor !== null) {
-                return Math.round(Number(cursor) * totalMatches);
-            }
-            return 0;
-        },
-
-        buildPayload(result, totalMatches) {
-            // console.log("buildPayload", result, totalMatches);
-            const { contents } = result;
-            const topRows = contents.length ? contents[0].element_index : 0;
-            const bottomRows = Math.max(0, totalMatches - contents.length - topRows);
-            return { ...result, topRows, bottomRows, totalMatches };
+            return buildCollectionStreams(obsArray, { debouncePeriod, pageSize });
         },
     },
 };
