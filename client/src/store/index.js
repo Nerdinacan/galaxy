@@ -20,6 +20,7 @@ import { toolStore } from "./toolStore";
 import { datasetPathDestinationStore } from "./datasetPathDestinationStore";
 import { datasetExtFilesStore } from "./datasetExtFilesStore";
 import { datasetsStore } from "./datasetsStore";
+import { datasetCollectionsStore } from "./datasetCollectionsStore";
 import { jobStore } from "./jobStore";
 
 // beta features
@@ -45,6 +46,7 @@ export function createStore() {
             config: configStore,
             workflows: workflowStore,
             datasets: datasetsStore,
+            datasetCollections: datasetCollectionsStore,
             informationStore: jobStore,
             betaHistory: betaHistoryStore,
             tools: toolStore,
@@ -59,6 +61,7 @@ export function createStore() {
             store.dispatch("user/$init", { store });
             store.dispatch("betaHistory/$init", { store });
             store.dispatch("datasets/$init", { store });
+            store.dispatch("datasetCollections/$init", { store });
         });
     }
 
