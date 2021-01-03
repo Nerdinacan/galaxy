@@ -8,7 +8,6 @@
 import axios from "axios";
 import moment from "moment";
 import { prependPath } from "utils/redirect";
-// import { historyFields } from "./fields";
 
 // #region setup & utils
 
@@ -82,22 +81,8 @@ const stdHistoryParams = {
 /**
  * Return list of available histories
  */
-export async function getHistoriesForCurrentUser(lastUpdate = null) {
-    const url = `/histories`;
-
-    // TODO: remove q,qv syntax
-    const legacyParams = {
-        deleted: "None",
-    };
-    if (lastUpdate) {
-        legacyParams["update_time-gt"] = moment.utc(lastUpdate);
-    }
-    const incomptentQueryString = buildLegacyQueryString(legacyParams);
-
-    const response = await api.get(`${url}?${incomptentQueryString}`, {
-        params: stdHistoryParams,
-    });
-
+export async function getHistoryList() {
+    const response = await api.get("/histories?view=summary");
     return doResponse(response);
 }
 
@@ -105,8 +90,10 @@ export async function getHistoriesForCurrentUser(lastUpdate = null) {
  * Load one history by id
  * @param {String} id
  */
-export async function getHistoryById(id) {
-    const url = `/histories/${id}`;
+export async function getHistoryById(id, since) {
+    const path = `/histories/${id}`;
+    const sinceParam = since !== undefined ? moment.utc(since).toISOString() : null;
+    const url = sinceParam ? path : `${path}?q=update_time-gt&qv=${sinceParam}`;
     const response = await api.get(url, { params: stdHistoryParams });
     return doResponse(response);
 }
@@ -166,8 +153,8 @@ export async function undeleteHistoryById(id) {
  * @param {Object} history
  * @param {Object} payload fields to update
  */
-export async function updateHistoryFields(history, payload) {
-    const url = `/histories/${history.id}`;
+export async function updateHistoryFields(id, payload) {
+    const url = `/histories/${id}`;
     const response = await api.put(url, payload, { params: stdHistoryParams });
     return doResponse(response);
 }

@@ -22,7 +22,7 @@ import { datasetsStore } from "./datasetsStore";
 import { jobStore } from "./jobStore";
 
 // beta features
-import { historyStore as betaHistoryStore } from "components/History/model/historyStore";
+import { historyStore as betaHistoryStore } from "components/History";
 import { syncCurrentHistoryToGalaxy } from "components/History/model/syncCurrentHistoryToGalaxy";
 
 Vue.use(Vuex);
@@ -45,29 +45,28 @@ export function createStore() {
             workflows: workflowStore,
             datasets: datasetsStore,
             informationStore: jobStore,
-            betaHistory: betaHistoryStore,
         },
     };
 
     // Initialize state
-
     if (!config.testBuild) {
         storeConfig.plugins.push((store) => {
             store.dispatch("config/$init", { store });
             store.dispatch("user/$init", { store });
-            store.dispatch("betaHistory/$init", { store });
         });
     }
 
     // Create watchers to monitor legacy galaxy instance for important values
-
-    syncUserToGalaxy((user) => {
-        store.commit("user/setCurrentUser", user);
-    });
-
-    syncCurrentHistoryToGalaxy((id) => {
-        store.commit("betaHistory/setCurrentHistoryId", id);
-    });
+    const useBeta = sessionStorage.getItem("useBetaHistory");
+    if (useBeta) {
+        storeConfig.modules.betaHistory = betaHistoryStore;
+        syncUserToGalaxy((user) => {
+            store.commit("user/setCurrentUser", user);
+        });
+        syncCurrentHistoryToGalaxy((id) => {
+            store.commit("betaHistory/setCurrentHistoryId", id);
+        });
+    }
 
     return new Vuex.Store(storeConfig);
 }
