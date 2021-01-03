@@ -39,7 +39,7 @@
 import HistoriesMenu from "./HistoriesMenu";
 import HistorySelector from "./HistorySelector";
 import HistoryPanel from "./HistoryPanel";
-import UserHistoriesProvider from "./providers";
+import { UserHistoriesProvider } from "./providers";
 
 export default {
     components: {
