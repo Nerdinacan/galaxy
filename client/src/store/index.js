@@ -22,7 +22,7 @@ import { datasetsStore } from "./datasetsStore";
 import { jobStore } from "./jobStore";
 
 // beta features
-import { historyStore as betaHistoryStore } from "components/History";
+import { historyStore as betaHistoryStore } from "components/History/model/historyStore";
 import { syncCurrentHistoryToGalaxy } from "components/History/model/syncCurrentHistoryToGalaxy";
 
 Vue.use(Vuex);
