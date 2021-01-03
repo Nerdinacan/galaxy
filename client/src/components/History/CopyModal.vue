@@ -94,14 +94,13 @@ export default {
         },
     },
     methods: {
-        ...mapActions("betaHistory", ["storeCurrentHistoryId", "storeHistory"]),
+        ...mapActions("betaHistory", ["switchToHistory"]),
 
         async copyHistory(close) {
             this.loading = true;
             const { history, name, copyAll } = this;
             const newHistory = await cloneHistory(history, name, copyAll);
-            await this.storeHistory(newHistory);
-            await this.storeCurrentHistoryId(newHistory.id);
+            await this.switchToHistory(newHistory);
             this.loading = false;
             close();
         },
