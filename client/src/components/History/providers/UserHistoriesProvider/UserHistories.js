@@ -31,7 +31,7 @@ export default {
             "loadUserHistories",
             "loadHistoryById",
             "createNewHistory",
-            "saveHistory",
+            "updateHistory",
             "deleteHistory",
             "setCurrentHistoryId",
         ]),
@@ -61,8 +61,9 @@ export default {
             setCurrentHistory: (h) => this.setCurrentHistoryId(h.id),
             // create new history then select it
             createHistory: this.createNewHistory,
-            // save new history props to server then update the store
-            saveHistory: this.saveHistory,
+            // save new history params should be an object with an id property and any additional
+            // properties that are to be updated on the server. A full history object is not required
+            updateHistory: this.updateHistory,
             // delete history then clear currentHistoryId
             deleteHistory: (history) => this.deleteHistory({ history }),
             // purge history then clearn currentHistoryId

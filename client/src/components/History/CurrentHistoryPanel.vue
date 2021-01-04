@@ -4,7 +4,7 @@
             currentHistory,
             histories,
             setCurrentHistory,
-            saveHistory,
+            updateHistory,
             createHistory,
             deleteHistory,
             purgeHistory,
@@ -13,9 +13,10 @@
         <HistoryPanel
             v-if="currentHistory"
             :history="currentHistory"
-            @saveHistory="saveHistory(currentHistory)"
+            @saveHistory="updateHistory(currentHistory)"
             @deleteHistory="deleteHistory(currentHistory)"
             @purgeHistory="purgeHistory(currentHistory)"
+            @updateHistory="updateHistory"
         >
             <template v-slot:nav>
                 <div>

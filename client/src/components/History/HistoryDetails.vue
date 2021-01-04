@@ -131,9 +131,8 @@
 </template>
 
 <script>
-import { mapMutations } from "vuex";
 import { History } from "./model";
-import { secureHistory, updateHistoryFields } from "./model/queries";
+import { secureHistory } from "./model/queries";
 import { PriorityMenuItem, PriorityMenu } from "components/PriorityMenu";
 import ClickToEdit from "components/ClickToEdit";
 import Annotation from "components/Annotation";
@@ -188,11 +187,8 @@ export default {
         },
     },
     methods: {
-        ...mapMutations("betaHistory", ["setHistory"]),
-
         async updateFields(fields = {}) {
-            const updatedHistory = await updateHistoryFields(this.history, fields);
-            await this.setHistory(updatedHistory);
+            this.$emit("updateHistory", { id: this.history.id, ...fields });
         },
 
         async deleteHistory(evt) {

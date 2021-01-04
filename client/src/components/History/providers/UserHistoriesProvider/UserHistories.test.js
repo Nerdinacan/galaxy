@@ -166,14 +166,14 @@ describe("UserHistories", () => {
         expect(slotProps.currentHistory.id).toEqual(createdHistory.id);
     });
 
-    test("slotProp: saveHistory", async () => {
-        const { saveHistory, currentHistory } = slotProps;
-        expect(saveHistory).toBeInstanceOf(Function);
+    test("slotProp: updateHistory", async () => {
+        const { updateHistory, currentHistory } = slotProps;
+        expect(updateHistory).toBeInstanceOf(Function);
         expect(currentHistory).toBeInstanceOf(History);
         const modifiedHistory = { ...currentHistory, foo: "bar" };
 
         expect(modifiedHistory.id).toBeDefined();
-        await saveHistory(modifiedHistory);
+        await updateHistory(modifiedHistory);
 
         await waitForLifecyleEvent(wrapper.vm, "updated");
         expect(slotProps.histories.find((h) => h.foo == "bar")).toBeTruthy();
