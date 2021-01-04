@@ -45,7 +45,7 @@ import Collection from "./Collection";
 import Default from "./Default";
 import RulesInput from "./RulesInput";
 import LoadingSpan from "components/LoadingSpan";
-import { mapState } from "vuex";
+import { mapGetters } from "vuex";
 import { BModal, BTabs, BTab } from "bootstrap-vue";
 
 const UploadModal = {
@@ -169,9 +169,11 @@ const UploadModal = {
         modelUnload();
     },
     computed: {
-        ...mapState("user", {
-            currentUserId: (state) => state.currentUser.id,
-        }),
+        ...mapGetters("user", ["currentUser"]),
+
+        currentUserId() {
+            return this.user?.id || null;
+        },
 
         currentHistoryId() {
             const Galaxy = getGalaxyInstance();
