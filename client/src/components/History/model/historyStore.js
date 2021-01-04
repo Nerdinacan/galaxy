@@ -74,9 +74,10 @@ export const actions = {
         const newHistory = await createNewHistory();
         await dispatch("selectHistory", newHistory);
     },
-    async saveHistory({ commit }, newHistory) {
-        const { id, ...payload } = newHistory;
-        const saveResult = await updateHistoryFields(id, payload);
+    async updateHistory({ commit }, { id, ...updateFields }) {
+        // save new history params should be an object with an id property and any additional
+        // properties that are to be updated on the server. A full history object is not required
+        const saveResult = await updateHistoryFields(id, updateFields);
         commit("setHistory", saveResult);
     },
     async deleteHistory({ commit }, { history, purge = false }) {
