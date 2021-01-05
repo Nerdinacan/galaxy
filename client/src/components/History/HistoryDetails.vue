@@ -202,8 +202,8 @@ export default {
         },
 
         async makePrivate(evt) {
-            const updatedHistory = await secureHistory(this.history.id);
-            await this.setHistory(updatedHistory);
+            const updatedHistory = await secureHistory(this.history);
+            this.$emit("setHistory", updatedHistory);
             evt.vueTarget.hide();
         },
     },

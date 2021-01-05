@@ -34,6 +34,7 @@ export default {
             "updateHistory",
             "deleteHistory",
             "setCurrentHistoryId",
+            "setHistory",
         ]),
     },
     watch: {
@@ -68,6 +69,9 @@ export default {
             deleteHistory: (history) => this.deleteHistory({ history }),
             // purge history then clearn currentHistoryId
             purgeHistory: (history) => this.deleteHistory({ history, purge: true }),
+            // Updates the history in the store without a trip to the server, in the event that a
+            // downstream component does the ajax update itself.
+            setHistory: this.setHistory,
         });
     },
 };

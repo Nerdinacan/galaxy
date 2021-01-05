@@ -164,14 +164,18 @@ export async function updateHistoryFields(id, payload) {
  * TODO: rewrite API endpoint for this
  * @param {String} history_id
  */
-export async function secureHistory(history_id) {
+export async function secureHistory(history) {
     // NOTE: does not hit normal api/ endpoint
+    const { id } = history;
     const url = prependPath("/history/make_private");
-    const response = await axios.post(url, formData({ history_id }));
+    const response = await axios.post(url, formData({ history_id: id }));
     if (response.status != 200) {
         throw new Error(response);
     }
-    return await getHistoryById(history_id);
+    // instead of a full lookup we could alternately figure out if
+    // just a couple fields are changed and return the model with those
+    // fields updated. it would avoid an extraneous ajax call
+    return await getHistoryById(id);
 }
 
 // #endregion
