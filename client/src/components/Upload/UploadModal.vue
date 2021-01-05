@@ -37,7 +37,7 @@
 <script>
 import _l from "utils/localization";
 import Backbone from "backbone";
-import { getGalaxyInstance } from "app";
+// import { getGalaxyInstance } from "app";
 import UploadUtils from "mvc/upload/upload-utils";
 import { getDatatypesMapper } from "components/Datatypes";
 import Composite from "./Composite";
@@ -45,7 +45,7 @@ import Collection from "./Collection";
 import Default from "./Default";
 import RulesInput from "./RulesInput";
 import LoadingSpan from "components/LoadingSpan";
-import { mapGetters } from "vuex";
+import { mapState, mapGetters } from "vuex";
 import { BModal, BTabs, BTab } from "bootstrap-vue";
 
 const UploadModal = {
@@ -171,14 +171,17 @@ const UploadModal = {
     computed: {
         ...mapGetters("user", ["currentUser"]),
 
+        ...mapState("betaHistory", {
+            // TODO: use the betaHistory currentHistoryId getter once the beta period is over
+            // the betaHistory getter "currentHistoryId" filters out the ids that do not belong to
+            // the internal list of available histories, but during the beta period, that panel is
+            // probably not on the page, and that list is empty, so we need to go straight to the
+            // raw state.currentHistoryId value without validation.
+            currentHistoryId: (state) => state.currentHistoryId || null,
+        }),
+
         currentUserId() {
             return this.user?.id || null;
-        },
-
-        currentHistoryId() {
-            const Galaxy = getGalaxyInstance();
-            const legacyId = Galaxy.currHistoryPanel?.model.get("id");
-            return legacyId;
         },
 
         historyAvailable() {
