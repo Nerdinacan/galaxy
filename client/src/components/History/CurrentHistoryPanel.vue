@@ -8,6 +8,7 @@
             createHistory,
             deleteHistory,
             purgeHistory,
+            setHistory,
         }"
     >
         <HistoryPanel
@@ -17,6 +18,7 @@
             @deleteHistory="deleteHistory(currentHistory)"
             @purgeHistory="purgeHistory(currentHistory)"
             @updateHistory="updateHistory"
+            @setHistory="setHistory"
         >
             <template v-slot:nav>
                 <div>

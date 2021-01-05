@@ -85,6 +85,10 @@ export const actions = {
         commit("deleteHistory", deletedHistory);
         commit("setCurrentHistoryId", null);
     },
+    // set in store w/o updating
+    setHistory({ commit }, history) {
+        commit("setHistory", history);
+    },
     selectHistory({ commit }, history) {
         commit("setHistory", history);
         commit("setCurrentHistoryId", history.id);
