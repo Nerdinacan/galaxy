@@ -2,25 +2,23 @@
 
 import { getGalaxyInstance } from "app";
 import { switchMap, pluck } from "rxjs/operators";
-import { monitorChange } from "utils/observable/monitorChange";
+import { waitForInit } from "utils/observable/waitForInit";
 import { monitorBackboneModel } from "utils/observable/monitorBackboneModel";
 
 // prettier-ignore
 export function syncCurrentHistoryToGalaxy(handler) {
 
     // wait for the current history panel to appear
-    const currentHistoryPanel$ = monitorChange(() => {
+    const currentHistoryPanel$ = waitForInit(() => {
         return getGalaxyInstance()?.currHistoryPanel?.model;
     });
 
-    // then emit the id each time it changes
-    const result$ = currentHistoryPanel$.pipe(
-        switchMap(model => monitorBackboneModel(model, "id").pipe(
-            pluck("id")
-        ))
+    const id$ = currentHistoryPanel$.pipe(
+        switchMap(model => monitorBackboneModel(model)),
+        pluck("id")
     );
 
-    return result$.subscribe(
+    return id$.subscribe(
         val => handler(val),
         err => console.log("syncCurrentHistoryToGalaxy error", err),
         () => console.log("syncCurrentHistoryToGalaxy complete")

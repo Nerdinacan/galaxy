@@ -14,7 +14,7 @@ import { jobDestinationParametersStore } from "./jobDestinationParametersStore";
 import { invocationStore } from "./invocationStore";
 import { historyStore } from "./historyStore";
 import { userStore, syncUserToGalaxy } from "./userStore";
-import { configStore } from "./configStore";
+import { configStore, syncConfigToGalaxy } from "./configStore";
 import { workflowStore } from "./workflowStore";
 import { datasetPathDestinationStore } from "./datasetPathDestinationStore";
 import { datasetExtFilesStore } from "./datasetExtFilesStore";
@@ -22,8 +22,7 @@ import { datasetsStore } from "./datasetsStore";
 import { jobStore } from "./jobStore";
 
 // beta features
-import { historyStore as betaHistoryStore } from "components/History/model/historyStore";
-import { syncCurrentHistoryToGalaxy } from "components/History/model/syncCurrentHistoryToGalaxy";
+import { historyStore as betaHistoryStore, syncCurrentHistoryToGalaxy } from "components/History/model/historyStore";
 
 Vue.use(Vuex);
 
@@ -31,7 +30,12 @@ export function createStore() {
     const storeConfig = {
         plugins: [createCache()],
         modules: {
-            // TODO: namespace all these modules
+            user: userStore,
+            config: configStore,
+            betaHistory: betaHistoryStore,
+
+            // TODO: please namespace all these modules
+            // https://vuex.vuejs.org/guide/modules.html#namespacing
             gridSearch: gridSearchStore,
             histories: historyStore,
             tags: tagStore,
@@ -40,24 +44,24 @@ export function createStore() {
             datasetPathDestination: datasetPathDestinationStore,
             datasetExtFiles: datasetExtFilesStore,
             invocations: invocationStore,
-            user: userStore,
-            config: configStore,
             workflows: workflowStore,
             datasets: datasetsStore,
             informationStore: jobStore,
-            betaHistory: betaHistoryStore,
         },
     };
 
     // Initialize state
     if (!config.testBuild) {
         storeConfig.plugins.push((store) => {
-            store.dispatch("config/$init", { store });
-            store.dispatch("user/$init", { store });
+            store.dispatch("user/loadUser", { store });
         });
     }
 
     // Create watchers to monitor legacy galaxy instance for important values
+    // TODO: remove on that glorious day when we abandon Galaxy app
+    syncConfigToGalaxy((cfg) => {
+        store.commit("config/setConfigs", cfg);
+    });
     syncUserToGalaxy((user) => {
         store.commit("user/setCurrentUser", user);
     });

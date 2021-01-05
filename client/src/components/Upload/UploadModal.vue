@@ -37,7 +37,6 @@
 <script>
 import _l from "utils/localization";
 import Backbone from "backbone";
-// import { getGalaxyInstance } from "app";
 import UploadUtils from "mvc/upload/upload-utils";
 import { getDatatypesMapper } from "components/Datatypes";
 import Composite from "./Composite";
@@ -340,14 +339,6 @@ const UploadModal = {
         },
     },
 };
-
-// Beta history patch
-const useBetaHistory = sessionStorage.getItem("useBetaHistory");
-if (useBetaHistory) {
-    UploadModal.computed.currentHistoryId = function () {
-        return this.$store.getters["betaHistory/currentHistoryId"];
-    };
-}
 
 export default UploadModal;
 </script>

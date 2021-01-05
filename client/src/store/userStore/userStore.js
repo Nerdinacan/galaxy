@@ -29,9 +29,6 @@ const actions = {
         const user = await getCurrentUser();
         commit("setCurrentUser", user);
     },
-    async $init({ dispatch }) {
-        await dispatch("loadUser");
-    },
 };
 
 export const userStore = {

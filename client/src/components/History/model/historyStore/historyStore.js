@@ -6,7 +6,7 @@ import {
     getCurrentHistoryFromServer,
     setCurrentHistoryOnServer,
     updateHistoryFields,
-} from "./queries";
+} from "../queries";
 
 import Vue from "vue";
 import { sortByObjectProp } from "utils/sorting";

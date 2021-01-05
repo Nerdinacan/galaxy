@@ -2,20 +2,20 @@
 
 import { getGalaxyInstance } from "app";
 import { switchMap } from "rxjs/operators";
-import { monitorChange } from "utils/observable/monitorChange";
+import { waitForInit } from "utils/observable/waitForInit";
 import { monitorBackboneModel } from "utils/observable/monitorBackboneModel";
 
 // prettier-ignore
 export function syncUserToGalaxy(handler) {
 
     // wait for galaxy.user to appear
-    const user$ = monitorChange(() => {
+    const user$ = waitForInit(() => {
         return getGalaxyInstance()?.user;
     });
 
     // then every time the id changes, emit
     const result$ = user$.pipe(
-        switchMap(model => monitorBackboneModel(model, "id"))
+        switchMap(model => monitorBackboneModel(model))
     );
 
     return result$.subscribe(
