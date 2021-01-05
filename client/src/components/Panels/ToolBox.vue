@@ -9,20 +9,39 @@
             </div>
         </div>
         <div class="unified-panel-controls">
-            <tool-search :query="query" placeholder="search tools" @onQuery="onQuery" @onResults="onResults" />
-            <upload-button />
+
+            <tool-search :query="query"
+                placeholder="search tools"
+                @onQuery="onQuery"
+                @onResults="onResults" />
+
+            <upload-button
+                @click.prevent="showUpload = !showUpload"
+                :status="status"
+                :percentage="percentage" />
+
+            <UploadModal v-model="showUpload"
+                :status.sync="status"
+                :percentage.sync="percentage" />
+
+            <upload-modal v-model="showUpload"
+                :percentage.sync="percentage" />
+
             <div class="py-2" v-if="hasResults">
                 <b-button @click="onToggle" size="sm" class="w-100">
                     <span :class="buttonIcon" />
                     <span class="mr-1">{{ buttonText }}</span>
                 </b-button>
             </div>
+
             <div class="py-2" v-else-if="queryTooShort">
                 <b-badge class="alert-danger w-100">Search string too short!</b-badge>
             </div>
+
             <div class="py-2" v-else-if="queryFinished">
                 <b-badge class="alert-danger w-100">No results found!</b-badge>
             </div>
+
         </div>
         <div class="unified-panel-body">
             <div class="toolMenuContainer">
@@ -44,10 +63,12 @@
                 </div>
             </div>
         </div>
+
     </div>
 </template>
 
 <script>
+import { BModal } from "bootstrap-vue";
 import ToolSection from "./Common/ToolSection";
 import ToolSearch from "./Common/ToolSearch";
 import UploadButton from "./Buttons/UploadButton";
@@ -56,11 +77,14 @@ import { filterToolSections, filterTools } from "./utilities";
 import { getGalaxyInstance } from "app";
 import { getAppRoot } from "onload";
 import _l from "utils/localization";
+import { UploadModal } from "../Upload";
 
 export default {
     name: "ToolBox",
     components: {
+        BModal,
         UploadButton,
+        UploadModal,
         FavoritesButton,
         ToolSection,
         ToolSearch,
@@ -74,6 +98,10 @@ export default {
             showSections: false,
             buttonText: "",
             buttonIcon: "",
+
+            showUpload: false,
+            status: "ok",
+            percentage: 10
         };
     },
     props: {

@@ -1,8 +1,6 @@
-import { getGalaxyInstance } from "app";
 import { getAppRoot } from "onload";
 
-export function initializeUploadDefaults(propsData = {}) {
-    const Galaxy = getGalaxyInstance();
+export function initializeUploadDefaults(Galaxy, propsData = {}) {
     const appRoot = getAppRoot();
     return Object.assign({}, propsData, {
         uploadPath: Galaxy.config.nginx_upload_path || `${appRoot}api/tools`,
