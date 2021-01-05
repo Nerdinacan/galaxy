@@ -52,7 +52,6 @@ export function createStore() {
     // Initialize state
     if (!config.testBuild) {
         storeConfig.plugins.push((store) => {
-            store.dispatch("config/$init", { store });
             store.dispatch("user/$init", { store });
         });
     }
