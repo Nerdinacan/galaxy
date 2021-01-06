@@ -1,6 +1,8 @@
 <template>
     <b-modal
-        v-model="modalShow"
+        v-model="modelShow"
+        :title="'Download from web or upload from disk' | l"
+        title-tag="h4"
         :static="modalStatic"
         header-class="no-separator"
         modal-class="ui-modal"
@@ -9,33 +11,34 @@
         ref="modal"
         no-enforce-focus
         hide-footer
+        scrollable
         :id="id"
     >
-        <template v-slot:modal-header>
-            <h4 class="title" tabindex="0">{{ title }}</h4>
-        </template>
         <b-tabs v-if="ready">
-            <b-tab title="Regular" id="regular" button-id="tab-title-link-regular" v-if="showRegular">
-                <default :app="this" :lazy-load-max="50" :multiple="multiple" />
+            <b-tab :title="'Regular' | l" id="regular" button-id="tab-title-link-regular" v-if="showRegular">
+                <default :app="this" :lazy-load-max="50" :multiple="multiple" @close="dismiss" />
             </b-tab>
-            <b-tab title="Composite" id="composite" button-id="tab-title-link-composite" v-if="showComposite">
-                <composite :app="this" />
+            <b-tab :title="'Composite' | l" id="composite" button-id="tab-title-link-composite" v-if="showComposite">
+                <composite :app="this" @close="dismiss" />
             </b-tab>
-            <b-tab title="Collection" id="collection" button-id="tab-title-link-collection" v-if="showCollection">
-                <collection :app="this" />
+            <b-tab
+                :title="'Collection' | l"
+                id="collection"
+                button-id="tab-title-link-collection"
+                v-if="showCollection"
+            >
+                <collection :app="this" @close="dismiss" />
             </b-tab>
-            <b-tab title="Rule-based" id="rule-based" button-id="tab-title-link-rule-based" v-if="showRules">
-                <rules-input :app="this" />
+            <b-tab :title="'Rule-based' | l" id="rule-based" button-id="tab-title-link-rule-based" v-if="showRules">
+                <rules-input :app="this" @close="dismiss" />
             </b-tab>
         </b-tabs>
-        <div v-else>
-            <loading-span message="Loading required information from Galaxy server." />
-        </div>
+
+        <loading-span v-else :message="'Loading required information from Galaxy server.' | l" />
     </b-modal>
 </template>
 
 <script>
-import _l from "utils/localization";
 import Backbone from "backbone";
 import UploadUtils from "mvc/upload/upload-utils";
 import { getDatatypesMapper } from "components/Datatypes";
@@ -59,21 +62,22 @@ const UploadModal = {
         BTab,
     },
     props: {
+        value: {
+            type: Boolean,
+            default: false,
+        },
         modalStatic: {
             type: Boolean,
             default: true,
         },
         chunkUploadSize: {
             type: Number,
-            required: true,
+            required: false,
+            default: 0,
         },
         uploadPath: {
             type: String,
             required: true,
-        },
-        modalShow: {
-            type: Boolean,
-            default: false,
         },
         ftpUploadSite: {
             type: String,
@@ -119,7 +123,6 @@ const UploadModal = {
     data: function () {
         return {
             id: "",
-            title: _l("Download from web or upload from disk"),
             listGenomes: [],
             listExtensions: [],
             genomesSet: false,
@@ -236,6 +239,15 @@ const UploadModal = {
             }
             return this.multiple;
         },
+
+        modelShow: {
+            get() {
+                return this.value;
+            },
+            set(newVal) {
+                this.$emit("input", newVal);
+            },
+        },
     },
     mounted() {
         this.id = String(this._uid);
@@ -243,7 +255,6 @@ const UploadModal = {
     methods: {
         show() {
             this.modalShow = true;
-            this.$nextTick(this.tryMountingTabs);
         },
         hide() {
             this.modalShow = false;
@@ -256,12 +267,7 @@ const UploadModal = {
             });
         },
         dismiss() {
-            // hide or cancel based on whether this is a singleton
-            if (this.callback) {
-                this.cancel();
-            } else {
-                this.hide();
-            }
+            this.modelShow = false;
         },
         currentFtp: function () {
             return this.currentUserId && this.ftpUploadSite;

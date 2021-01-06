@@ -55,19 +55,19 @@ export function createStore() {
         storeConfig.plugins.push((store) => {
             store.dispatch("user/loadUser", { store });
         });
-    }
 
-    // Create watchers to monitor legacy galaxy instance for important values
-    // TODO: remove on that glorious day when we abandon Galaxy app
-    syncConfigToGalaxy((cfg) => {
-        store.commit("config/setConfigs", cfg);
-    });
-    syncUserToGalaxy((user) => {
-        store.commit("user/setCurrentUser", user);
-    });
-    syncCurrentHistoryToGalaxy((id) => {
-        store.commit("betaHistory/setCurrentHistoryId", id);
-    });
+        // Create watchers to monitor legacy galaxy instance for important values
+        // TODO: remove on that glorious day when we abandon Galaxy app
+        syncConfigToGalaxy((cfg) => {
+            store.commit("config/setConfigs", cfg);
+        });
+        syncUserToGalaxy((user) => {
+            store.commit("user/setCurrentUser", user);
+        });
+        syncCurrentHistoryToGalaxy((id) => {
+            store.commit("betaHistory/setCurrentHistoryId", id);
+        });
+    }
 
     return new Vuex.Store(storeConfig);
 }

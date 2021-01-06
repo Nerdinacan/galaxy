@@ -7,7 +7,7 @@ import _l from "utils/localization";
 const newlineMatch = /\r?\n|\r/g;
 const doublespaces = /\s\s+/g;
 
-const localizeDirective = {
+export const localizeDirective = {
     bind(el, binding, vnode) {
         el.childNodes.forEach((node) => {
             const oneline = node.textContent.replace(newlineMatch, " ");

@@ -1,24 +1,14 @@
 import Backbone from "backbone";
-import { UploadModal, initializeUploadDefaults } from "components/Upload";
+import { mountUploadModal } from "components/Upload";
 import _l from "utils/localization";
 import { getGalaxyInstance } from "app";
 import ToolBox from "../../components/Panels/ToolBox";
 import SidePanel from "../../components/Panels/SidePanel";
-import { mountVueComponent } from "../../utils/mountVueComponent";
+import { mountVueComponent } from "utils/mountVueComponent";
 
 const ToolPanel = Backbone.View.extend({
     initialize: function () {
-        // create container element, no need for jquery to do this
-        const container = document.createElement("div");
-        document.body.appendChild(container);
-
-        // Using standard init which will have access to the store and other standard plugins
-        const mounter = mountVueComponent(UploadModal);
-        const propsData = initializeUploadDefaults();
-        const uploadComponent = mounter(propsData, container);
-
-        // attach upload entrypoint to Galaxy object
-        getGalaxyInstance().upload = uploadComponent;
+        getGalaxyInstance().upload = mountUploadModal({});
 
         // components for panel definition
         this.model = new Backbone.Model({

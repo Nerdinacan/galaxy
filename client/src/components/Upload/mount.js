@@ -1,13 +1,22 @@
-import Vue from "vue";
-import UploadModal from "./UploadModal";
-import { initializeUploadDefaults } from "./config";
+import UploadDialog from "./UploadDialog";
+import { mountVueComponent } from "utils/mountVueComponent";
+
+// mounts UploadDialog wrapper around bmodal
+const mounter = mountVueComponent(UploadDialog);
+
+// just one instance of the uploader
+let instance;
 
 export function mount(propsData = {}) {
-    propsData = initializeUploadDefaults(propsData);
-    const instance = Vue.extend(UploadModal);
-    const vm = document.createElement("div");
-    document.getElementsByTagName("body")[0].appendChild(vm);
-    new instance({
-        propsData: propsData,
-    }).$mount(vm);
+    if (!instance) {
+        const container = document.createElement("div");
+        document.body.appendChild(container);
+        instance = mounter(propsData, container);
+    } else {
+        // subsequent calls to the mount update the props
+        for (const field in propsData) {
+            instance.$set(instance.$props, field, propsData[field]);
+        }
+    }
+    return instance;
 }

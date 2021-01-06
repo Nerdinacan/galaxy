@@ -28,9 +28,9 @@
             <span class="upload-footer-extension-info upload-icon-button fa fa-search" ref="footerExtensionInfo" />
             <span class="upload-footer-title">Genome/Build:</span>
             <select2 container-class="upload-footer-genome" ref="footerGenome" v-model="genome" :enabled="!running">
-                <option v-for="(listGenome, index) in listGenomes" :key="index" :value="listGenome.id">{{
-                    listGenome.text
-                }}</option>
+                <option v-for="(listGenome, index) in listGenomes" :key="index" :value="listGenome.id">
+                    {{ listGenome.text }}
+                </option>
             </select2>
         </template>
         <template v-slot:buttons>
@@ -61,9 +61,11 @@ import $ from "jquery";
 import { getGalaxyInstance } from "app";
 import UploadRow from "mvc/upload/composite/composite-row";
 import UploadBoxMixin from "./UploadBoxMixin";
+import { BButton } from "bootstrap-vue";
 
 export default {
     mixins: [UploadBoxMixin],
+    components: { BButton },
     data() {
         return {
             extension: "_select_",

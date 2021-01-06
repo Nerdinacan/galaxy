@@ -28,6 +28,12 @@ export default {
             default: null,
         },
     },
+    data() {
+        return {
+            fileSourcesConfigured: null,
+            ftpUploadSite: null,
+        };
+    },
     computed: {
         btnFilesTitle() {
             if (this.fileSourcesConfigured) {
@@ -36,7 +42,12 @@ export default {
                 return localize("Choose FTP files");
             }
         },
+        // makes the ftp button show
         remoteFiles() {
+            console.group("remoteFiles?");
+            console.log("   fileSourcesConfigured", this.fileSourcesConfigured);
+            console.log("   ftpUploadSite", this.ftpUploadSite);
+            console.groupEnd();
             return this.fileSourcesConfigured || this.ftpUploadSite;
         },
     },

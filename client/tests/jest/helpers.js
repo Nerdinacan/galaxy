@@ -2,9 +2,9 @@
  * Unit test debugging utilities
  */
 import { timer, fromEventPattern } from "rxjs";
-import { tap, take, debounceTime, takeUntil } from "rxjs/operators";
+import { take, debounceTime, takeUntil } from "rxjs/operators";
 import { createLocalVue, shallowMount } from "@vue/test-utils";
-import { localizationPlugin } from "components/plugins";
+import { localizationPlugin } from "components/plugins/localization";
 
 // Creates a watcher on the indicated vm/prop for use in testing
 export function watchForChange({ vm, opts, propName, timeout = 1000, label = "" }) {
