@@ -1,7 +1,6 @@
 """Utilities for Galaxy scripts
 """
 import argparse
-import logging
 import os
 import sys
 
@@ -88,11 +87,3 @@ def _arg_parser():
     for argument in ARGUMENTS:
         parser.add_argument(*argument[0], **argument[1])
     return parser
-
-
-def set_log_handler(filename=None, stream=None):
-    if filename:
-        handler = logging.FileHandler(filename)
-    else:
-        handler = logging.StreamHandler(stream=stream)
-    return handler

@@ -1,11 +1,10 @@
 /**
  * Unit test debugging utilities
  */
-import { timer } from "rxjs";
-import { take } from "rxjs/operators";
+import { timer, fromEventPattern } from "rxjs";
+import { tap, take, debounceTime, takeUntil } from "rxjs/operators";
 import { createLocalVue, shallowMount } from "@vue/test-utils";
 import { localizationPlugin } from "components/plugins";
-
 
 // Creates a watcher on the indicated vm/prop for use in testing
 export function watchForChange({ vm, opts, propName, timeout = 1000, label = "" }) {
@@ -17,13 +16,33 @@ export function watchForChange({ vm, opts, propName, timeout = 1000, label = "" 
         vm.$watch(
             propName,
             function (newVal, oldVal) {
-                clearTimeout(timeoutID);
-                const stop = new Date();
-                resolve({ timeElapsed: stop - start, newVal, oldVal });
+                if (newVal !== oldVal) {
+                    clearTimeout(timeoutID);
+                    const stop = new Date();
+                    resolve({ start, stop, propName, elapsed: stop - start, newVal, oldVal });
+                }
             },
             opts
         );
     });
+}
+
+// waits for indicated event to stop firing
+export function waitForLifecyleEvent(vm, lifecycleHookName, cfg = {}) {
+    const { debouncePeriod = 50, timeoutPeriod = 1000 } = cfg;
+
+    const evtName = `hook:${lifecycleHookName}`;
+    const addHandler = (fn) => vm.$on(evtName, fn);
+    const removeHandler = (fn) => vm.$off(evtName, fn);
+    const hook$ = fromEventPattern(addHandler, removeHandler);
+
+    // prettier-ignore
+    return hook$.pipe(
+        debounceTime(debouncePeriod),
+        take(1),
+        takeUntil(timer(timeoutPeriod))
+    )
+    .toPromise();
 }
 
 // formats a console.log to more easily read the passed object
@@ -68,10 +87,11 @@ export function getLocalVue() {
 }
 
 // Mounts a renderless component with sample content for testing
-export function mountRenderless(component, localVue, propsData) {
+export function mountRenderless(component, mountConfig = {}) {
+    const { localVue = getLocalVue(), ...otherConfig } = mountConfig;
     return shallowMount(component, {
         localVue,
-        propsData,
+        ...otherConfig,
         scopedSlots: {
             default: "<div></div>",
         },

@@ -24,7 +24,6 @@ from galaxy.managers import (
 from galaxy.managers.jobs import fetch_job_states, invocation_job_source_iter, summarize_job_metrics
 from galaxy.managers.workflows import (
     MissingToolsException,
-    RefactorRequest,
     WorkflowCreateOptions,
     WorkflowUpdateOptions,
 )
@@ -50,6 +49,7 @@ from galaxy.webapps.base.controller import (
 )
 from galaxy.workflow.extract import extract_workflow
 from galaxy.workflow.modules import module_factory
+from galaxy.workflow.refactor.schema import RefactorRequest
 from galaxy.workflow.run import invoke, queue_invoke
 from galaxy.workflow.run_request import build_workflow_run_configs
 
@@ -656,9 +656,12 @@ class WorkflowsAPIController(BaseAPIController, UsesStoredWorkflowMixin, UsesAnn
         """
         stored_workflow = self.__get_stored_workflow(trans, id, **kwds)
         refactor_request = RefactorRequest(**payload)
-        return self.workflow_contents_manager.refactor(
+        style = payload.get("style", "export")
+        result, errors = self.workflow_contents_manager.refactor(
             trans, stored_workflow, refactor_request
         )
+        # TODO: handle errors...
+        return self.workflow_contents_manager.workflow_to_dict(trans, stored_workflow, style=style)
 
     @expose_api
     def build_module(self, trans, payload=None):

@@ -3,16 +3,16 @@ import { getAppRoot } from "onload/loadConfig";
 import axios from "axios";
 import { rethrowSimple } from "utils/simple-error";
 
-const AUTO_EXTENSION = {
+export const AUTO_EXTENSION = {
     id: "auto",
     text: "Auto-detect",
     description:
         "This system will try to detect the file type automatically. If your file is not detected properly as one of the known formats, it most likely means that it has some format problems (e.g., different number of columns on different rows). You can still coerce the system to set your data to the format you think it should be.  You can also upload compressed files, which will automatically be decompressed.",
 };
-const DEFAULT_GENOME = "?";
-const DEFAULT_EXTENSION = "auto";
+export const DEFAULT_GENOME = "?";
+export const DEFAULT_EXTENSION = "auto";
 
-function getUploadDatatypes(callback, datatypesDisableAuto, auto) {
+export function getUploadDatatypes(callback, datatypesDisableAuto = false, auto = AUTO_EXTENSION) {
     const url = `${getAppRoot()}api/datatypes?extension_only=False`;
     axios
         .get(url)
@@ -43,7 +43,7 @@ function getUploadDatatypes(callback, datatypesDisableAuto, auto) {
         });
 }
 
-function getUploadGenomes(callback, defaultGenome) {
+export function getUploadGenomes(callback, defaultGenome) {
     const url = `${getAppRoot()}api/genomes`;
     axios
         .get(url)
@@ -73,7 +73,7 @@ function getUploadGenomes(callback, defaultGenome) {
         });
 }
 
-async function getRemoteFilesAt(target) {
+export async function getRemoteFilesAt(target) {
     const url = `${getAppRoot()}api/remote_files?target=${target}`;
     try {
         const response = await axios.get(url);
@@ -84,7 +84,7 @@ async function getRemoteFilesAt(target) {
     }
 }
 
-function getRemoteFiles(success, error) {
+export function getRemoteFiles(success, error) {
     return $.ajax({
         url: `${getAppRoot()}api/remote_files`,
         method: "GET",

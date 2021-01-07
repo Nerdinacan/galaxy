@@ -2,7 +2,7 @@ import { interval, timer } from "rxjs";
 import { map, filter, take, takeUntil } from "rxjs/operators";
 
 // prettier-ignore
-export function monitorChange(expression, cfg = {}) {
+export function waitForInit(expression, cfg = {}) {
     const {
         spamTime = 100,
         timeout = 10000,

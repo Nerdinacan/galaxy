@@ -1,7 +1,7 @@
 <template>
     <span>
         <span :class="spinnerClasses"></span>
-        <span class="loading-message">{{ message }}.<span class="blinking">..</span></span>
+        <span class="loading-message">{{ message | l }}<span class="blinking">...</span></span>
     </span>
 </template>
 <script>

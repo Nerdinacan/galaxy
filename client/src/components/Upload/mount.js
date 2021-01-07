@@ -1,13 +1,29 @@
-import Vue from "vue";
-import UploadModal from "./UploadModal";
-import { initializeUploadDefaults } from "./config";
+/**
+ * A function for use in Backbone code. It launches the Upload Modal and feeds it the customProps
+ */
+import UploadDialog from "./UploadDialog";
+import { mountVueComponent } from "utils/mountVueComponent";
 
-export function mount(propsData = {}) {
-    propsData = initializeUploadDefaults(propsData);
-    const instance = Vue.extend(UploadModal);
-    const vm = document.createElement("div");
-    document.getElementsByTagName("body")[0].appendChild(vm);
-    new instance({
-        propsData: propsData,
-    }).$mount(vm);
+// mounts UploadDialog wrapper around bmodal
+const mounter = mountVueComponent(UploadDialog);
+
+// just one instance of the uploader
+let instance;
+
+// single state
+let propsData;
+
+export function mountUploadModal(customProps = {}) {
+    if (!instance) {
+        const container = document.createElement("div");
+        document.body.appendChild(container);
+        instance = mounter(customProps, container);
+    } else {
+        // subsequent calls to the mount update the props
+        for (const field in propsData) {
+            instance.$set(instance.$props, field, propsData[field]);
+        }
+    }
+
+    return instance;
 }

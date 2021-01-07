@@ -216,8 +216,10 @@ export default {
             if (storeId) {
                 return storeId;
             }
-            const legacyId = this.app.currentHistory();
-            return legacyId;
+            // TODO: completely remove app property fromm all these components
+            // It looks like somebody is sending in an entire component as a
+            // property of this component. That makes no sense.
+            return this.app?.currentHistoryId;
         },
     },
     watch: {

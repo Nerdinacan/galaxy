@@ -10,6 +10,7 @@ import {
     withLatestFrom,
     debounceTime,
     share,
+    filter,
 } from "rxjs/operators";
 import { tag } from "rxjs-spy/operators/tag";
 import { activity } from "utils/observable/activity";
@@ -30,10 +31,10 @@ export default {
 
     computed: {
         history() {
-            if (this.parent instanceof History) {
-                return this.parent;
+            if (!(this.parent instanceof History)) {
+                throw new Error("bad parent property in HistoryContentProvider");
             }
-            return new History(this.parent);
+            return this.parent;
         },
     },
 
@@ -51,6 +52,9 @@ export default {
             //#region Raw Inputs
 
             const history$ = this.watch$("history", true).pipe(
+                // TODO: this filter is here because Vue is updating the component with an
+                // unwanted history value, the right answer is to figure out why that's happening
+                filter(val => !isNaN(val.hidItems)),
                 distinctUntilChanged(History.equals),
             );
 

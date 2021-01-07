@@ -1,7 +1,4 @@
-from galaxy.workflow.refactor.schema import (
-    RefactorActionExecution,
-    RefactorActions,
-)
+from galaxy.workflow.refactor.schema import RefactorRequest
 
 
 def test_root_list():
@@ -19,7 +16,7 @@ def test_root_list():
             {"action_type": "extract_legacy_parameter", "name": "foo", "label": "new_foo"},
         ],
     }
-    ar = RefactorActions(**request)
+    ar = RefactorRequest(**request)
     actions = ar.actions
 
     a0 = actions[0]
@@ -60,13 +57,3 @@ def test_root_list():
     a9 = actions[9]
     assert a9.name == "foo"
     assert a9.label == "new_foo"
-
-
-def test_executions():
-    ar = RefactorActions(actions=[
-        {"action_type": "extract_legacy_parameter", "name": "foo"}
-    ])
-    execution = RefactorActionExecution(action={"action_type": "extract_legacy_parameter", "name": "foo"}, messages=[])
-    assert isinstance(execution.messages, (list,))
-    execution = RefactorActionExecution(action=ar.actions[0].dict(), messages=[])
-    assert isinstance(execution.messages, (list,))

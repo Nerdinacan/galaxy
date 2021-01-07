@@ -17,10 +17,18 @@ const localizeDirective = {
     },
 };
 
+const localizeMixin = {
+    methods: {
+        localize: _l,
+        l: _l,
+    },
+};
+
 export const localizationPlugin = {
     install(Vue) {
         Vue.filter("localize", _l);
         Vue.filter("l", _l);
         Vue.directive("localize", localizeDirective);
+        Vue.mixin(localizeMixin);
     },
 };
