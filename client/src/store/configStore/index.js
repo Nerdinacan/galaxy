@@ -6,10 +6,10 @@ const state = {
 };
 
 const getters = {
-    config({ state }) {
+    config(state) {
         return state.config || {};
     },
-    configIsLoaded({ state }) {
+    configIsLoaded(state) {
         return state.config !== null;
     },
 };

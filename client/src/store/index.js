@@ -20,6 +20,7 @@ import { datasetPathDestinationStore } from "./datasetPathDestinationStore";
 import { datasetExtFilesStore } from "./datasetExtFilesStore";
 import { datasetsStore } from "./datasetsStore";
 import { jobStore } from "./jobStore";
+import { uploadStore } from "components/Upload";
 
 // beta features
 import { historyStore as betaHistoryStore } from "components/History/model/historyStore";
@@ -36,6 +37,7 @@ export function createStore() {
             user: userStore,
             config: configStore,
             betaHistory: betaHistoryStore,
+            upload: uploadStore,
 
             // TODO: please namespace all store modules
             gridSearch: gridSearchStore,

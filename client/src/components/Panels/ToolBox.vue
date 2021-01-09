@@ -10,7 +10,16 @@
         </div>
         <div class="unified-panel-controls">
             <tool-search :query="query" placeholder="search tools" @onQuery="onQuery" @onResults="onResults" />
-            <upload-button />
+
+            <UploadButton
+                id="tool-panel-upload-button"
+                class="upload-button"
+                title="Download from  URL or upload files from disk"
+                size="sm"
+            />
+
+            <UploadModal />
+
             <div class="py-2" v-if="hasResults">
                 <b-button @click="onToggle" size="sm" class="w-100">
                     <span :class="buttonIcon" />
@@ -50,7 +59,7 @@
 <script>
 import ToolSection from "./Common/ToolSection";
 import ToolSearch from "./Common/ToolSearch";
-import UploadButton from "./Buttons/UploadButton";
+import { UploadButton, UploadModal } from "../Upload";
 import FavoritesButton from "./Buttons/FavoritesButton";
 import { filterToolSections, filterTools } from "./utilities";
 import { getGalaxyInstance } from "app";
@@ -61,6 +70,7 @@ export default {
     name: "ToolBox",
     components: {
         UploadButton,
+        UploadModal,
         FavoritesButton,
         ToolSection,
         ToolSearch,
@@ -74,6 +84,7 @@ export default {
             showSections: false,
             buttonText: "",
             buttonIcon: "",
+            showUpload: false,
         };
     },
     props: {
