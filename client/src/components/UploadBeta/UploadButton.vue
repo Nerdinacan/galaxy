@@ -11,7 +11,7 @@
             <b-progress height="2rem" :value="progressPercent" :variant="variant"></b-progress>
             <span class="position-relative">
                 <font-awesome-icon icon="upload" class="mr-1" />
-                <b v-localize>Upload Data</b>
+                <b v-localize>Upload Data {{ progressPercent }}</b>
             </span>
         </div>
     </b-button>
@@ -42,11 +42,12 @@ export default {
     },
     computed: {
         ...mapState("upload", {
-            // variant: (state) => state.status.variant,
+            status: (state) => state.status,
+            active: (state) => state.active,
             progressPercent: (state) => 100.0 * state.progress,
         }),
         variant() {
-            return "success";
+            return this.status?.variant || "info";
         },
     },
     methods: {

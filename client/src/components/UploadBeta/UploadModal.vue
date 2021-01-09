@@ -1,44 +1,53 @@
 <template>
-    <b-modal
-        v-model="dialogIsOpen"
-        :title="title | localize"
-        title-tag="h4"
-        header-class="no-separator"
-        modal-class="ui-modal"
-        dialog-class="upload-dialog"
-        body-class="upload-dialog-body"
-        centered
-        scrollable
-        no-enforce-focus
-        hide-footer
-    >
+    <BModal v-model="dialogIsOpen" :title="title | localize" v-bind="$attrs" v-on="$listeners">
         <ConfigProvider v-slot="config">
-            <UploadOptions v-slot="{ extensions, genomes, loading }">
-                <loading-span v-if="!config || loading" message="Loading required information from Galaxy server." />
-                <UploadDialog v-else :config="config" :genomes="genomes" :extensions="extensions" />
+            <UploadOptions v-slot="{ extensions, genomes, loading: optionsLoading }">
+                <Uploader v-bind="config" v-slot="{ queue, enqueue, cancel, reset, start, pause }">
+                    <Loading
+                        v-if="!config || optionsLoading"
+                        message="Loading required information from Galaxy server."
+                    />
+                    <UploadDialog
+                        v-else
+                        :config="config"
+                        :genomes="genomes"
+                        :extensions="extensions"
+                        :queue="queue"
+                        @add="enqueue"
+                        @cancel="cancel"
+                        @reset="reset"
+                        @start="start"
+                        @pause="pause"
+                    />
+                </Uploader>
             </UploadOptions>
         </ConfigProvider>
-    </b-modal>
+    </BModal>
 </template>
 
 <script>
+import Vue from "vue";
 import { mapState, mapMutations } from "vuex";
-import { BModal } from "bootstrap-vue";
+import { BModal, BootstrapVueIcons } from "bootstrap-vue";
 import ConfigProvider from "components/providers/ConfigProvider";
 import UploadOptions from "./providers/UploadOptions";
+import Uploader from "./providers/Uploader";
 import UploadDialog from "./UploadDialog";
-import LoadingSpan from "components/LoadingSpan";
+import Loading from "./Loading";
+
+Vue.use(BootstrapVueIcons);
 
 export default {
     components: {
         BModal,
         ConfigProvider,
         UploadOptions,
+        Uploader,
         UploadDialog,
-        LoadingSpan,
+        Loading,
     },
     props: {
-        title: { type: String, default: "Download from web or upload from disk" },
+        title: { type: String, default: "" },
     },
     computed: {
         ...mapState("upload", ["isOpen"]),

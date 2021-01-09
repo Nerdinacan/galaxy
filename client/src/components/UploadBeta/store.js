@@ -4,11 +4,13 @@ export const UPLOADSTATUS = Object.freeze({
 
 const state = {
     // Overall upload status
-    status: null,
+    status: UPLOADSTATUS.OK,
     // 0-1 value representing how close we are to done
-    progress: 0.0,
+    progress: 0.25,
     // dialog open/close
     isOpen: false,
+    // is currently uploading
+    active: true,
 };
 
 const mutations = {
@@ -20,6 +22,9 @@ const mutations = {
     },
     setIsOpen(state, val) {
         state.isOpen = val;
+    },
+    setActive(state, val) {
+        state.active = val;
     },
 };
 
@@ -38,6 +43,9 @@ const actions = {
     },
     toggleDialog({ commit, state }) {
         commit("setIsOpen", !state.isOpen);
+    },
+    toggleActive({ commit, state }) {
+        commit("setIsActive", !state.active);
     },
 };
 

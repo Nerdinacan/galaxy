@@ -20,7 +20,7 @@ import { datasetPathDestinationStore } from "./datasetPathDestinationStore";
 import { datasetExtFilesStore } from "./datasetExtFilesStore";
 import { datasetsStore } from "./datasetsStore";
 import { jobStore } from "./jobStore";
-import { uploadStore } from "components/Upload";
+import { uploadStore } from "components/UploadBeta";
 
 // beta features
 import { historyStore as betaHistoryStore } from "components/History/model/historyStore";

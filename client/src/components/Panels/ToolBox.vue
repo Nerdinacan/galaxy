@@ -11,6 +11,8 @@
         <div class="unified-panel-controls">
             <tool-search :query="query" placeholder="search tools" @onQuery="onQuery" @onResults="onResults" />
 
+            <upload-button-old />
+
             <UploadButton
                 id="tool-panel-upload-button"
                 class="upload-button"
@@ -18,7 +20,18 @@
                 size="sm"
             />
 
-            <UploadModal />
+            <UploadModal
+                title="Download from web or upload from disk"
+                title-tag="h4"
+                centered
+                scrollable
+                no-enforce-focus
+                hide-footer
+                header-class="no-separator"
+                modal-class="ui-modal"
+                dialog-class="upload-dialog"
+                body-class="upload-dialog-body"
+            />
 
             <div class="py-2" v-if="hasResults">
                 <b-button @click="onToggle" size="sm" class="w-100">
@@ -59,7 +72,8 @@
 <script>
 import ToolSection from "./Common/ToolSection";
 import ToolSearch from "./Common/ToolSearch";
-import { UploadButton, UploadModal } from "../Upload";
+import UploadButtonOld from "./Buttons/UploadButton";
+import { UploadButton, UploadModal } from "../UploadBeta";
 import FavoritesButton from "./Buttons/FavoritesButton";
 import { filterToolSections, filterTools } from "./utilities";
 import { getGalaxyInstance } from "app";
@@ -69,6 +83,7 @@ import _l from "utils/localization";
 export default {
     name: "ToolBox",
     components: {
+        UploadButtonOld,
         UploadButton,
         UploadModal,
         FavoritesButton,
