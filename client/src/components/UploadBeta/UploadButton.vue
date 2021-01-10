@@ -8,17 +8,17 @@
         @click="toggleDialog"
     >
         <div>
-            <b-progress height="2rem" :value="progressPercent" :variant="variant"></b-progress>
+            <b-progress height="2rem" :value="progress.percentage" :variant="variant"></b-progress>
             <span class="position-relative">
                 <font-awesome-icon icon="upload" class="mr-1" />
-                <b v-localize>Upload Data {{ progressPercent }}</b>
+                <b v-localize>Upload Data {{ progress.percentage }}% ({{ progress.totalSize }})</b>
             </span>
         </div>
     </b-button>
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapGetters, mapActions } from "vuex";
 import { VBTooltip, BProgress } from "bootstrap-vue";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -41,13 +41,11 @@ export default {
         },
     },
     computed: {
-        ...mapState("upload", {
-            status: (state) => state.status,
-            active: (state) => state.active,
-            progressPercent: (state) => 100.0 * state.progress,
-        }),
+        ...mapGetters("upload", ["progress"]),
+
         variant() {
-            return this.status?.variant || "info";
+            return "success";
+            // return this.status?.variant || "info";
         },
     },
     methods: {

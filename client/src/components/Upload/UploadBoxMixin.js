@@ -61,9 +61,7 @@ export default {
             }
         },
         uploadSelect: function () {
-            const box = this.uploadbox;
-            debugger;
-            box.select();
+            this.uploadbox.select();
         },
         /** Package and upload ftp files in a single request */
         _uploadFtp: function () {

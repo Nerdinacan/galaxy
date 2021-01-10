@@ -1,16 +1,16 @@
 <template>
     <b-tabs>
         <b-tab :title="'Regular' | localize" id="regular">
-            <Regular v-bind="$attrs" v-on="$listeners" />
+            <Regular :genomes="genomes" :extensions="extensions" v-bind="$attrs" v-on="$listeners" />
         </b-tab>
         <b-tab :title="'Composite' | localize" id="composite">
-            <Regular v-bind="$attrs" v-on="$listeners" />
+            <Regular :genomes="genomes" :extensions="extensions" v-bind="$attrs" v-on="$listeners" />
         </b-tab>
         <b-tab :title="'Collection' | localize" id="collection">
-            <Regular v-bind="$attrs" v-on="$listeners" />
+            <Regular :genomes="genomes" :extensions="extensions" v-bind="$attrs" v-on="$listeners" />
         </b-tab>
         <b-tab :title="'Rule-Based' | localize" id="rule-based">
-            <Regular v-bind="$attrs" v-on="$listeners" />
+            <Regular :genomes="genomes" :extensions="extensions" v-bind="$attrs" v-on="$listeners" />
         </b-tab>
     </b-tabs>
 </template>
@@ -33,6 +33,8 @@ export default {
     },
     props: {
         config: { type: Object, required: true },
+        genomes: { type: Array, required: true, default: () => [] },
+        extensions: { type: Array, required: true, default: () => [] },
     },
 };
 </script>

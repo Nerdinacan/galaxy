@@ -24,13 +24,8 @@
                 title="Download from web or upload from disk"
                 title-tag="h4"
                 centered
-                scrollable
                 no-enforce-focus
                 hide-footer
-                header-class="no-separator"
-                modal-class="ui-modal"
-                dialog-class="upload-dialog"
-                body-class="upload-dialog-body"
             />
 
             <div class="py-2" v-if="hasResults">

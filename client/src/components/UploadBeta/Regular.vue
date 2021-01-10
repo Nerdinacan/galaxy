@@ -1,35 +1,54 @@
 <template>
     <layout>
-        <div>
-            <UploadQueue :queue="queue" v-on="$listeners" />
-            <!-- <drop-area v-else /> -->
-        </div>
+        <template v-slot>
+            <UploadQueue v-if="queue.length" :queue="queue" v-on="$listeners" />
+            <DropFiles v-else>
+                <h3>
+                    <i class="fa fa-files-o"></i>
+                    <span v-localize>Drop files here, muthafucka!</span>
+                </h3>
+            </DropFiles>
+        </template>
 
         <template v-slot:buttons>
             <b-button-toolbar>
                 <FileSelectorButton multiple @select="$emit('add', $event)">
-                    <span v-localize>Select Stuff</span>
+                    <span v-localize>Choose Local Files</span>
                 </FileSelectorButton>
 
                 <b-button class="mx-1">
                     <span v-localize>Paste/Fetch Data</span>
                 </b-button>
 
+                <!-- play/pause -->
                 <b-button-group class="mx-1">
-                    <b-button @click="$emit('start')">
+                    <b-button
+                        aria-label="Start Uploading"
+                        :variant="variant"
+                        :pressed="active"
+                        :disabled="empty"
+                        @click="$emit('start')"
+                    >
                         <span v-localize>Start</span>
                     </b-button>
-                    <b-button @click="$emit('pause')">
+                    <b-button
+                        aria-label="Stop Uploading"
+                        :variant="variant"
+                        :pressed="!active"
+                        :disabled="empty"
+                        @click="$emit('pause')"
+                    >
                         <span v-localize>Pause</span>
-                    </b-button>
-                    <b-button @click="$emit('reset')">
-                        <span v-localize>Reset</span>
                     </b-button>
                 </b-button-group>
 
-                <b-button class="mx-1">
-                    <span v-localize>Select</span>
+                <b-button :disabled="empty" @click="$emit('reset')">
+                    <span v-localize>Reset</span>
                 </b-button>
+
+                <!-- <b-button class="mx-1">
+                    <span v-localize>Select</span>
+                </b-button> -->
             </b-button-toolbar>
         </template>
     </layout>
@@ -39,13 +58,13 @@
 import { BButton, BButtonGroup, BButtonToolbar } from "bootstrap-vue";
 import Layout from "./Layout";
 import UploadQueue from "./UploadQueue";
-// import DropArea from "./DropArea";
+import DropFiles from "./DropFiles";
 import FileSelectorButton from "./FileSelectorButton";
 
 export default {
     components: {
         Layout,
-        // DropArea,
+        DropFiles,
         UploadQueue,
         BButton,
         BButtonGroup,
@@ -54,27 +73,15 @@ export default {
     },
     props: {
         queue: { type: Array, default: () => [] },
+        active: { type: Boolean, required: true },
     },
-    methods: {
-        addFiles(fileList) {
-            for (let idx = 0; idx < fileList.length; idx++) {
-                const f = fileList.item(idx);
-                console.log("add file", f);
-            }
+    computed: {
+        empty() {
+            return this.queue.length == 0;
         },
-        selectLocalFiles() {
-            debugger;
-            this.$refs.selectorInput.click();
+        variant() {
+            return this.empty ? "secondary" : "primary";
         },
-        // async selectLocalFiles() {
-        //     const selection = await window.showOpenFilePicker(this.filePickerOpts);
-        //     const filePromises = selection.filter((fh) => fh.kind == "file").map((fh) => fh.getFile());
-        //     console.log(filePromises);
-
-        //     // .map((fh) => fh.getFile())
-        //     // const files = await Promise.all(filePromises);
-        //     // files.forEach((f) => this.$emit("add", f));
-        // },
     },
 };
 </script>

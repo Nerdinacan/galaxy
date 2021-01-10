@@ -1,7 +1,9 @@
 <template>
-    <b-button v-bind="$attrs" @click="selectLocalFiles">
-        <input ref="fileSelector" type="file" @change="selectFiles($event.target.files)" :multiple="multiple" />
-        <slot>Select Files</slot>
+    <b-button v-bind="$attrs" v-on="$listeners" @click="selectLocalFiles">
+        <input ref="fileSelector" type="file" @change="selectFiles" :multiple="multiple" />
+        <slot>
+            <span>Select Files</span>
+        </slot>
     </b-button>
 </template>
 
@@ -19,11 +21,13 @@ export default {
         selectLocalFiles() {
             this.$refs.fileSelector.click();
         },
-        selectFiles(fileList) {
+        selectFiles(evt) {
+            const fileList = evt?.target?.files || [];
             for (let idx = 0; idx < fileList.length; idx++) {
                 const f = fileList.item(idx);
                 this.$emit("select", f);
             }
+            evt.target.value = "";
         },
     },
 };

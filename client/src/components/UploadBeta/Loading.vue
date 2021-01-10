@@ -5,7 +5,7 @@
 <script>
 export default {
     props: {
-        message: { type: String, default: "" },
+        message: { type: String, default: "Loading" },
     },
 };
 </script>

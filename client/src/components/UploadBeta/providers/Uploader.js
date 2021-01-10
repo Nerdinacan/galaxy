@@ -2,47 +2,69 @@
  * Provides file upload services
  */
 
+import { mapState, mapActions } from "vuex";
+import { prependPath } from "utils/redirect";
 import { UPLOADSTATUS } from "../store";
 
 export default {
+    props: {
+        // additional fields to be sent up with each upload
+        // fields: { type: Object, required: true, default: () => {} },
+        // application config containing ftp/upload vars
+        config: { type: Object, required: true },
+    },
+
     data() {
         return {
-            loading: false,
-            queue: [],
-            progress: 0.5,
             status: UPLOADSTATUS.OK,
+            loading: false,
         };
     },
-    methods: {
-        enqueue(file) {
-            console.log("queue", file);
-            this.queue.push(file);
+
+    computed: {
+        ...mapState("upload", {
+            queue: (state) => state.queue || [],
+            progress: (state) => state.progress || 0.0,
+        }),
+
+        // config vars
+        uploadPath() {
+            return this.config.nginx_upload_path || prependPath("api/tools");
         },
-        cancel(idx) {
-            this.queue.splice(idx, 1);
+        chunkUploadSize() {
+            return this.config.chunk_upload_size;
         },
-        reset() {
-            this.queue = [];
+        fileSourcesConfigured() {
+            return this.config.file_sources_configured;
         },
-        start() {
-            console.log("start uploading");
-        },
-        pause() {
-            console.log("pause uploading");
+        ftpUploadSite() {
+            return this.config.ftp_upload_site;
         },
     },
+
+    methods: {
+        ...mapActions("upload", ["enqueue", "cancel", "reset"]),
+
+        start() {
+            this.loading = true;
+        },
+        pause() {
+            this.loading = false;
+        },
+    },
+
     render() {
         return this.$scopedSlots.default({
             // list of files
             queue: this.queue,
 
             // status
-            loading: this.loading,
             progress: this.progress,
             status: this.status,
+            loading: this.loading,
 
             // methods
-            enqueue: this.enqueue,
+            add: this.enqueue,
             cancel: this.cancel,
             reset: this.reset,
             start: this.start,

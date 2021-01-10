@@ -6,33 +6,34 @@ import { getUploadDatatypes, getUploadGenomes } from "./queries";
 import { sortByObjectProp } from "utils/sorting";
 
 // TODO: store in disk cache? Localstorage even?
-
 let cached_genomes;
 let cached_extensions;
 
 // sorting
-
 const textSort = sortByObjectProp("text");
-
 const genomeSort = (defaultGenome) => (a, b) => {
     if (a.id == defaultGenome) return -1;
     if (b.id == defaultGenome) return 1;
     return textSort(a, b);
 };
 
-// Defaults
-
-const DEFAULT_GENOME = "?";
-
 export default {
+    props: {
+        config: { type: Object, required: true, default: () => {} },
+    },
     data() {
         return {
-            defaultGenome: DEFAULT_GENOME,
             genomeList: undefined,
             extensionList: undefined,
         };
     },
     computed: {
+        defaultExtension() {
+            return this.config.default_extension || "?";
+        },
+        defaultGenome() {
+            return this.config.default_genome;
+        },
         loading() {
             return this.genomeList === undefined || this.extensionList === undefined;
         },

@@ -1,7 +1,7 @@
 <template>
     <b-list-group>
-        <b-list-group-item v-for="(f, index) in queue" :key="index">
-            {{ f.name }}, {{ f.size }}, {{ f.type }}, {{ f.lastModified }},
+        <b-list-group-item v-for="({ file, status }, index) in queue" :key="index">
+            {{ file.name }}, {{ status }}
             <b-button @click="$emit('cancel', index)">Delete</b-button>
         </b-list-group-item>
     </b-list-group>
