@@ -1,33 +1,15 @@
 <template>
-    <BModal v-model="dialogIsOpen" content-class="uploader" :title="title | localize" v-bind="$attrs" v-on="$listeners">
+    <b-modal v-model="dialogIsOpen" content-class="uploader" v-on="$listeners" v-bind="$attrs">
         <ConfigProvider v-slot="config">
-            <UploadOptions v-slot="{ loading: optionsLoading, ...options }">
-                <Uploader
-                    :config="config"
-                    :options="options"
-                    v-slot="{ loading: active, queue, extensions, genomes, defaultGenome, defaultExtension, handlers }"
-                >
-                    <Loading
-                        v-if="optionsLoading || !config"
-                        message="Loading required information from Galaxy server."
-                    />
-                    <UploadDialog
-                        v-else
-                        :active="active"
-                        :queue="queue"
-                        :default-genome="defaultGenome"
-                        :default-extension="defaultExtension"
-                        :genomes="genomes"
-                        :extensions="extensions"
-                        v-on="handlers"
-                    />
+            <UploadOptions v-slot="{ loading, ...options }">
+                <Uploader :config="config" :options="options" v-slot="{ uploadProps, uploadHandlers }">
+                    <Loading v-if="loading || !config" />
+                    <UploadDialog v-else v-bind="uploadProps" v-on="uploadHandlers" />
                 </Uploader>
             </UploadOptions>
         </ConfigProvider>
-    </BModal>
+    </b-modal>
 </template>
-
-
 
 <script>
 import { mapState, mapMutations } from "vuex";
@@ -47,9 +29,6 @@ export default {
         UploadDialog,
         Loading,
     },
-    props: {
-        title: { type: String, default: "" },
-    },
     computed: {
         ...mapState("upload", ["isOpen"]),
 
@@ -64,6 +43,21 @@ export default {
     },
     methods: {
         ...mapMutations("upload", ["setIsOpen"]),
+        testo(evt) {
+            console.log("start event");
+        },
     },
 };
 </script>
+
+<style>
+.uploader {
+    .modal-header {
+        border: none;
+    }
+    .dropzone,
+    .table {
+        height: 40vh;
+    }
+}
+</style>

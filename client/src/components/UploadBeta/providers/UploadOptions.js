@@ -8,8 +8,6 @@ import { getUploadDatatypes, getUploadGenomes } from "./queries";
 let cached_genomes;
 let cached_extensions;
 
-// sorting
-
 export default {
     data() {
         return {

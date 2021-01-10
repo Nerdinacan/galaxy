@@ -1,9 +1,7 @@
 <template>
     <b-button v-bind="$attrs" v-on="$listeners" @click="selectLocalFiles">
         <input ref="fileSelector" type="file" @change="selectFiles" :multiple="multiple" />
-        <slot>
-            <span>Select Files</span>
-        </slot>
+        <slot><span>Select Files</span></slot>
     </b-button>
 </template>
 
@@ -33,7 +31,7 @@ export default {
 };
 </script>
 
-<style lang="css" scoped>
+<style scoped>
 input[type="file"] {
     border: 0;
     clip: rect(0 0 0 0);

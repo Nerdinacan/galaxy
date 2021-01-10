@@ -9,7 +9,7 @@
         <footer v-if="hasSlot('footer')" class="flex-grow-0 mt-2">
             <slot name="footer"></slot>
         </footer>
-        <footer v-if="hasSlot('buttons')" class="d-flex justify-content-end flex-grow-0 mt-2">
+        <footer v-if="hasSlot('buttons')" class="d-flex justify-content-end flex-grow-0 mt-3">
             <slot name="buttons"></slot>
         </footer>
     </div>

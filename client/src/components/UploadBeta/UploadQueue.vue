@@ -1,40 +1,34 @@
 <template>
-    <b-table :items="items" primary-key="name" :fields="fields"></b-table>
+    <b-table-simple hover small>
+        <b-thead>
+            <b-tr>
+                <b-th>Name</b-th>
+                <b-th>Size</b-th>
+                <b-th>Extension</b-th>
+                <b-th>Genome</b-th>
+                <b-th>Gear</b-th>
+                <b-th>Delete</b-th>
+            </b-tr>
+        </b-thead>
+        <b-tbody>
+            <b-tr v-for="({ file, status }, idx) in queue" :key="file.name">
+                <b-td>{{ file.name }}</b-td>
+                <b-td>{{ file.size }}</b-td>
+                <b-td>{{ status.extension }}</b-td>
+                <b-td>{{ status.genome }}</b-td>
+                <b-td>Gear</b-td>
+                <b-td>
+                    <b-button @click="$emit('cancel', idx)">
+                        <span v-localize>Delete</span>
+                    </b-button>
+                </b-td>
+            </b-tr>
+        </b-tbody>
+    </b-table-simple>
 </template>
 
-<!--
-<b-list-group>
-    <b-list-group-item v-for="({ file, status }, index) in queue" :key="index">
-        {{ file.name }}, {{ status }}
-        <b-button @click="$emit('cancel', index)">Delete</b-button>
-    </b-list-group-item>
-</b-list-group>
--->
-
 <script>
-import { BTable } from "bootstrap-vue";
-
 export default {
-    components: {
-        BTable,
-    },
-    props: {
-        queue: { type: Array, required: true },
-        genomes: { type: Array, required: true },
-        extensions: { type: Array, required: true },
-        defaultGenome: { type: String, required: true },
-        defaultExtension: { type: String, required: true },
-    },
-    computed: {
-        items() {
-            return this.queue.map(({ file, status }) => {
-                const { name, size } = file;
-                return { name, size, ...status };
-            });
-        },
-        fields() {
-            return ["name", "size", "extension", "genome"];
-        },
-    },
+    props: ["queue"],
 };
 </script>

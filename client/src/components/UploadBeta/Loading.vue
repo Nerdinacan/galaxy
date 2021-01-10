@@ -1,11 +1,14 @@
 <template>
-    <div class="loading" v-if="message">{{ message | localize }}</div>
+    <div class="loading">{{ message | localize }}</div>
 </template>
 
 <script>
 export default {
     props: {
-        message: { type: String, default: "Loading" },
+        message: {
+            type: String,
+            default: "Loading required information from Galaxy server.",
+        },
     },
 };
 </script>

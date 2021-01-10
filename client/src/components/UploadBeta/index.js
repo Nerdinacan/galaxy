@@ -1,6 +1,3 @@
-import Vue from "vue";
-import { BootstrapVueIcons } from "bootstrap-vue";
-
 // Bootstrap modal wrapping the main UI
 export { default as UploadModal } from "./UploadModal";
 
@@ -16,7 +13,3 @@ export { default as uploadStore } from "./store";
 // backbone button that mounts and opens the modal.
 // Does the same thing as UploadButton but from backbone
 export { mountUploadModal } from "./mount";
-
-import "./upload.scss";
-
-Vue.use(BootstrapVueIcons);

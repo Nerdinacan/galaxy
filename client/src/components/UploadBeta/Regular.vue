@@ -1,15 +1,7 @@
 <template>
-    <layout>
+    <Layout>
         <template v-slot>
-            <UploadQueue
-                v-if="queue.length"
-                :queue="queue"
-                :default-genome="defaultGenome"
-                :default-extension="defaultExtension"
-                v-bind="$attrs"
-                v-on="$listeners"
-            />
-
+            <UploadQueue v-if="queue.length" :queue="queue" v-on="$listeners" />
             <DropFiles v-else>
                 <h3>
                     <i class="fa fa-files-o"></i>
@@ -39,7 +31,6 @@
                     >
                         <span v-localize>Start</span>
                     </b-button>
-
                     <b-button
                         :variant="variant"
                         :pressed="!active"
@@ -60,15 +51,14 @@
                 </b-button> -->
             </b-button-toolbar>
         </template>
-    </layout>
+    </Layout>
 </template>
 
 <script>
 import { BButton, BButtonGroup, BButtonToolbar } from "bootstrap-vue";
+import { FileSelectorButton, DropFiles } from "../FileSelection";
 import Layout from "./Layout";
 import UploadQueue from "./UploadQueue";
-import DropFiles from "./DropFiles";
-import FileSelectorButton from "./FileSelectorButton";
 
 export default {
     components: {
@@ -80,12 +70,7 @@ export default {
         BButtonToolbar,
         FileSelectorButton,
     },
-    props: {
-        queue: { type: Array, default: () => [] },
-        active: { type: Boolean, required: true },
-        defaultGenome: { type: String, required: false, default: "" },
-        defaultExtension: { type: String, required: false, default: "" },
-    },
+    props: ["queue", "active", "defaultGenome", "defaultExtension"],
     computed: {
         empty() {
             return this.queue.length == 0;

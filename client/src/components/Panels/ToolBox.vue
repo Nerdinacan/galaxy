@@ -24,6 +24,7 @@
                 title="Download from web or upload from disk"
                 title-tag="h4"
                 centered
+                scrollable
                 no-enforce-focus
                 hide-footer
             />

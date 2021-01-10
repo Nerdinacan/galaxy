@@ -1,16 +1,22 @@
 <template>
     <b-tabs>
-        <b-tab :title="'Regular' | localize" id="regular">
-            <Regular v-bind="$attrs" v-on="$listeners" />
+        <b-tab id="regular" :title="'Regular' | localize">
+            <Regular
+                v-on="$listeners"
+                :queue="queue"
+                :active="active"
+                :default-genome="defaultGenome"
+                :default-extension="defaultExtension"
+            />
         </b-tab>
         <b-tab :title="'Composite' | localize" id="composite">
-            <Composite v-bind="$attrs" v-on="$listeners" />
+            <Composite />
         </b-tab>
         <b-tab :title="'Collection' | localize" id="collection">
-            <Collection v-bind="$attrs" v-on="$listeners" />
+            <Collection />
         </b-tab>
         <b-tab :title="'Rule-Based' | localize" id="rule-based">
-            <RulesInput v-bind="$attrs" v-on="$listeners" />
+            <RulesInput />
         </b-tab>
     </b-tabs>
 </template>
@@ -31,5 +37,6 @@ export default {
         Collection,
         RulesInput,
     },
+    props: ["queue", "active", "genomes", "extensions", "status", "defaultGenome", "defaultExtension"],
 };
 </script>
