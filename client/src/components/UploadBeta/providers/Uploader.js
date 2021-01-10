@@ -35,6 +35,7 @@ export default {
             return this.config.chunk_upload_size;
         },
         fileSourcesConfigured() {
+            // I dont know what this is
             return this.config.file_sources_configured;
         },
         ftpUploadSite() {
@@ -48,6 +49,7 @@ export default {
         start() {
             this.loading = true;
         },
+
         pause() {
             this.loading = false;
         },
@@ -55,20 +57,21 @@ export default {
 
     render() {
         return this.$scopedSlots.default({
-            // list of files
             queue: this.queue,
-
-            // status
+            defaultExtension: this.defaultExtension,
+            defaultGenome: this.defaultGenome,
             progress: this.progress,
             status: this.status,
             loading: this.loading,
 
             // methods
-            add: this.enqueue,
-            cancel: this.cancel,
-            reset: this.reset,
-            start: this.start,
-            pause: this.pause,
+            handlers: {
+                add: this.enqueue,
+                cancel: this.cancel,
+                reset: this.reset,
+                start: this.start,
+                pause: this.pause,
+            },
         });
     },
 };

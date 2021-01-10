@@ -2,6 +2,8 @@ export const UPLOADSTATUS = Object.freeze({
     OK: { label: "ok", variant: "success" },
 });
 
+const defaultStatus = { genome: null, extension: null, progress: 0.0 };
+
 const state = {
     // dialog open/close
     isOpen: false,
@@ -13,16 +15,16 @@ const state = {
 
 const getters = {
     progress(state) {
-        const initVal = { totalSize: 0.0, complete: 0.0 };
+        const initVal = { totalSize: 0.0, completedSize: 0.0 };
         const doCount = (acc, item) => {
             const { file, status } = item;
             acc.totalSize += file.size;
-            acc.complete += file.size * status.progress;
+            acc.completedSize += file.size * status.progress;
             return acc;
         };
-        const { totalSize, complete } = state.queue.reduce(doCount, initVal);
-        const percentage = totalSize > 0 ? complete / totalSize : 0;
-        return { totalSize, complete, percentage };
+        const { totalSize, completedSize } = state.queue.reduce(doCount, initVal);
+        const portion = totalSize > 0 ? completedSize / totalSize : 0;
+        return { totalSize, portion };
     },
 };
 
@@ -33,8 +35,8 @@ const mutations = {
     setActive(state, val) {
         state.active = val;
     },
-    addToQueue(state, file) {
-        const status = { progress: 0.0 };
+    enqueue(state, { file, opts = {} }) {
+        const status = { ...defaultStatus, ...opts };
         state.queue.push({ file, status });
     },
     removeFromQueue(state, idx) {
@@ -52,8 +54,8 @@ const actions = {
     toggleActive({ commit, state }) {
         commit("setIsActive", !state.active);
     },
-    enqueue({ commit }, file) {
-        commit("addToQueue", file);
+    enqueue({ commit }, payload) {
+        commit("enqueue", payload);
     },
     cancel({ commit }, idx) {
         commit("removeFromQueue", idx);

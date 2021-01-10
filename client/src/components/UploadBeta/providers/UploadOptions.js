@@ -3,66 +3,34 @@
  */
 
 import { getUploadDatatypes, getUploadGenomes } from "./queries";
-import { sortByObjectProp } from "utils/sorting";
 
 // TODO: store in disk cache? Localstorage even?
 let cached_genomes;
 let cached_extensions;
 
 // sorting
-const textSort = sortByObjectProp("text");
-const genomeSort = (defaultGenome) => (a, b) => {
-    if (a.id == defaultGenome) return -1;
-    if (b.id == defaultGenome) return 1;
-    return textSort(a, b);
-};
 
 export default {
-    props: {
-        config: { type: Object, required: true, default: () => {} },
-    },
     data() {
         return {
-            genomeList: undefined,
-            extensionList: undefined,
+            genomes: undefined,
+            extensions: undefined,
         };
     },
     computed: {
-        defaultExtension() {
-            return this.config.default_extension || "?";
-        },
-        defaultGenome() {
-            return this.config.default_genome;
-        },
         loading() {
-            return this.genomeList === undefined || this.extensionList === undefined;
-        },
-        genomes() {
-            if (this.genomeList) {
-                const list = Array.from(this.genomeList);
-                list.sort(genomeSort(this.defaultGenome));
-                return list;
-            }
-            return [];
-        },
-        extensions() {
-            if (this.extensionList) {
-                const list = Array.from(this.extensionList);
-                list.sort(textSort);
-                return list;
-            }
-            return [];
+            return this.genomes === undefined || this.extensions === undefined;
         },
     },
     async created() {
-        if (!cached_genomes) {
-            cached_genomes = await getUploadDatatypes();
-        }
         if (!cached_extensions) {
-            cached_extensions = await getUploadGenomes();
+            cached_extensions = await getUploadDatatypes();
         }
-        this.genomeList = cached_genomes;
-        this.extensionList = cached_extensions;
+        if (!cached_genomes) {
+            cached_genomes = await getUploadGenomes();
+        }
+        this.genomes = cached_genomes;
+        this.extensions = cached_extensions;
     },
     render() {
         return this.$scopedSlots.default({

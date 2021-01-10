@@ -1,8 +1,11 @@
 <template>
     <BModal v-model="dialogIsOpen" content-class="uploader" :title="title | localize" v-bind="$attrs" v-on="$listeners">
         <ConfigProvider v-slot="config">
-            <UploadOptions :config="config" v-slot="{ extensions, genomes, loading: optionsLoading }">
-                <Uploader :config="config" v-slot="{ loading: active, queue, add, cancel, reset, start, pause }">
+            <UploadOptions v-slot="{ extensions, genomes, loading: optionsLoading }">
+                <Uploader
+                    :config="config"
+                    v-slot="{ loading: active, queue, defaultGenome, defaultExtension, handlers }"
+                >
                     <Loading
                         v-if="optionsLoading || !config"
                         message="Loading required information from Galaxy server."
@@ -12,13 +15,11 @@
                         :config="config"
                         :active="active"
                         :queue="queue"
+                        :default-genome="defaultGenome"
+                        :default-extension="defaultExtension"
                         :genomes="genomes"
                         :extensions="extensions"
-                        @add="add"
-                        @cancel="cancel"
-                        @reset="reset"
-                        @start="start"
-                        @pause="pause"
+                        v-on="handlers"
                     />
                 </Uploader>
             </UploadOptions>

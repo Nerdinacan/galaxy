@@ -8,10 +8,10 @@
         @click="toggleDialog"
     >
         <div>
-            <b-progress height="2rem" :value="progress.percentage" :variant="variant"></b-progress>
+            <b-progress height="2rem" :value="percentage" :variant="variant"></b-progress>
             <span class="position-relative">
                 <font-awesome-icon icon="upload" class="mr-1" />
-                <b v-localize>Upload Data {{ progress.percentage }}% ({{ progress.totalSize }})</b>
+                <b v-localize>Upload Data {{ percentage }}% ({{ progress.totalSize }})</b>
             </span>
         </div>
     </b-button>
@@ -43,9 +43,12 @@ export default {
     computed: {
         ...mapGetters("upload", ["progress"]),
 
+        percentage() {
+            return this.progress.portion * 100;
+        },
         variant() {
-            return "success";
             // return this.status?.variant || "info";
+            return "success";
         },
     },
     methods: {
