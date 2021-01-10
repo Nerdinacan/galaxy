@@ -19,11 +19,11 @@ export default {
         BTable,
     },
     props: {
-        queue: { type: Array, default: () => [] },
-        genomes: { type: Array, default: () => [] },
-        extensions: { type: Array, default: () => [] },
-        defaultGenome: { type: String, required: false, default: "" },
-        defaultExtension: { type: String, required: false, default: "" },
+        queue: { type: Array, required: true },
+        genomes: { type: Array, required: true },
+        extensions: { type: Array, required: true },
+        defaultGenome: { type: String, required: true },
+        defaultExtension: { type: String, required: true },
     },
     computed: {
         items() {

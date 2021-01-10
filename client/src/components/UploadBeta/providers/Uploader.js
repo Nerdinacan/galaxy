@@ -2,9 +2,18 @@
  * Provides file upload services
  */
 
+import { sortByObjectProp } from "utils/sorting";
 import { mapState, mapActions } from "vuex";
 import { prependPath } from "utils/redirect";
 import { UPLOADSTATUS } from "../store";
+
+const textSort = sortByObjectProp("text");
+
+const genomeSort = (defaultGenome) => (a, b) => {
+    if (a.id == defaultGenome) return -1;
+    if (b.id == defaultGenome) return 1;
+    return textSort(a, b);
+};
 
 export default {
     props: {
@@ -12,12 +21,16 @@ export default {
         // fields: { type: Object, required: true, default: () => {} },
         // application config containing ftp/upload vars
         config: { type: Object, required: true },
+        options: { type: Object, required: true },
     },
 
     data() {
+        const { default_extension = "?", default_genome } = this.config;
         return {
             status: UPLOADSTATUS.OK,
             loading: false,
+            defaultExtension: default_extension,
+            defaultGenome: default_genome,
         };
     },
 
@@ -41,6 +54,19 @@ export default {
         ftpUploadSite() {
             return this.config.ftp_upload_site;
         },
+
+        genomes() {
+            const list = Array.from(this.options.genomes || []);
+            const sortFn = genomeSort(this.defaultGenome);
+            list.sort(sortFn);
+            return list;
+        },
+
+        extensions() {
+            const list = Array.from(this.options.extensions || []);
+            list.sort(textSort);
+            return list;
+        },
     },
 
     methods: {
@@ -53,6 +79,12 @@ export default {
         pause() {
             this.loading = false;
         },
+        setDefaultExtension(val) {
+            this.defaultExtension = val;
+        },
+        setDefaultGenome(val) {
+            this.defaultGenome = val;
+        },
     },
 
     render() {
@@ -60,6 +92,8 @@ export default {
             queue: this.queue,
             defaultExtension: this.defaultExtension,
             defaultGenome: this.defaultGenome,
+            genomes: this.genomes,
+            extensions: this.extensions,
             progress: this.progress,
             status: this.status,
             loading: this.loading,
@@ -71,6 +105,8 @@ export default {
                 reset: this.reset,
                 start: this.start,
                 pause: this.pause,
+                setDefaultExtension: this.setDefaultExtension,
+                setDefaultGenome: this.setDefaultGenome,
             },
         });
     },

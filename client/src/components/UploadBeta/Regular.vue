@@ -1,7 +1,14 @@
 <template>
     <layout>
         <template v-slot>
-            <UploadQueue v-if="queue.length" :queue="queue" v-bind="$attrs" v-on="$listeners" />
+            <UploadQueue
+                v-if="queue.length"
+                :queue="queue"
+                :default-genome="defaultGenome"
+                :default-extension="defaultExtension"
+                v-bind="$attrs"
+                v-on="$listeners"
+            />
 
             <DropFiles v-else>
                 <h3>
@@ -89,7 +96,6 @@ export default {
     },
     methods: {
         queueFile(file) {
-            debugger;
             const { defaultExtension: extension, defaultGenome: genome } = this;
             const opts = { extension, genome };
             this.$emit("add", { file, opts });

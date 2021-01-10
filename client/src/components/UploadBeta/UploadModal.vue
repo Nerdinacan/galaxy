@@ -1,10 +1,11 @@
 <template>
     <BModal v-model="dialogIsOpen" content-class="uploader" :title="title | localize" v-bind="$attrs" v-on="$listeners">
         <ConfigProvider v-slot="config">
-            <UploadOptions v-slot="{ extensions, genomes, loading: optionsLoading }">
+            <UploadOptions v-slot="{ loading: optionsLoading, ...options }">
                 <Uploader
                     :config="config"
-                    v-slot="{ loading: active, queue, defaultGenome, defaultExtension, handlers }"
+                    :options="options"
+                    v-slot="{ loading: active, queue, extensions, genomes, defaultGenome, defaultExtension, handlers }"
                 >
                     <Loading
                         v-if="optionsLoading || !config"
@@ -12,7 +13,6 @@
                     />
                     <UploadDialog
                         v-else
-                        :config="config"
                         :active="active"
                         :queue="queue"
                         :default-genome="defaultGenome"
