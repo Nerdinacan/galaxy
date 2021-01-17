@@ -5,22 +5,23 @@
  *   of(store).pipe(watchVuexSelector({ selector: yourFn }))
  */
 
-import { Observable } from "rxjs";
+import { pipe, Observable } from "rxjs";
 import { switchMap } from "rxjs/operators";
 
-export const watchVuexSelector = (config) => (store$) => {
-    // Selector is a function that digs through the vuex state loooking
-    // for the value you care about
-    //    ex: state => state.user.currentUser
-
+export const watchVuexSelector = (config) => {
     const { selector, watchOptions = { immediate: true } } = config;
-
-    return store$.pipe(
+    return pipe(
         switchMap((store) => {
-            return new Observable((subscriber) => {
-                const callback = (result) => subscriber.next(result);
-                return store.watch(selector, callback, watchOptions);
-            });
+            return vuexChanges(store, selector, watchOptions);
         })
     );
+};
+
+// remove Vue observability nonsense
+
+export const vuexChanges = (store, selector, watchOptions = { immediate: true }) => {
+    return new Observable((obs) => {
+        const callback = (result) => obs.next(result);
+        return store.watch(selector, callback, watchOptions);
+    });
 };

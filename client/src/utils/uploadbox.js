@@ -64,6 +64,7 @@ import { getAppRoot } from "onload/loadConfig";
         Posts chunked files to the API.
     */
     $.uploadchunk = function (config) {
+        console.warn("uploadchunk");
         // parse options
         var cnf = $.extend(
             {},
@@ -104,6 +105,7 @@ import { getAppRoot } from "onload/loadConfig";
         function process(start) {
             start = start || 0;
             var slicer = file.mozSlice || file.webkitSlice || file.slice;
+            debugger;
             if (!slicer) {
                 cnf.error("Browser does not support chunked uploads.");
                 return;
@@ -398,6 +400,7 @@ import { getAppRoot } from "onload/loadConfig";
                 session.chunk_upload_size &&
                 session.chunk_upload_size > 0
             ) {
+                debugger;
                 submitter = $.uploadchunk;
             }
             submitter({

@@ -20,6 +20,7 @@ import { toolStore } from "./toolStore";
 import { datasetPathDestinationStore } from "./datasetPathDestinationStore";
 import { datasetExtFilesStore } from "./datasetExtFilesStore";
 import { jobStore } from "./jobStore";
+import { uploadStore, startUploader } from "components/UploadBeta";
 
 // beta features
 import { historyStore as betaHistoryStore } from "components/History/model/historyStore";
@@ -36,6 +37,7 @@ export function createStore() {
             user: userStore,
             config: configStore,
             betaHistory: betaHistoryStore,
+            upload: uploadStore,
 
             // TODO: please namespace all store modules
             gridSearch: gridSearchStore,
@@ -56,9 +58,7 @@ export function createStore() {
     // Vuex can't lazy-load, so we much manually insert global data at some point and we currently
     // don't have a root App component container (which is traditionally used for such operations).
     if (!config.testBuild) {
-        // TODO: remove all automagic inits in favor of provider mechanism which will trigger a load
-        // using a lifecycle hook, or alternatively switch from Vuex to an observable framework
-        // capable of lazy-loading on request
+        // TODO: remove  automagic inits in favor of provider mechanism when possible
         storeConfig.plugins.push((store) => {
             store.dispatch("user/loadUser", { store });
             store.dispatch("config/loadConfigs", { store });
@@ -68,6 +68,9 @@ export function createStore() {
         // Watches for changes in Galaxy and sets those values on Vuex until Galaxy is gone
         // TODO: remove subscriptions in syncVuexToGalaxy as legacy functionality is ported to Vue
         storeConfig.plugins.push(syncVuextoGalaxy);
+
+        // Runs the uploader even when the dialog box is closed
+        storeConfig.plugins.push(startUploader);
     }
 
     return new Vuex.Store(storeConfig);

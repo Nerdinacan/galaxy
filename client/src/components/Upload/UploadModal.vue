@@ -3,7 +3,7 @@
         v-model="modalShow"
         :static="modalStatic"
         header-class="no-separator"
-        modal-class="ui-modal"
+        modal-class="ui-modal upload-legacy"
         dialog-class="upload-dialog"
         body-class="upload-dialog-body"
         ref="modal"

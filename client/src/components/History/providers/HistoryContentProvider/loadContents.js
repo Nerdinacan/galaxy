@@ -1,5 +1,5 @@
 import { pipe, defer, of } from "rxjs";
-import { repeat, switchMap, catchError } from "rxjs/operators";
+import { repeat, switchMap, catchError, delay } from "rxjs/operators";
 import { tag } from "rxjs-spy/operators/tag";
 import { decay } from "../../../../utils/observable/decay";
 import { loadHistoryContents } from "../../caching";
@@ -20,7 +20,8 @@ export const loadContents = (cfg = {}) => {
                 loadHistoryContents({ windowSize }),
             ));
             const poll$ = singleLoad$.pipe(
-                decay({ initialInterval, maxInterval }),
+                // decay({ initialInterval, maxInterval }),
+                delay(initialInterval),
                 repeat(),
             );
             return disablePoll ? singleLoad$ : poll$;

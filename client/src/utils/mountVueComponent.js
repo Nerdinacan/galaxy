@@ -8,6 +8,12 @@ import store from "../store";
 
 import { eventHubPlugin, localizationPlugin, vueRxShortcutPlugin } from "components/plugins";
 
+// rxjs debugging panel
+// "toPrunedJSON" error comes from here. There's something funky
+// in one of the dependencies for this thing.
+import { initSpy } from "utils/observable/rxjsDebugging";
+initSpy();
+
 // Bootstrap components
 Vue.use(BootstrapVue);
 

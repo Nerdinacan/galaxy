@@ -25,7 +25,21 @@ $fa-font-path: "../../../node_modules/@fortawesome/fontawesome-free/webfonts/";
 // galaxy sub-components
 @import "reports";
 @import "frame.scss";
-@import "upload.scss";
+
+// the legacy styles are invasive and overly-broad. They need to be separated
+.upload-legacy {
+    @import "upload.scss";
+
+    &.upload-dialog {
+        width: 900px;
+    }
+
+    &.upload-dialog-body {
+        height: 500px;
+        overflow: hidden;
+    }
+}
+
 @import "ui.scss";
 @import "library.scss";
 @import "trackster.scss";
@@ -323,15 +337,6 @@ body {
             border-right-color: $border-color;
         }
     }
-}
-
-.upload-dialog {
-    width: 900px;
-}
-
-.upload-dialog-body {
-    height: 500px;
-    overflow: hidden;
 }
 
 // ==== Masthead ====
