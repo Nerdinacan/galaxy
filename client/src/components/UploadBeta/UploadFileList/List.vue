@@ -17,6 +17,7 @@
                         :key="index"
                         :genomes="genomes"
                         :extensions="extensions"
+                        :uploader-active="active"
                         v-bind="item"
                         v-on="$listeners"
                     />

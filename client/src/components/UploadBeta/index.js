@@ -6,7 +6,7 @@ export { default as UploadButton } from "./UploadButton";
 
 // button and main UI need a place to share common status and progress values
 export { uploadStore } from "./store/store";
-export { uploadRunner } from "./store/plugins";
+export { startUploader } from "./store/plugins";
 
 // backbone button that mounts and opens the modal.
 // Does the same thing as UploadButton but from backbone

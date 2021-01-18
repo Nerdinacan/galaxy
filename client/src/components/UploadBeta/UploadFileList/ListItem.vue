@@ -16,18 +16,12 @@
             <b-button-toolbar>
                 <SettingsPopup :options="options" @patch="patchUploadOptions" />
 
-                <b-button
-                    class="ml-1"
-                    size="sm"
-                    variant="info"
-                    :aria-label="'Cancel Upload' | l"
-                    @click="$emit('remove', file)"
-                >
+                <PlayPause class="ml-1" size="sm" :active.sync="active" :running="uploaderActive && active" />
+
+                <b-button class="ml-1" size="sm" :aria-label="'Cancel Upload' | l" @click="$emit('remove', file)">
                     <span class="fa fa-icon fa-trash"></span>
                     <span class="sr-only" v-localize>Delete</span>
                 </b-button>
-
-                <PlayPause size="sm" class="ml-1" :active="active" @toggle="$emit('toggleFile', file)"></PlayPause>
             </b-button-toolbar>
         </b-td>
     </b-tr>
@@ -60,6 +54,7 @@ export default {
         status: { type: Object, required: true },
         genomes: { type: Array, required: true },
         extensions: { type: Array, required: true },
+        uploaderActive: { type: Boolean, required: true },
     },
     computed: {
         name: {
@@ -86,8 +81,14 @@ export default {
                 this.patchUploadOptions({ extension: option.text });
             },
         },
-        active() {
-            return this.status.id != STATUS.PAUSED.id;
+        active: {
+            get() {
+                return this.status.id != STATUS.PAUSED.id;
+            },
+            set(val) {
+                const evt = val ? "startFile" : "pauseFile";
+                this.$emit(evt, this.file);
+            },
         },
     },
     methods: {

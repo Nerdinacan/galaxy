@@ -8,15 +8,12 @@
             <span v-localize>Paste/Fetch Data</span>
         </b-button>
 
-        <PlayPause class="ml-2" @toggle="$emit('toggleUploader')" :active="active" :disabled="empty"></PlayPause>
+        <PlayPause class="ml-2" :active.sync="isActive" :disabled="empty"></PlayPause>
 
         <b-button class="ml-2" :disabled="empty" @click.prevent="$emit('reset')">
-            <span v-localize>Reset</span>
+            <span class="fa fa-icon fa-undo"></span>
+            <span class="sr-only" v-localize>Reset</span>
         </b-button>
-
-        <!-- <b-button class="mx-1">
-            <span v-localize>Select</span>
-        </b-button> -->
     </b-button-toolbar>
 </template>
 
@@ -37,6 +34,15 @@ export default {
     computed: {
         empty() {
             return this.queue.length == 0;
+        },
+        isActive: {
+            get() {
+                return this.active;
+            },
+            set(val) {
+                const evt = val ? "startUploader" : "pauseUploader";
+                this.$emit(evt);
+            },
         },
     },
 };

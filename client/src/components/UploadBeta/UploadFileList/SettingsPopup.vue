@@ -1,6 +1,6 @@
 <template>
     <div>
-        <b-button ref="settingsButton" size="sm" variant="info" :aria-label="'Upload Configuration' | l">
+        <b-button ref="settingsButton" size="sm" :aria-label="'Upload Configuration' | l">
             <span class="fa fa-icon fa-gear"></span>
             <span class="sr-only" v-localize>Upload Configuration</span>
         </b-button>
