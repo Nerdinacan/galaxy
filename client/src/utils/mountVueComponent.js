@@ -3,10 +3,16 @@
 // the same plugins and events.
 
 import Vue from "vue";
+import Vuex from "vuex";
 import BootstrapVue from "bootstrap-vue";
 import store from "../store";
 
-import { eventHubPlugin, localizationPlugin, vueRxShortcutPlugin } from "components/plugins";
+// not clear on why I can't import directly from components/plugins, it has a barrel file
+import { eventHubPlugin } from "components/plugins/eventHub";
+import { localizationPlugin } from "components/plugins/localization";
+import { vueRxShortcutPlugin } from "components/plugins/vueRxShortcuts";
+
+Vue.use(Vuex);
 
 // Bootstrap components
 Vue.use(BootstrapVue);
