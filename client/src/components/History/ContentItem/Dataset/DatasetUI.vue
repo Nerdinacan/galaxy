@@ -38,7 +38,7 @@ either through the props, and make updates through the events -->
                     state="deleted"
                     title="Undelete"
                     icon="fas fa-trash-restore"
-                    @click.stop="$emit('undeleteDataset')"
+                    @click.stop="$emit('undelete')"
                 />
             </div>
 
@@ -64,17 +64,13 @@ either through the props, and make updates through the events -->
                 v-if="dataset.canEditName"
                 tag-name="h4"
                 :value="dataset.name"
-                @input="$emit('updateDataset', { name: $event })"
+                @input="$emit('update', { name: $event })"
                 :display-label="dataset.title"
                 :tooltip-title="'Edit dataset name...' | localize"
                 tooltip-placement="left"
             />
 
-            <Annotation
-                class="mt-1"
-                :value="dataset.annotation"
-                @input="$emit('updateDataset', { annotation: $event })"
-            />
+            <Annotation class="mt-1" :value="dataset.annotation" @input="$emit('update', { annotation: $event })" />
 
             <transition name="shutterfade">
                 <ContentTags v-if="showTags" class="mt-2" :content="dataset" />
@@ -102,20 +98,16 @@ either through the props, and make updates through the events -->
 </template>
 
 <script>
-/* eslint-disable no-undef */
-// STATES is injected, eslint doesn't know that
-
-import { Dataset } from "../../model";
+import { Dataset, STATES } from "../../model";
 import ClickToEdit from "components/ClickToEdit";
 import Annotation from "components/Annotation";
 import { StatusIcon, StateBtn } from "../../StatusIcon";
 import DatasetMenu from "./DatasetMenu";
 import DatasetSummary from "./Summary";
 import ContentTags from "../../ContentTags";
-import { legacyNavigationMixin } from "components/plugins";
+import { legacyNavigationMixin } from "components/plugins/legacyNavigation";
 
 export default {
-    inject: ["listState", "STATES"],
     mixins: [legacyNavigationMixin],
     components: {
         ClickToEdit,
@@ -131,6 +123,7 @@ export default {
         expanded: { type: Boolean, required: true },
         selected: { type: Boolean, required: false, default: false },
         showHid: { type: Boolean, required: false, default: true },
+        showSelection: { type: Boolean, required: false, default: false },
     },
     data() {
         return {
@@ -149,9 +142,6 @@ export default {
         },
         counter() {
             return this.showHid ? this.dataset.hid : "";
-        },
-        showSelection() {
-            return this.listState.showSelection;
         },
     },
     methods: {

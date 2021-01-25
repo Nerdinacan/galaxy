@@ -16,15 +16,13 @@
                     <select2 container-class="upload-footer-selection" v-model="selectionType">
                         <option value="paste">{{ l("Pasted Table") }}</option>
                         <option value="dataset">{{ l("History Dataset") }}</option>
-                        <option v-if="ftpUploadSite" value="ftp">{{ l("FTP Directory") }} </option>
+                        <option v-if="ftpUploadSite" value="ftp">{{ l("FTP Directory") }}</option>
                         <option value="remote_files">{{ l("Remote Files Directory") }}</option>
                     </select2>
                 </div>
             </div>
             <div id="upload-rule-dataset-option" class="upload-rule-option" v-if="selectionType == 'dataset'">
-                <div class="upload-rule-option-title">
-                    History dataset
-                </div>
+                <div class="upload-rule-option-title">History dataset</div>
                 <div>
                     <b-link @click="onSelectDataset" v-if="selectedDatasetName == null">
                         {{ l("Select") }}
@@ -44,7 +42,7 @@
             ></textarea>
         </span>
         <template v-slot:buttons>
-            <b-button ref="btnClose" class="ui-button-default" id="btn-close" @click="app.dismiss()">
+            <b-button ref="btnClose" class="ui-button-default" id="btn-close" @click="$emit('dismiss')">
                 {{ btnCloseTitle }}
             </b-button>
             <b-button
@@ -194,7 +192,7 @@ export default {
             }
             selection.dataType = this.dataType;
             Galaxy.currHistoryPanel.buildCollection("rules", selection, true);
-            this.app.hide();
+            this.$emit("hide");
         },
     },
 };

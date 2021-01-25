@@ -6,57 +6,58 @@
             v-if="dsc"
             :parent="dsc"
             v-slot="{
-                payload: {
-                    contents = [],
-                    startKey = null,
-                    topRows = 0,
-                    bottomRows = 0,
-                    totalMatches = 0
-                },
-                busy: loading,
-                params,
-                pageSize,
-                updateParams,
-                setScrollPos,
+                payload: { contents = [], startKey = null, topRows = 0, bottomRows = 0 },
+                handlers: { setScrollPos },
             }"
         >
-            <Layout>
-                <template v-slot:nav>
-                    <TopNav
-                        :history="history"
-                        :selected-collections="selectedCollections"
-                        :show-tags.sync="showTags"
-                        :show-filter.sync="showFilter"
-                        v-on="$listeners"
-                    />
-                </template>
+            <ExpandedItems
+                :scope-key="selectedCollection.id"
+                :get-item-key="(item) => item.type_id"
+                v-slot="{ isExpanded, setExpanded }"
+            >
+                <Layout>
+                    <template v-slot:nav>
+                        <TopNav
+                            :history="history"
+                            :selected-collections="selectedCollections"
+                            :show-tags.sync="showTags"
+                            :show-filter.sync="showFilter"
+                            v-on="$listeners"
+                        />
+                    </template>
 
-                <template v-slot:details>
-                    <Details
-                        :dsc="dsc"
-                        :writable="writable"
-                        :show-tags.sync="showTags"
-                        :show-filter.sync="showFilter"
-                        @update:dsc="updateDsc(dsc, $event)"
-                    />
-                </template>
+                    <template v-slot:details>
+                        <Details
+                            :dsc="dsc"
+                            :writable="writable"
+                            :show-tags.sync="showTags"
+                            :show-filter.sync="showFilter"
+                            @update:dsc="updateDsc(dsc, $event)"
+                        />
+                    </template>
 
-                <template v-slot:listing>
-                    <VirtualScroller
-                        key-field="element_index"
-                        :item-height="36"
-                        :items="contents"
-                        :scroll-to="startKey"
-                        :top-placeholders="topRows"
-                        :bottom-placeholders="bottomRows"
-                        @scroll="setScrollPos"
-                    >
-                        <template v-slot="{ item, index }">
-                            <CollectionContentItem :item="item" :index="index" />
-                        </template>
-                    </VirtualScroller>
-                </template>
-            </Layout>
+                    <template v-slot:listing>
+                        <VirtualScroller
+                            key-field="element_index"
+                            :item-height="36"
+                            :items="contents"
+                            :scroll-to="startKey"
+                            :top-placeholders="topRows"
+                            :bottom-placeholders="bottomRows"
+                            @scroll="setScrollPos"
+                        >
+                            <template v-slot="{ item, index }">
+                                <CollectionContentItem
+                                    :item="item"
+                                    :index="index"
+                                    :expanded="isExpanded(item)"
+                                    @update:expanded="setExpanded(item, $event)"
+                                />
+                            </template>
+                        </VirtualScroller>
+                    </template>
+                </Layout>
+            </ExpandedItems>
         </CollectionContentProvider>
     </DscProvider>
 </template>
@@ -66,16 +67,14 @@ import { History } from "../model";
 import { updateContentFields } from "../model/queries";
 import { cacheContent } from "../caching";
 
-import { DscProvider, CollectionContentProvider } from "../providers";
+import { DscProvider, CollectionContentProvider, ExpandedItems } from "../providers";
 import Layout from "../Layout";
 import TopNav from "./TopNav";
 import Details from "./Details";
-import ListMixin from "../ListMixin";
 import VirtualScroller from "../../VirtualScroller";
 import { CollectionContentItem } from "../ContentItem";
 
 export default {
-    mixins: [ListMixin],
     components: {
         DscProvider,
         CollectionContentProvider,
@@ -84,6 +83,7 @@ export default {
         Details,
         VirtualScroller,
         CollectionContentItem,
+        ExpandedItems,
     },
     props: {
         history: { type: History, required: true },

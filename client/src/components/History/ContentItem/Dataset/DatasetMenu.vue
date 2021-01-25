@@ -132,7 +132,7 @@
 import { mapGetters } from "vuex";
 import { Dataset } from "../../model";
 import { PriorityMenu, PriorityMenuItem } from "components/PriorityMenu";
-import { legacyNavigationMixin } from "components/plugins";
+import { legacyNavigationMixin } from "components/plugins/legacyNavigation";
 
 export default {
     inject: ["STATES"],
@@ -261,9 +261,8 @@ export default {
         },
 
         onDeleteClick() {
-            const eventName = this.dataset.deleted ? "undeleteDataset" : "deleteDataset";
-            // console.log("emitting", eventName, this.dataset);
-            this.$emit(eventName, this.dataset);
+            const eventName = this.dataset.deleted ? "undelete" : "delete";
+            this.$emit(eventName);
         },
     },
 };
