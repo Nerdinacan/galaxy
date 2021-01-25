@@ -52,6 +52,7 @@
                                     :index="index"
                                     :expanded="isExpanded(item)"
                                     @update:expanded="setExpanded(item, $event)"
+                                    @selectCollection="$emit('selectCollection', item)"
                                 />
                             </template>
                         </VirtualScroller>

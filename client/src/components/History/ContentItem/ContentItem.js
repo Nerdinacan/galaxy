@@ -20,7 +20,7 @@ export default {
             :class="{ loading }"
             :tabindex="index"
             :scrolling="scrolling"
-            v-on='$listeners'
+            v-on="$listeners"
             v-bind="bindProps"
             @mouseover.native.self.stop="setFocus(index)"
             @keydown.native.arrow-up.self.stop="setFocus(index - 1)"

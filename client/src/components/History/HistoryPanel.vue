@@ -19,6 +19,7 @@ selected datset collections -->
         v-else-if="selectedCollections.length"
         :history="history"
         :selected-collections.sync="selectedCollections"
+        @selectCollection="selectCollection"
     />
 
     <div v-else>
@@ -52,12 +53,6 @@ export default {
             console.log("selectCollection", coll);
             this.selectedCollections = [...this.selectedCollections, coll];
         },
-    },
-    mounted() {
-        this.eventHub.$on("selectCollection", () => {
-            console.log("eventHub firing select collection");
-            // this.selectCollection
-        });
     },
 };
 </script>

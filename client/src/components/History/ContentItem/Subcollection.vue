@@ -8,11 +8,9 @@
         class="collapsed"
         :data-state="state"
         @keydown.arrow-right.self.stop.prevent="$emit('selectCollection')"
+        @click.stop="$emit('selectCollection')"
     >
-        <nav
-            class="content-top-menu d-flex align-items-center justify-content-between p-1"
-            @click.stop="$emit('selectCollection', dsc)"
-        >
+        <nav class="content-top-menu d-flex align-items-center justify-content-between p-1">
             <h5 class="flex-grow-1 overflow-hidden mr-auto text-nowrap text-truncate">
                 <span class="name">{{ dsc.name }}</span>
                 <span class="description">
