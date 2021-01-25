@@ -1,9 +1,5 @@
-import Vue from "vue";
-import { vueRxShortcutPlugin } from "components/plugins";
 import { NEVER, BehaviorSubject } from "rxjs";
 import { SearchParams } from "../model/SearchParams";
-
-Vue.use(vueRxShortcutPlugin);
 
 // dumb math util
 export const clamp = (val, [bottom, top]) => Math.max(bottom, Math.min(top, val));
@@ -137,6 +133,7 @@ export const ContentProvider = {
 
     render() {
         return this.$scopedSlots.default({
+            // actual content delivery
             payload: this.payload,
 
             // local vars/settings/props passthrough
@@ -147,9 +144,11 @@ export const ContentProvider = {
             pageSize: this.pageSize,
 
             // update methods
-            updateParams: this.updateParams,
-            setScrollPos: this.setScrollPos,
-            manualReload: this.manualReload,
+            handlers: {
+                updateParams: this.updateParams,
+                setScrollPos: this.setScrollPos,
+                manualReload: this.manualReload,
+            },
         });
     },
 };

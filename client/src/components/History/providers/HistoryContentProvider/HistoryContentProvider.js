@@ -10,8 +10,9 @@ import {
     withLatestFrom,
     debounceTime,
     share,
+    filter,
+    catchError,
 } from "rxjs/operators";
-import { tag } from "rxjs-spy/operators/tag";
 import { activity } from "utils/observable/activity";
 import { whenAny } from "utils/observable/whenAny";
 import { chunk } from "../../caching/operators/chunk";
@@ -28,15 +29,6 @@ export default {
         disablePoll: { type: Boolean, default: false },
     },
 
-    computed: {
-        history() {
-            if (this.parent instanceof History) {
-                return this.parent;
-            }
-            return new History(this.parent);
-        },
-    },
-
     methods: {
         // prettier-ignore
         initStreams() {
@@ -50,7 +42,8 @@ export default {
 
             //#region Raw Inputs
 
-            const history$ = this.watch$("history", true).pipe(
+            const history$ = this.watch$("parent").pipe(
+                filter(val => val instanceof History),
                 distinctUntilChanged(History.equals),
             );
 
@@ -164,13 +157,11 @@ export default {
                 }),
                 map(([inputs, hid]) => [...inputs, hid]),
                 debounceTime(debouncePeriod),
-                tag('loadInputsThrottled'),
                 share(),
             );
 
             const loadContent$ = loadInputsThrottled$.pipe(
                 loadContents({ disablePoll, windowSize: 2 * pageSize }),
-                tag('loadContent'),
             );
 
             const loader$ = loadContent$.pipe(
@@ -189,6 +180,11 @@ export default {
             const loading$ = merge(loadInputsThrottled$, loader$).pipe(
                 activity({ period: debouncePeriod }),
                 shareReplay(1),
+                // if we don't catch the error the subscription will stop
+                catchError(err => {
+                    console.log("Error in HCP load stream", err);
+                    return null;
+                })
             );
 
             //#endregion
@@ -197,7 +193,6 @@ export default {
 
             const cacheHid$ = hid$.pipe(
                 debounceTime(debouncePeriod),
-                tag('cacheHid'),
                 shareReplay(1),
             );
 
@@ -207,7 +202,6 @@ export default {
                     pageSize,
                     debouncePeriod
                 }),
-                tag('cacheFromMonitor'),
             );
 
             const cacheBuildInputs$ = combineLatest([
@@ -216,13 +210,16 @@ export default {
                 totalMatches$,
             ]).pipe(
                 debounceTime(2 * debouncePeriod),
-                tag('cacheBuildInputs'),
             );
 
             const cache$ = cacheBuildInputs$.pipe(
                 map((inputs) => this.buildPayload(...inputs)),
-                tag('cache'),
                 share(),
+                // if we don't catch the error the subscription will stop
+                catchError(err => {
+                    console.log("Error in HCP cache stream", err);
+                    return null;
+                })
             );
 
             //#endregion

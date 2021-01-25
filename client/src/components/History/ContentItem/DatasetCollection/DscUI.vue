@@ -6,12 +6,9 @@
         class="dataset dataset-collection collapsed"
         :class="{ selected }"
         :data-state="dsc.state"
-        @keydown.arrow-right.self.stop="$emit('select-collection', dsc)"
+        @keydown.arrow-right.self.stop="$emit('selectCollection')"
         @keydown.space.self.stop.prevent="$emit('update:selected', !selected)"
-        @click.stop="
-            $emit('select-collection', dsc);
-            $emit('update:expanded', dsc);
-        "
+        @click.stop="$emit('selectCollection')"
     >
         <nav class="d-flex content-top-menu align-items-center justify-content-between">
             <div class="d-flex mr-1 align-items-center" @click.stop>
@@ -30,7 +27,7 @@
                     state="hidden"
                     title="Unhide"
                     icon="fa fa-eye-slash"
-                    @click.stop="$emit('unhideCollection')"
+                    @click.stop="$emit('unhide')"
                 />
 
                 <StateBtn
@@ -38,7 +35,7 @@
                     state="ok"
                     title="Collection"
                     icon="fas fa-folder"
-                    @click.stop="$emit('select-collection', dsc)"
+                    @click.stop="$emit('selectCollection')"
                 />
             </div>
 
@@ -57,7 +54,7 @@
                 state="deleted"
                 title="Undelete"
                 icon="fas fa-trash-restore"
-                @click.stop="$emit('undeleteCollection')"
+                @click.stop="$emit('undelete')"
             />
         </nav>
 
@@ -73,7 +70,6 @@ import JobStateProgress from "./JobStateProgress";
 import DscMenu from "./DscMenu";
 
 export default {
-    inject: ["listState", "STATES"],
     components: {
         StatusIcon,
         StateBtn,
@@ -84,13 +80,11 @@ export default {
         dsc: { type: DatasetCollection, required: true },
         selected: { type: Boolean, required: false, default: false },
         showHid: { type: Boolean, required: false, default: true },
+        showSelection: { type: Boolean, required: false, default: false },
     },
     computed: {
         counter() {
             return this.showHid ? this.dsc.hid : "";
-        },
-        showSelection() {
-            return this.listState.showSelection;
         },
     },
     methods: {

@@ -5,6 +5,11 @@ export function redirectToUrl(url) {
     window.location = url;
 }
 
+// separated purely to make testing easier
+export function reloadPage() {
+    window.location.reload();
+}
+
 // Prepends configured appRoot to given url
 const slashCleanup = /(\/)+/g;
 export function prependPath(path) {
