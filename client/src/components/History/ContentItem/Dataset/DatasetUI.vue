@@ -43,20 +43,23 @@ either through the props, and make updates through the events -->
             </div>
 
             <h5 class="flex-grow-1 overflow-hidden mr-auto text-nowrap text-truncate">
-                <span class="hid">{{ dataset.hid }}</span>
+                <!-- <span class="hid">{{ dataset.hid }}</span> -->
                 <span v-if="collapsed || !dataset.canEditName" class="name">{{ dataset.title }}</span>
             </h5>
-            <!-- <div v-if="collapsed && dataset.tags.length" class="nametags mt-1">
-                <nametag v-for="tag in dataset.tags" :key="tag" :tag="tag" />
-            </div> -->
 
-            <DatasetMenu
-                class="content-item-menu"
-                :dataset="dataset"
-                :expanded="expanded"
-                v-on="$listeners"
-                :show-tags.sync="showTags"
-            />
+            <div v-if="collapsed && dataset.tags.length" class="nametags mt-1">
+                <nametag v-for="tag in dataset.tags" :key="tag" :tag="tag" />
+            </div>
+
+            <slot name="menu">
+                <DatasetMenu
+                    class="content-item-menu"
+                    :dataset="dataset"
+                    :expanded="expanded"
+                    v-on="$listeners"
+                    :show-tags.sync="showTags"
+                />
+            </slot>
         </nav>
 
         <header v-if="expanded" class="p-2">
@@ -101,12 +104,12 @@ either through the props, and make updates through the events -->
 import { Dataset, STATES } from "../../model";
 import ClickToEdit from "components/ClickToEdit";
 import Annotation from "components/Annotation";
+import { Nametag } from "components/Nametags";
 import { StatusIcon, StateBtn } from "../../StatusIcon";
 import DatasetMenu from "./DatasetMenu";
 import DatasetSummary from "./Summary";
 import ContentTags from "../../ContentTags";
 import { legacyNavigationMixin } from "components/plugins/legacyNavigation";
-
 export default {
     mixins: [legacyNavigationMixin],
     components: {
@@ -117,12 +120,12 @@ export default {
         DatasetMenu,
         DatasetSummary,
         ContentTags,
+        Nametag,
     },
     props: {
         dataset: { type: Dataset, required: true },
         expanded: { type: Boolean, required: true },
         selected: { type: Boolean, required: false, default: false },
-        showHid: { type: Boolean, required: false, default: true },
         showSelection: { type: Boolean, required: false, default: false },
     },
     data() {
@@ -139,9 +142,6 @@ export default {
         },
         ok() {
             return this.dataset.state == "ok";
-        },
-        counter() {
-            return this.showHid ? this.dataset.hid : "";
         },
     },
     methods: {

@@ -40,14 +40,17 @@
             </div>
 
             <h5 class="flex-grow-1 overflow-hidden mr-auto text-nowrap text-truncate">
-                <span class="hid">{{ dsc.hid }}</span>
+                <!-- <span class="hid">{{ dsc.hid }}</span> -->
                 <span class="name">{{ dsc.name }}</span>
                 <span class="description">
                     ({{ dsc.collectionType | localize }} {{ dsc.collectionCountDescription | localize }})
                 </span>
             </h5>
 
-            <DscMenu v-if="!dsc.deleted" class="content-item-menu" v-on="$listeners" />
+            <slot name="menu">
+                <DscMenu v-if="!dsc.deleted" class="content-item-menu" v-on="$listeners" />
+            </slot>
+
             <StateBtn
                 v-if="dsc.deleted"
                 class="px-1"
@@ -59,7 +62,6 @@
         </nav>
 
         <JobStateProgress class="m-2" v-if="dsc.jobSummary" :summary="dsc.jobSummary" />
-        <div v-else>No summary</div>
     </div>
 </template>
 
@@ -79,13 +81,7 @@ export default {
     props: {
         dsc: { type: DatasetCollection, required: true },
         selected: { type: Boolean, required: false, default: false },
-        showHid: { type: Boolean, required: false, default: true },
         showSelection: { type: Boolean, required: false, default: false },
-    },
-    computed: {
-        counter() {
-            return this.showHid ? this.dsc.hid : "";
-        },
     },
     methods: {
         onStatusClick() {

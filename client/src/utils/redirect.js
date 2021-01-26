@@ -16,3 +16,9 @@ export function prependPath(path) {
     const root = getAppRoot();
     return `${root}/${path}`.replace(slashCleanup, "/");
 }
+
+export function absPath(path) {
+    const relativePath = prependPath(path);
+    const server = window.location.origin;
+    return `${server}/${relativePath}`.replace(slashCleanup, "/");
+}
