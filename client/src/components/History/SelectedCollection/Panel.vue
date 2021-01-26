@@ -17,23 +17,11 @@
             >
                 <Layout>
                     <template v-slot:nav>
-                        <TopNav
-                            :history="history"
-                            :selected-collections="selectedCollections"
-                            :show-tags.sync="showTags"
-                            :show-filter.sync="showFilter"
-                            v-on="$listeners"
-                        />
+                        <TopNav :history="history" :selected-collections="selectedCollections" v-on="$listeners" />
                     </template>
 
                     <template v-slot:details>
-                        <Details
-                            :dsc="dsc"
-                            :writable="writable"
-                            :show-tags.sync="showTags"
-                            :show-filter.sync="showFilter"
-                            @update:dsc="updateDsc(dsc, $event)"
-                        />
+                        <Details :dsc="dsc" :writable="writable" @update:dsc="updateDsc(dsc, $event)" />
                     </template>
 
                     <template v-slot:listing>
@@ -51,6 +39,7 @@
                                     :item="item"
                                     :index="index"
                                     :expanded="isExpanded(item)"
+                                    :writable="writable"
                                     @update:expanded="setExpanded(item, $event)"
                                     @selectCollection="$emit('selectCollection', item)"
                                 />
@@ -90,10 +79,6 @@ export default {
         history: { type: History, required: true },
         selectedCollections: { type: Array, required: true },
     },
-    data: () => ({
-        showTags: false,
-        showFilter: false,
-    }),
     computed: {
         selectedCollection() {
             const arr = this.selectedCollections;

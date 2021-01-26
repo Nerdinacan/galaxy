@@ -13,8 +13,6 @@ selected datset collections -->
         </template>
     </HistoryComponent>
 
-    <!-- <pre v-if="history && !selectedCollections.length">{{ history }}</pre> -->
-
     <SelectedCollection
         v-else-if="selectedCollections.length"
         :history="history"

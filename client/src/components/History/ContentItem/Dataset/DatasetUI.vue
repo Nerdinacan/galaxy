@@ -14,6 +14,7 @@ either through the props, and make updates through the events -->
         @keydown.arrow-right.self.stop="$emit('update:expanded', true)"
         @keydown.space.self.stop.prevent="$emit('update:selected', !selected)"
     >
+        <!-- name, state buttons, menus -->
         <nav
             class="content-top-menu d-flex align-items-center justify-content-between"
             @click.stop="$emit('update:expanded', !expanded)"
@@ -21,6 +22,7 @@ either through the props, and make updates through the events -->
             <div class="d-flex mr-1 align-items-center" @click.stop>
                 <b-check v-if="showSelection" :checked="selected" @change="$emit('update:selected', $event)" />
 
+                <!-- 
                 <StatusIcon v-if="!ok" class="status-icon px-1" :state="dataset.state" @click.stop="onStatusClick" />
 
                 <StateBtn
@@ -39,17 +41,13 @@ either through the props, and make updates through the events -->
                     title="Undelete"
                     icon="fas fa-trash-restore"
                     @click.stop="$emit('undelete')"
-                />
+                /> -->
             </div>
 
             <h5 class="flex-grow-1 overflow-hidden mr-auto text-nowrap text-truncate">
-                <!-- <span class="hid">{{ dataset.hid }}</span> -->
+                <span class="hid">{{ dataset.hid }}</span>
                 <span v-if="collapsed || !dataset.canEditName" class="name">{{ dataset.title }}</span>
             </h5>
-
-            <div v-if="collapsed && dataset.tags.length" class="nametags mt-1">
-                <nametag v-for="tag in dataset.tags" :key="tag" :tag="tag" />
-            </div>
 
             <slot name="menu">
                 <DatasetMenu
@@ -62,8 +60,16 @@ either through the props, and make updates through the events -->
             </slot>
         </nav>
 
+        <!--- read-only tags with name: prefix -->
+        <div v-if="collapsed && dataset.nameTags.length" class="nametags p-1">
+            <Nametag v-for="tag in dataset.nameTags" :key="tag" :tag="tag" />
+        </div>
+
+        <!-- expanded view with editors -->
         <header v-if="expanded" class="p-2">
-            <ClickToEdit
+            <pre>{{ dataset }}</pre>
+
+            <!-- <ClickToEdit
                 v-if="dataset.canEditName"
                 tag-name="h4"
                 :value="dataset.name"
@@ -75,9 +81,10 @@ either through the props, and make updates through the events -->
 
             <Annotation class="mt-1" :value="dataset.annotation" @input="$emit('update', { annotation: $event })" />
 
-            <transition name="shutterfade">
-                <ContentTags v-if="showTags" class="mt-2" :content="dataset" />
-            </transition>
+            <ContentTags v-if="showTags" class="mt-2" :content="dataset" />
+            <div v-else-if="dataset.nameTags.length" class="nametags mt-2">
+                <Nametag v-for="tag in dataset.nameTags" :key="tag" :tag="tag" />
+            </div>
 
             <div class="details">
                 <DatasetSummary :dataset="dataset" />
@@ -95,7 +102,7 @@ either through the props, and make updates through the events -->
                     </div>
                 </div>
                 <pre v-if="dataset.peek" class="dataset-peek p-1" v-html="dataset.peek"></pre>
-            </div>
+            </div> -->
         </header>
     </div>
 </template>
