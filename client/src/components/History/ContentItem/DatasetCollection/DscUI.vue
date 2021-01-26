@@ -40,7 +40,7 @@
             </div>
 
             <h5 class="flex-grow-1 overflow-hidden mr-auto text-nowrap text-truncate">
-                <!-- <span class="hid">{{ dsc.hid }}</span> -->
+                <span class="hid">{{ dsc.hid }}</span>
                 <span class="name">{{ dsc.name }}</span>
                 <span class="description">
                     ({{ dsc.collectionType | localize }} {{ dsc.collectionCountDescription | localize }})
@@ -61,6 +61,11 @@
             />
         </nav>
 
+        <!--- read-only tags with name: prefix -->
+        <div v-if="dsc.nameTags.length" class="nametags p-1">
+            <Nametag v-for="tag in dsc.nameTags" :key="tag" :tag="tag" />
+        </div>
+
         <JobStateProgress class="m-2" v-if="dsc.jobSummary" :summary="dsc.jobSummary" />
     </div>
 </template>
@@ -70,6 +75,7 @@ import { DatasetCollection } from "../../model/DatasetCollection";
 import { StatusIcon, StateBtn } from "../../StatusIcon";
 import JobStateProgress from "./JobStateProgress";
 import DscMenu from "./DscMenu";
+import { Nametag } from "components/Nametags";
 
 export default {
     components: {
@@ -77,6 +83,7 @@ export default {
         StateBtn,
         JobStateProgress,
         DscMenu,
+        Nametag,
     },
     props: {
         dsc: { type: DatasetCollection, required: true },

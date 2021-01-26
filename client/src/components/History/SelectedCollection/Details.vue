@@ -17,27 +17,33 @@
         </p>
 
         <transition name="shutterfade">
-            <ContentTags v-if="writable && showTags" :content="dsc" />
+            <div>
+                <p>Writable?: {{ writable }}</p>
+                <p>tags ?: {{ dsc.tags }}</p>
+            </div>
+            <!-- <ContentTags v-if="writable" :content="dsc" />
+            <div v-else-if="dsc.tags.length" class="nametags p-1">
+                <Nametag v-for="tag in dsc.tags" :key="tag" :tag="tag" />
+            </div> -->
         </transition>
-
-        <!-- <pre style="height:100px;overflow: scroll;">{{ dsc }}</pre> -->
     </section>
 </template>
 
 <script>
 import { DatasetCollection } from "../model";
 import ClickToEdit from "components/ClickToEdit";
+import { Nametag } from "components/Nametags";
 import ContentTags from "../ContentTags";
 
 export default {
     components: {
         ClickToEdit,
         ContentTags,
+        Nametag,
     },
     props: {
         dsc: { type: DatasetCollection, required: true },
         writable: { type: Boolean, required: true },
-        showTags: { type: Boolean, required: true },
     },
 };
 </script>
