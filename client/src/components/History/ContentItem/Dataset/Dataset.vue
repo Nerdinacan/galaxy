@@ -8,6 +8,7 @@
         @delete="onDelete"
         @undelete="onUndelete"
         @unhide="onUnhide"
+        @copy-link="onCopyLink"
     />
 </template>
 
@@ -16,6 +17,8 @@ import DatasetUI from "./DatasetUI";
 import { Dataset } from "../../model";
 import { deleteContent, updateContentFields } from "../../model/queries";
 import { cacheContent } from "../../caching";
+import { copy as sendToClipboard } from "utils/clipboard";
+import { absPath } from "utils/redirect";
 
 export default {
     components: {
@@ -44,6 +47,13 @@ export default {
             const newContent = await updateContentFields(this.item, changes);
             await cacheContent(newContent);
         },
+        onCopyLink() {
+            const relPath = this.dataset.getUrl("download");
+            const msg = this.localize("Link is copied to your clipboard");
+            sendToClipboard(absPath(relPath), msg);
+        },
     },
 };
 </script>
+
+
