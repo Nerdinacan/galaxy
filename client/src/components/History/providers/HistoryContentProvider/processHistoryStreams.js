@@ -1,6 +1,6 @@
 import { combineLatest, merge, Subject } from "rxjs";
 import { tap, pluck, map, distinctUntilChanged, withLatestFrom, debounceTime, share } from "rxjs/operators";
-// import { tag } from "rxjs-spy/operators/tag";
+import { tag } from "rxjs-spy/operators/tag";
 import { whenAny } from "utils/observable/whenAny";
 import { activity } from "utils/observable/activity";
 import { shareButDie } from "utils/observable/shareButDie";
@@ -16,9 +16,6 @@ import { isValidNumber, inputsSame } from "../ContentProvider";
 export const loadInputsSame = ([inputsA, cursorA], [inputsB, cursorB]) => {
     return cursorA == cursorB && inputsSame(inputsA, inputsB);
 };
-
-// disable debugging
-const tag = () => (src$) => src$;
 
 // prettier-ignore
 export function processHistoryStreams(sources, settings) {
@@ -65,8 +62,6 @@ export function processHistoryStreams(sources, settings) {
         map(([pos, fit]) => (pos.key ? pos.key : estimateHid(pos, fit))),
         map((hid) => parseInt(hid)),
         distinctUntilChanged(),
-        // important to use the long version with refCounts here or this
-        // stream will never die on unsubscription
         tag('hid'),
         shareButDie(1)
     );
