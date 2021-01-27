@@ -5,11 +5,7 @@ export default {
 
     computed: {
         contentItemComponent() {
-            if (this.item.id === undefined) {
-                return "Placeholder";
-                // return "Loading";
-            }
-            if (this.scrolling) {
+            if (this.item.id === undefined || this.scrolling) {
                 return "Placeholder";
             }
             const { history_content_type } = this.item;

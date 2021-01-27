@@ -11,6 +11,7 @@
 import Placeholder from "./Placeholder";
 import Dataset from "./Dataset";
 import DatasetCollection from "./DatasetCollection";
+// import SubDataset from "./SubDataset";
 import Subcollection from "./Subcollection";
 
 export default {
@@ -32,6 +33,7 @@ export default {
         Placeholder,
         Dataset,
         DatasetCollection,
+        // SubDataset,
         Subcollection,
     },
 

@@ -17,14 +17,10 @@
         </p>
 
         <transition name="shutterfade">
-            <div>
-                <p>Writable?: {{ writable }}</p>
-                <p>tags ?: {{ dsc.tags }}</p>
-            </div>
-            <!-- <ContentTags v-if="writable" :content="dsc" />
+            <ContentTags v-if="writable" :content="dsc" />
             <div v-else-if="dsc.tags.length" class="nametags p-1">
                 <Nametag v-for="tag in dsc.tags" :key="tag" :tag="tag" />
-            </div> -->
+            </div>
         </transition>
     </section>
 </template>
