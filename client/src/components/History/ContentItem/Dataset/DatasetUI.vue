@@ -22,7 +22,6 @@ either through the props, and make updates through the events -->
             <div class="d-flex mr-1 align-items-center" @click.stop>
                 <b-check v-if="showSelection" :checked="selected" @change="$emit('update:selected', $event)" />
 
-                <!-- 
                 <StatusIcon v-if="!ok" class="status-icon px-1" :state="dataset.state" @click.stop="onStatusClick" />
 
                 <StateBtn
@@ -33,7 +32,6 @@ either through the props, and make updates through the events -->
                     icon="fa fa-eye-slash"
                     @click.stop="$emit('unhideDataset')"
                 />
-
                 <StateBtn
                     v-if="dataset.isDeleted && !dataset.purged"
                     class="px-1"
@@ -41,7 +39,7 @@ either through the props, and make updates through the events -->
                     title="Undelete"
                     icon="fas fa-trash-restore"
                     @click.stop="$emit('undelete')"
-                /> -->
+                />
             </div>
 
             <h5 class="flex-grow-1 overflow-hidden mr-auto text-nowrap text-truncate">
@@ -69,7 +67,7 @@ either through the props, and make updates through the events -->
         <header v-if="expanded" class="p-2">
             <pre>{{ dataset }}</pre>
 
-            <!-- <ClickToEdit
+            <ClickToEdit
                 v-if="dataset.canEditName"
                 tag-name="h4"
                 :value="dataset.name"
@@ -102,7 +100,7 @@ either through the props, and make updates through the events -->
                     </div>
                 </div>
                 <pre v-if="dataset.peek" class="dataset-peek p-1" v-html="dataset.peek"></pre>
-            </div> -->
+            </div>
         </header>
     </div>
 </template>
