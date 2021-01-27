@@ -48,7 +48,6 @@ export default {
     },
     methods: {
         selectCollection(coll) {
-            console.log("selectCollection", coll);
             this.selectedCollections = [...this.selectedCollections, coll];
         },
     },
