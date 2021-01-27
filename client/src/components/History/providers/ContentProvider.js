@@ -51,30 +51,29 @@ export const ContentProvider = {
         };
     },
 
+    watch: {
+        params(newParams, oldParams) {
+            if (!SearchParams.equals(newParams, oldParams)) {
+                this.resetScrollPos();
+            }
+        },
+    },
+
     created() {
         this.initParams();
         this.initScrollPos();
 
-        const { cache$, loader$, loading$, scrolling$ } = this.initStreams();
+        const { payload$, loading$, scrolling$ } = this.initStreams();
 
         this.listenTo(scrolling$, (val) => (this.scrolling = val));
         this.listenTo(loading$, (val) => (this.loading = val));
 
         // render output
         if (!this.disableWatch) {
-            this.listenTo(cache$, {
+            this.listenTo(payload$, {
                 next: (payload) => this.setPayload(payload),
                 error: (err) => console.warn("error in cache$", err),
                 complete: () => console.warn("why did cache$ complete?"),
-            });
-        }
-
-        // keep sub to loader which popualates the cache
-        if (!this.disableLoad) {
-            this.listenTo(loader$, {
-                // next: (result) => console.log("loader$ result", result),
-                error: (err) => console.warn("error in loader$", err),
-                complete: () => console.warn("why did loader$ complete?"),
             });
         }
     },
@@ -87,6 +86,10 @@ export const ContentProvider = {
 
         initScrollPos() {
             this.scrollPos$ = new BehaviorSubject({ cursor: 0.0, key: null });
+        },
+
+        resetScrollPos() {
+            this.scrollPos$.next({ cursor: 0.0, key: null });
         },
 
         initStreams() {
