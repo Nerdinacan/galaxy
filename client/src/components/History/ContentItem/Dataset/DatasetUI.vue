@@ -30,7 +30,7 @@ either through the props, and make updates through the events -->
                     state="hidden"
                     title="Unhide"
                     icon="fa fa-eye-slash"
-                    @click.stop="$emit('unhideDataset')"
+                    @click.stop="$emit('unhide')"
                 />
                 <StateBtn
                     v-if="dataset.isDeleted && !dataset.purged"
@@ -69,13 +69,17 @@ either through the props, and make updates through the events -->
                 v-if="dataset.canEditName"
                 tag-name="h4"
                 :value="dataset.name"
-                @input="$emit('update', { name: $event })"
+                @input="$emit('update:dataset', { name: $event })"
                 :display-label="dataset.title"
                 :tooltip-title="'Edit dataset name...' | localize"
                 tooltip-placement="left"
             />
 
-            <Annotation class="mt-1" :value="dataset.annotation" @input="$emit('update', { annotation: $event })" />
+            <Annotation
+                class="mt-1"
+                :value="dataset.annotation"
+                @input="$emit('update:dataset', { annotation: $event })"
+            />
 
             <ContentTags v-if="showTags" class="mt-2" :content="dataset" />
             <div v-else-if="dataset.nameTags.length" class="nametags mt-2">
