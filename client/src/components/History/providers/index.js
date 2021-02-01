@@ -10,6 +10,10 @@
 export { default as HistoryContentProvider } from "./HistoryContentProvider";
 export { default as CollectionContentProvider } from "./CollectionContentProvider";
 
+// Single dataset provider for use in collection views when a single dataset
+// is required on expand
+export { default as DatasetProvider } from "./DatasetProvider";
+
 // The DscProvider is only complex because we store dataset collection data in
 // two places depending on its place in the data hierarchy. At the root level, a
 // dataset collection is stored as history content. But a collection can nest

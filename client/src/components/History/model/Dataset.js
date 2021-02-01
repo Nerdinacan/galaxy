@@ -40,4 +40,14 @@ export class Dataset extends Content {
         const { display_apps = [], display_types = [] } = this;
         return [...display_apps, ...display_types];
     }
+
+    // determine if a "real" dataset or the abbreviated version returned by
+    // a collection api query
+    get isFullDataset() {
+        // if it has any of this nonssense, it's a nested dataset
+        // element_identifier: "M117-ch_2.fq.fastqsanger"
+        // element_index: 0
+        // element_type: "hda"
+        return this.element_index === undefined && this.element_index === undefined && this.element_type === undefined;
+    }
 }

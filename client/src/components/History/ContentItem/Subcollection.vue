@@ -1,5 +1,4 @@
-<!-- a separate collection content item for collections
-    inside of other collections -->
+<!-- a separate collection content item for collections inside of other collections -->
 
 <template>
     <div

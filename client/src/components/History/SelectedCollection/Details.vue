@@ -18,7 +18,7 @@
 
         <transition name="shutterfade">
             <ContentTags v-if="writable" :content="dsc" />
-            <div v-else-if="dsc.tags.length" class="nametags p-1">
+            <div v-else-if="dsc && dsc.tags && dsc.tags.length" class="nametags p-1">
                 <Nametag v-for="tag in dsc.tags" :key="tag" :tag="tag" />
             </div>
         </transition>
